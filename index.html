@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Work Order</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Font: Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Blinking animation for high priority */
+    @keyframes blink {
+      0% {
+        background-color: rgba(239, 68, 68, 0.2);
+      }
+
+      50% {
+        background-color: rgba(239, 68, 68, 0.5);
+      }
+
+      100% {
+        background-color: rgba(239, 68, 68, 0.2);
+      }
+    }
+
+    .high-priority {
+      animation: blink 2s infinite;
+    }
+
+    /* Table responsive styles */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .table {
+      min-width: 100%;
+      width: max-content;
+    }
+
+    /* Member avatar styles */
+    .member-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .member-avatar-small {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid white;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Status badge styles */
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .status-pending {
+      background-color: rgba(251, 191, 36, 0.2);
+      color: #92400e;
+    }
+
+    .status-progress {
+      background-color: rgba(59, 130, 246, 0.2);
+      color: #1e3a8a;
+    }
+
+    /* Priority badge styles */
+    .priority-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .priority-high {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: #991b1b;
+    }
+
+    .priority-medium {
+      background-color: rgba(245, 158, 11, 0.2);
+      color: #92400e;
+    }
+
+    .priority-low {
+      background-color: rgba(34, 197, 94, 0.2);
+      color: #14532d;
+    }
+
+    /* Empty executor slot styles */
+    .empty-executor-slot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #e5e7eb;
+      border: 1px solid #d1d5db;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .empty-executor-slot:hover {
+      background-color: #d1d5db;
+    }
+
+    /* Delete button styles */
+    .delete-btn {
+      color: #ef4444;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .delete-btn:hover {
+      color: #dc2626;
+      transform: scale(1.1);
+    }
+
+    /* Checkbox custom styles */
+    .custom-checkbox {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #d1d5db;
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .custom-checkbox:checked {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+    }
+
+    .custom-checkbox:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 14px;
+    }
+  </style>
+
+  <!-- SwiperJS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <style>
+    .fade-slide {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  </style>
+</head>
+
+<body class="bg-[#f3f4f6] text-black">
+
+  <!-- TOP CAROUSEL -->
+  <div class="swiper mySwiper w-full h-[20rem] overflow-hidden shadow-xl">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide flex items-center justify-center bg-[#222] text-white text-3xl font-semibold">Welcome to
+        IT Work Order System</div>
+      <div class="swiper-slide flex items-center justify-center bg-[#444] text-white text-3xl font-semibold">Manage
+        Requests Easily</div>
+      <div class="swiper-slide flex items-center justify-center bg-[#666] text-white text-3xl font-semibold">Simple &
+        Clean Dashboard</div>
+    </div>
+    <div class="swiper-pagination"></div>
+  </div>
+
+  <script>
+    new Swiper(".mySwiper", {
+      loop: true,
+      autoplay: { delay: 2400 },
+      pagination: { el: ".swiper-pagination", clickable: true },
+    });
+  </script>
+
+  <br>
+
+  <!-- NAVBAR -->
+  <nav class="w-full bg-[#222] px-6 py-4 flex flex-wrap items-center justify-between shadow-xl -mt-2 gap-4">
+
+    <div class="flex flex-wrap items-center gap-8 px-8">
+      <button
+        class="nav-button group flex items-center gap-2 text-white text-sm font-medium tracking-wide relative transition-all duration-300 hover:scale-105">
+        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path fill-rule="evenodd"
+              d="M11.47 10.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 12.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z"
+              clip-rule="evenodd" />
+            <path fill-rule="evenodd"
+              d="M11.47 4.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 6.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z"
+              clip-rule="evenodd" />
+          </svg>
+        </span> Kaizen Activity
+        <span
+          class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+      </button>
+      <button
+        class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105">
+        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path
+              d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.707 5.25 1.886V4.533ZM12.75 20.636A8.214 8.214 0 0 1 18 18.75c.966 0 1.89.166 2.75.47a.75.75 0 0 0 1-.708V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v16.103Z" />
+          </svg>
+        </span> TechGuide
+        <span
+          class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+      </button>
+      <button
+        class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105">
+        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path fill-rule="evenodd"
+              d="M7.5 5.25a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v.205c.933.085 1.857.197 2.774.334 1.454.218 2.476 1.483 2.476 2.917v3.033c0 1.211-.734 2.352-1.936 2.752A24.726 24.726 0 0 1 12 15.75c-2.73 0-5.357-.442-7.814-1.259-1.202-.4-1.936-1.541-1.936-2.752V8.706c0-1.434 1.022-2.7 2.476-2.917A48.814 48.814 0 0 1 7.5 5.455V5.25Zm7.5 0v.09a49.488 49.488 0 0 0-6 0v-.09a1.5 1.5 0 0 1 1.5-1.5h3a1.5 1.5 0 0 1 1.5 1.5Zm-3 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
+              clip-rule="evenodd" />
+            <path
+              d="M3 18.4v-2.796a4.3 4.3 0 0 0 .713.31A26.226 26.226 0 0 0 12 17.25c2.892 0 5.68-.468 8.287-1.335.252-.084.49-.189.713-.311V18.4c0 1.452-1.047 2.728-2.523 2.923-2.12.282-4.282.427-6.477.427a49.19 49.19 0 0 1-6.477-.427C4.047 21.128 3 19.852 3 18.4Z" />
+          </svg>
+        </span> Work Orders
+        <span
+          class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+      </button>
+      <button
+        class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105">
+        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path d="M21 6.375c0 2.692-4.03 4.875-9 4.875S3 9.067 3 6.375 7.03 1.5 12 1.5s9 2.183 9 4.875Z" />
+            <path
+              d="M12 12.75c2.685 0 5.19-.586 7.078-1.609a8.283 8.283 0 0 0 1.897-1.384c.016.121.025.244.025.368C21 12.817 16.97 15 12 15s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.285 8.285 0 0 0 1.897 1.384C6.809 12.164 9.315 12.75 12 12.75Z" />
+            <path
+              d="M12 16.5c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 15.914 9.315 16.5 12 16.5Z" />
+            <path
+              d="M12 20.25c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 19.664 9.315 20.25 12 20.25Z" />
+          </svg>
+        </span> Summary
+        <span
+          class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+      </button>
+      <button
+        class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105">
+        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path fill-rule="evenodd"
+              d="M8.25 6.75a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM15.75 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM2.25 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM6.31 15.117A6.745 6.745 0 0 1 12 12a6.745 6.745 0 0 1 6.709 7.498.75.75 0 0 1-.372.568A12.696 12.696 0 0 1 12 21.75c-2.305 0-4.47-.612-6.337-1.684a.75.75 0 0 1-.372-.568 6.787 6.787 0 0 1 1.019-4.38Z"
+              clip-rule="evenodd" />
+            <path
+              d="M5.082 14.254a8.287 8.287 0 0 0-1.308 5.135 9.687 9.687 0 0 1-1.764-.44l-.115-.04a.563.563 0 0 1-.373-.487l-.01-.121a3.75 3.75 0 0 1 3.57-4.047ZM20.226 19.389a8.287 8.287 0 0 0-1.308-5.135 3.75 3.75 0 0 1 3.57 4.047l-.01.121a.563.563 0 0 1-.373.486l-.115.04c-.567.2-1.156.349-1.764.441Z" />
+          </svg>
+        </span> Support
+        <span
+          class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+      </button>
+      <button id="createOrderBtn"
+        class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105">
+        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path fill-rule="evenodd"
+              d="M1.5 6.375c0-1.036.84-1.875 1.875-1.875h17.25c1.035 0 1.875.84 1.875 1.875v3.026a.75.75 0 0 1-.375.65 2.249 2.249 0 0 0 0 3.898.75.75 0 0 1 .375.65v3.026c0 1.035-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 0 1 1.5 17.625v-3.026a.75.75 0 0 1 .374-.65 2.249 2.249 0 0 0 0-3.898.75.75 0 0 1-.374-.65V6.375Zm15-1.125a.75.75 0 0 1 .75.75v.75a.75.75 0 0 1-1.5 0V6a.75.75 0 0 1 .75-.75Zm.75 4.5a.75.75 0 0 0-1.5 0v.75a.75.75 0 0 0 1.5 0v-.75Zm-.75 3a.75.75 0 0 1 .75.75v.75a.75.75 0 0 1-1.5 0v-.75a.75.75 0 0 1 .75-.75Zm.75 4.5a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-.75ZM6 12a.75.75 0 0 1 .75-.75H12a.75.75 0 0 1 0 1.5H6.75A.75.75 0 0 1 6 12Zm.75 2.25a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3Z"
+              clip-rule="evenodd" />
+          </svg>
+        </span> Create Orders
+        <span
+          class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+      </button>
+    </div>
+
+    <div
+      class="flex items-center gap-3 bg-[#333] px-5 py-2 rounded-full shadow transition-all duration-300 hover:scale-105 relative">
+      <img src="d722262e277bb21e40d36ec5f2f5c773.jpg" class="w-10 h-10 rounded-full" />
+      <button id="profileDropdownBtn" class="text-white text-lg">▼</button>
+
+      <!-- DROPDOWN -->
+      <div id="profileDropdown"
+        class="hidden absolute right-0 top-14 bg-white shadow-lg rounded-lg w-32 text-black text-sm overflow-hidden">
+        <button class="w-full px-4 py-2 hover:bg-gray-200 text-left">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <br>
+
+  <!-- MEMBER STATUS BAR -->
+  <div class="w-full px-10 mt-4 flex items-center gap-4 text-sm font-medium">
+
+    <!-- Stand By -->
+    <div id="status-standby" data-status="standby" class="status-container flex items-center gap-3 px-4 py-2 shadow rounded-full border border-gray-200 
+              bg-gradient-to-r from-green-50 to-green-200 cursor-pointer">
+      <div class="member-images flex items-center gap-1"></div>
+      <div
+        class="more-members hidden w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-gray-700">
+      </div>
+      <span class="w-3 h-3 rounded-full bg-green-500"></span>
+      <span class="font-semibold text-gray-700">Stand By</span>
+    </div>
+
+    <!-- On Job -->
+    <div id="status-onjob" data-status="onjob" class="status-container flex items-center gap-3 px-4 py-2 shadow rounded-full border border-gray-200 
+              bg-gradient-to-r from-blue-50 to-blue-200 cursor-pointer">
+      <div class="member-images flex items-center gap-1"></div>
+      <div
+        class="more-members hidden w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-gray-700">
+      </div>
+      <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+      <span class="font-semibold text-gray-700">On Job</span>
+    </div>
+
+    <!-- Support -->
+    <div id="status-support" data-status="support" class="status-container flex items-center gap-3 px-4 py-2 shadow rounded-full border border-gray-200 
+              bg-gradient-to-r from-yellow-50 to-yellow-200 cursor-pointer">
+      <div class="member-images flex items-center gap-1"></div>
+      <div
+        class="more-members hidden w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-gray-700">
+      </div>
+      <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+      <span class="font-semibold text-gray-700">Support</span>
+    </div>
+
+    <!-- Next Shift -->
+    <div id="status-nextshift" data-status="nextshift" class="status-container flex items-center gap-3 px-4 py-2 shadow rounded-full border border-gray-200 
+              bg-gradient-to-r from-purple-50 to-purple-200 cursor-pointer">
+      <div class="member-images flex items-center gap-1"></div>
+      <div
+        class="more-members hidden w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-gray-700">
+      </div>
+      <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+      <span class="font-semibold text-gray-700">Next Shift</span>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="relative flex items-center gap-3 bg-black/20 px-3 py-2 rounded-full w-[16.6rem] h-[3.2rem]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18a7.5 7.5 0 006.15-3.35z" />
+      </svg>
+      <input id="memberSearchInput" type="text" placeholder="Search member..."
+        class="bg-transparent w-full outline-none text-black placeholder-black/70 font-color-black">
+
+      <!-- Search Dropdown -->
+      <div id="searchDropdown"
+        class="hidden absolute top-12 left-0 right-0 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
+        <div id="searchResults" class="py-2"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MEMBER STATUS POPUP -->
+  <div id="memberStatusPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Manage Member Status</h2>
+        <button id="closePopup" class="text-gray-500 hover:text-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Status Filter Tabs -->
+      <div class="flex flex-wrap gap-2 mb-6">
+        <button data-status-filter="all"
+          class="status-filter-tab px-4 py-2 rounded-lg bg-blue-500 text-white font-medium transition-all">All
+          Members</button>
+        <button data-status-filter="standby"
+          class="status-filter-tab px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-all">Stand
+          By</button>
+        <button data-status-filter="onjob"
+          class="status-filter-tab px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-all">On
+          Job</button>
+        <button data-status-filter="support"
+          class="status-filter-tab px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-all">Support</button>
+        <button data-status-filter="nextshift"
+          class="status-filter-tab px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-all">Next
+          Shift</button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Member list will be populated here -->
+        <div id="memberList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAKE ORDER POPUP -->
+  <div id="takeOrderPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-3xl max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Ambil Work Order</h2>
+        <button id="closeTakeOrderPopup" class="text-gray-500 hover:text-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Left Column - Order Details -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Detail Order</h3>
+          <div class="bg-gray-50 p-4 rounded-lg space-y-2">
+            <div class="flex justify-between">
+              <span class="font-medium">No. Order:</span>
+              <span id="popupOrderId" class="text-gray-700"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">Prioritas:</span>
+              <span id="popupPriority" class="text-gray-700"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">Lokasi:</span>
+              <span id="popupLocation" class="text-gray-700"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">Device:</span>
+              <span id="popupDevice" class="text-gray-700"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">Masalah:</span>
+              <span id="popupProblem" class="text-gray-700"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Operator Selection -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Pilih Operator</h3>
+          <div class="bg-gray-50 p-4 rounded-lg max-h-60 overflow-y-auto">
+            <div id="standbyOperatorsList" class="space-y-2">
+              <!-- Standby operators will be populated here -->
+            </div>
+          </div>
+
+          <button id="addMoreOperatorsBtn"
+            class="mt-3 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Tambah Operator Bantuan
+          </button>
+        </div>
+      </div>
+
+      <!-- Safety Checklist -->
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold mb-4">Safety Checklist</h3>
+        <div id="safetyChecklist" class="bg-gray-50 p-4 rounded-lg space-y-3">
+          <!-- Safety checklist items will be populated here -->
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="mt-6 flex justify-end gap-3">
+        <button id="cancelTakeOrderBtn"
+          class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+          Batal
+        </button>
+        <button id="confirmTakeOrderBtn"
+          class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+          Konfirmasi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE ORDER POPUP -->
+  <div id="createOrderPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Buat Work Order Baru</h2>
+        <button id="closeCreateOrderPopup" class="text-gray-500 hover:text-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="createOrderForm" class="space-y-4">
+        <!-- Klasifikasi/Prioritas -->
+        <div>
+          <label for="orderPriority" class="block text-sm font-medium text-gray-700 mb-1">Klasifikasi/Prioritas</label>
+          <select id="orderPriority" name="priority"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+
+        <!-- Requester -->
+        <div>
+          <label for="orderRequester" class="block text-sm font-medium text-gray-700 mb-1">Nama Requester</label>
+          <input type="text" id="orderRequester" name="requester" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Masukkan nama requester">
+        </div>
+
+        <!-- Lokasi -->
+        <div>
+          <label for="orderLocation" class="block text-sm font-medium text-gray-700 mb-1">Lokasi</label>
+          <select id="orderLocation" name="location"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">-- Pilih Lokasi --</option>
+            <option value="Gedung A">Gedung A</option>
+            <option value="Gedung B">Gedung B</option>
+            <option value="Gedung B Baru">Gedung B Baru</option>
+            <option value="Gedung C">Gedung C</option>
+            <option value="Gedung D">Gedung D</option>
+            <option value="Gedung TKI">Gedung TKI</option>
+            <option value="Gedung E">Gedung E</option>
+            <option value="Gedung F">Gedung F</option>
+            <option value="Gedung G">Gedung G</option>
+            <option value="Ruang Guru">Ruang Guru</option>
+            <option value="Ruang Yayasan">Ruang Yayasan</option>
+          </select>
+        </div>
+
+        <!-- Spesifikasi Lokasi (FITUR BARU) -->
+        <div id="specificLocationContainer" class="hidden">
+          <label for="specificLocation" class="block text-sm font-medium text-gray-700 mb-1">Spesifikasi Lokasi</label>
+          <input type="text" id="specificLocation" name="specificLocation"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Contoh: Lantai 2, Ruang 201">
+        </div>
+
+        <!-- Nama Device -->
+        <div>
+          <label for="orderDevice" class="block text-sm font-medium text-gray-700 mb-1">Nama Device</label>
+          <input type="text" id="orderDevice" name="device" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Contoh: Printer HP, Laptop Dell, dll">
+        </div>
+
+        <!-- Masalah -->
+        <div>
+          <label for="orderProblem" class="block text-sm font-medium text-gray-700 mb-1">Masalah</label>
+          <textarea id="orderProblem" name="problem" rows="3" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Jelaskan masalah yang terjadi"></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" id="cancelCreateOrderBtn"
+            class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+            Batal
+          </button>
+          <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+            Buat Order
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <main class="px-10 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- LEFT CONTENT - WORK ORDERS TABLE -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 col-span-2 border border-gray-200">
+      <h2 class="text-2xl font-semibold mb-4">Work Orders</h2>
+
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="text-left py-3 px-2 font-semibold text-sm">No</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Klasifikasi</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Jam</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Requester</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Lokasi</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Nama Device</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Masalah</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Pelaksana</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Working Hours</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Status</th>
+              <th class="text-left py-3 px-2 font-semibold text-sm">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="workOrdersTableBody">
+            <!-- Table rows will be populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT SUMMARY -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-200">
+      <h2 class="text-2xl font-semibold mb-6">Quick Summary</h2>
+
+      <div class="flex flex-col gap-4">
+        <div class="p-4 bg-[#fafafa] rounded-xl shadow-sm border border-gray-200">
+          <p class="text-sm text-gray-600">Total Work Orders</p>
+          <p class="text-3xl font-bold mt-1" id="totalOrdersCount">0</p>
+        </div>
+
+        <div class="p-4 bg-[#fafafa] rounded-xl shadow-sm border border-gray-200">
+          <p class="text-sm text-gray-600">Pending</p>
+          <p class="text-3xl font-bold mt-1" id="pendingOrdersCount">0</p>
+        </div>
+
+        <div class="p-4 bg-[#fafafa] rounded-xl shadow-sm border border-gray-200">
+          <p class="text-sm text-gray-600">On Progress</p>
+          <p class="text-3xl font-bold mt-1" id="progressOrdersCount">0</p>
+        </div>
+
+        <div class="p-4 bg-[#fafafa] rounded-xl shadow-sm border border-gray-200">
+          <p class="text-sm text-gray-600">Completed</p>
+          <p class="text-3xl font-bold mt-1" id="completedOrdersCount">0</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <br><br>
+
+  <script>
+    const btn = document.getElementById("profileDropdownBtn");
+    const menu = document.getElementById("profileDropdown");
+
+    btn.addEventListener("click", () => {
+      menu.classList.toggle("hidden");
+    });
+
+    // Klik di luar dropdown untuk menutup
+    document.addEventListener("click", (e) => {
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add("hidden");
+      }
+    });
+  </script>
+
+  <script>
+    // GSAP Fade + Slide Animation
+    window.addEventListener("load", () => {
+      gsap.utils.toArray(".fade-slide").forEach((el, i) => {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          delay: i * 0.15,
+          ease: "power2.out",
+        });
+      });
+    });
+  </script>
+
+  <script>
+    // Member Status Management
+    document.addEventListener('DOMContentLoaded', function () {
+      // Sample member data
+      const members = [
+        { id: 1, name: 'John Doe', avatar: 'https://i.pravatar.cc/40?img=15', status: 'standby' },
+        { id: 2, name: 'Jane Smith', avatar: 'https://i.pravatar.cc/40?img=12', status: 'onjob' },
+        { id: 3, name: 'Bob Johnson', avatar: 'https://i.pravatar.cc/40?img=7', status: 'support' },
+        { id: 4, name: 'Alice Williams', avatar: 'https://i.pravatar.cc/40?img=20', status: 'nextshift' },
+        { id: 5, name: 'Charlie Brown', avatar: 'https://i.pravatar.cc/40?img=1', status: 'standby' },
+        { id: 6, name: 'Diana Prince', avatar: 'https://i.pravatar.cc/40?img=2', status: 'onjob' },
+        { id: 7, name: 'Ethan Hunt', avatar: 'https://i.pravatar.cc/40?img=3', status: 'support' },
+        { id: 8, name: 'Fiona Green', avatar: 'https://i.pravatar.cc/40?img=4', status: 'nextshift' },
+        { id: 9, name: 'George Miller', avatar: 'https://i.pravatar.cc/40?img=5', status: 'nextshift' },
+        { id: 10, name: 'Hannah Davis', avatar: 'https://i.pravatar.cc/40?img=6', status: 'nextshift' },
+        { id: 11, name: 'Ian Wilson', avatar: 'https://i.pravatar.cc/40?img=8', status: 'nextshift' },
+        { id: 12, name: 'Julia Taylor', avatar: 'https://i.pravatar.cc/40?img=9', status: 'nextshift' },
+        { id: 13, name: 'Kevin Anderson', avatar: 'https://i.pravatar.cc/40?img=10', status: 'nextshift' }
+      ];
+
+      // Sample requester data
+      const requesters = [
+        { id: 101, name: 'Michael Scott', department: 'Management' },
+        { id: 102, name: 'Dwight Schrute', department: 'Sales' },
+        { id: 103, name: 'Jim Halpert', department: 'Sales' },
+        { id: 104, name: 'Pam Beesly', department: 'Reception' },
+        { id: 105, name: 'Oscar Martinez', department: 'Accounting' },
+        { id: 106, name: 'Angela Martin', department: 'Accounting' },
+        { id: 107, name: 'Kevin Malone', department: 'Accounting' },
+        { id: 108, name: 'Stanley Hudson', department: 'Sales' },
+        { id: 109, name: 'Phyllis Vance', department: 'Sales' },
+        { id: 110, name: 'Meredith Palmer', department: 'Supplier Relations' }
+      ];
+
+      // Sample work orders data - DIKOSONGKAN SEMUA DATA
+      const workOrders = [];
+
+      // Comprehensive safety checklist items for all locations
+      const safetyChecklistItems = {
+        'CCTV': [
+          { id: 'cctv1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'cctv2', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'cctv3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'cctv4', text: 'Gunakan Sarung Tangan', required: true }
+        ],
+        'WiFi': [
+          { id: 'wifi1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'wifi2', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'wifi3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'wifi4', text: 'Gunakan Sarung Tangan', required: true }
+        ],
+        'Gedung A': [
+          { id: 'ga1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'ga2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'ga3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'ga4', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'ga5', text: 'Gunakan sepatu safety', required: true }
+        ],
+        'Gedung B': [
+          { id: 'gb1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'gb2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'gb3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'gb4', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'gb5', text: 'Gunakan sepatu safety', required: true }
+        ],
+        'Gedung B Baru': [
+          { id: 'gbb1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'gbb2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'gbb3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'gbb4', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'gbb5', text: 'Gunakan sepatu safety', required: true }
+        ],
+        'Gedung C': [
+          { id: 'gc1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'gc2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'gc3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'gc4', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'gc5', text: 'Gunakan sepatu safety', required: true }
+        ],
+        'Gedung D': [
+          { id: 'gd1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'gd2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'gd3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'gd4', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'gd5', text: 'Gunakan sepatu safety', required: true }
+        ],
+        'Gedung E': [
+          { id: 'ge1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'ge2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'ge3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'ge4', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'ge5', text: 'Gunakan sepatu safety', required: true }
+        ],
+        'Gedung F': [
+          { id: 'gf1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'gf2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'gf3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'gf4', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'gf5', text: 'Gunakan sepatu safety', required: true }
+        ],
+        'Gedung G': [
+          { id: 'gg1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'gg2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'gg3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'gg4', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'gg5', text: 'Gunakan sepatu safety', required: true }
+        ],
+        'Gedung TKI': [
+          { id: 'gt1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'gt2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'gt3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'gt4', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'gt5', text: 'Gunakan sepatu safety', required: true }
+        ],
+        'Ruang Guru': [
+          { id: 'rg1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'rg2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'rg3', text: 'Pastikan area kerja aman', required: false },
+          { id: 'rg4', text: 'Matikan listrik sebelum bekerja', required: true }
+        ],
+        'Ruang Yayasan': [
+          { id: 'ry1', text: 'Pastikan sirkulasi udara baik', required: false },
+          { id: 'ry2', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'ry3', text: 'Matikan listrik sebelum bekerja', required: true },
+          { id: 'ry4', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'ry5', text: 'Pastikan area kerja aman', required: true }
+        ],
+        // Default safety checklist for any location not explicitly defined
+        'default': [
+          { id: 'def1', text: 'Gunakan pelindung mata (goggles)', required: false },
+          { id: 'def2', text: 'Gunakan Sarung Tangan', required: false },
+          { id: 'def3', text: 'Pastikan area kerja aman', required: true },
+          { id: 'def4', text: 'Matikan listrik sebelum bekerja', required: true }
+        ]
+      };
+
+      // Current logged-in user (for demonstration, using member with id 1)
+      const currentUser = members[0];
+
+      // Current order being processed
+      let currentOrder = [1];
+      let selectedOperators = [];
+      let additionalOperators = [];
+
+      // DOM elements
+      const memberStatusPopup = document.getElementById('memberStatusPopup');
+      const memberList = document.getElementById('memberList');
+      const closePopupBtn = document.getElementById('closePopup');
+      const statusContainers = document.querySelectorAll('.status-container');
+      const workOrdersTableBody = document.getElementById('workOrdersTableBody');
+
+      // Take order popup elements
+      const takeOrderPopup = document.getElementById('takeOrderPopup');
+      const closeTakeOrderPopupBtn = document.getElementById('closeTakeOrderPopup');
+      const cancelTakeOrderBtn = document.getElementById('cancelTakeOrderBtn');
+      const confirmTakeOrderBtn = document.getElementById('confirmTakeOrderBtn');
+      const addMoreOperatorsBtn = document.getElementById('addMoreOperatorsBtn');
+
+      // Create order popup elements
+      const createOrderPopup = document.getElementById('createOrderPopup');
+      const closeCreateOrderPopupBtn = document.getElementById('closeCreateOrderPopup');
+      const cancelCreateOrderBtn = document.getElementById('cancelCreateOrderBtn');
+      const createOrderForm = document.getElementById('createOrderForm');
+      const createOrderBtn = document.getElementById('createOrderBtn');
+      const orderRequesterInput = document.getElementById('orderRequester');
+
+      // New elements for specific location
+      const orderLocationSelect = document.getElementById('orderLocation');
+      const specificLocationContainer = document.getElementById('specificLocationContainer');
+      const specificLocationInput = document.getElementById('specificLocation');
+
+      // Search elements
+      const memberSearchInput = document.getElementById('memberSearchInput');
+      const searchDropdown = document.getElementById('searchDropdown');
+      const searchResults = document.getElementById('searchResults');
+
+      // Status filter tabs
+      const statusFilterTabs = document.querySelectorAll('.status-filter-tab');
+      let currentStatusFilter = 'all';
+
+      // Initialize member images on page load
+      initializeMemberImages();
+
+      // Populate work orders table
+      populateWorkOrdersTable();
+
+      // Update summary counts
+      updateSummaryCounts();
+
+      // Open popup when any status button is clicked
+      statusContainers.forEach(container => {
+        container.addEventListener('click', function (e) {
+          // Prevent opening popup if clicking on a member image
+          if (!e.target.closest('.member-images') && !e.target.closest('.more-members')) {
+            // Set filter to clicked status
+            const status = this.dataset.status;
+            currentStatusFilter = status;
+
+            // Update filter tabs
+            updateFilterTabs(status);
+
+            openMemberStatusPopup(status);
+          }
+        });
+      });
+
+      // Close popup when close button is clicked
+      closePopupBtn.addEventListener('click', function () {
+        memberStatusPopup.classList.add('hidden');
+      });
+
+
+      // Take order popup event listeners
+      closeTakeOrderPopupBtn.addEventListener('click', function () {
+        takeOrderPopup.classList.add('hidden');
+        resetTakeOrderForm();
+      });
+
+      cancelTakeOrderBtn.addEventListener('click', function () {
+        takeOrderPopup.classList.add('hidden');
+        resetTakeOrderForm();
+      });
+
+
+      // Confirm take order
+      confirmTakeOrderBtn.addEventListener('click', function () {
+        confirmTakeOrder();
+      });
+
+      // Add more operators button
+      addMoreOperatorsBtn.addEventListener('click', function () {
+        showAdditionalOperatorsDialog();
+      });
+
+      // Create order popup event listeners
+      createOrderBtn.addEventListener('click', function () {
+        createOrderPopup.classList.remove('hidden');
+      });
+
+      closeCreateOrderPopupBtn.addEventListener('click', function () {
+        createOrderPopup.classList.add('hidden');
+        createOrderForm.reset();
+        // Hide specific location field when closing
+        specificLocationContainer.classList.add('hidden');
+      });
+
+      cancelCreateOrderBtn.addEventListener('click', function () {
+        createOrderPopup.classList.add('hidden');
+        createOrderForm.reset();
+        // Hide specific location field when canceling
+        specificLocationContainer.classList.add('hidden');
+      });
+
+
+
+
+      // Event listener for location dropdown to show/hide specific location input
+      orderLocationSelect.addEventListener('change', function () {
+        const selectedLocation = this.value;
+
+        // Define specific location prompts for each main location
+        const locationPrompts = {
+          'Gedung A': 'Contoh: Lantai 2, Ruang Kelas',
+          'Gedung B': 'Contoh: Lantai 1, Lorong Kelas',
+          'Gedung B Baru': 'Contoh: Lantai 3, Lorong Kelas',
+          'Gedung C': 'Contoh: Lantai 1, Lorong Kelas',
+          'Gedung D': 'Contoh: Lantai 2, Ruang PPDB',
+          'Gedung E': 'Contoh: Lantai 1, Bengkel',
+          'Gedung F': 'Contoh: Lantai 1, Ruang Kelas',
+          'Gedung G': 'Contoh: Pintu Masuk Workshop',
+          'Gedung TKI': 'Contoh: Lantai 1',
+          'Ruang Guru': 'Contoh: Ruang Horenso,',
+          'Ruang Yayasan': 'Contoh: Ruang Ketua Yayasan',
+          'default': 'Contoh: Nomor ruang, lantai, atau area spesifik'
+        };
+
+        if (selectedLocation) {
+          // Show the specific location input
+          specificLocationContainer.classList.remove('hidden');
+
+          // Set the placeholder based on the selected location
+          const prompt = locationPrompts[selectedLocation] || locationPrompts['default'];
+          specificLocationInput.placeholder = prompt;
+        } else {
+          // Hide the specific location input if no location is selected
+          specificLocationContainer.classList.add('hidden');
+        }
+      });
+
+      // Handle form submission
+      createOrderForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // Get form values
+        const priority = document.getElementById('orderPriority').value;
+        const requesterName = document.getElementById('orderRequester').value;
+        const location = document.getElementById('orderLocation').value;
+        const specificLocation = document.getElementById('specificLocation').value;
+        const device = document.getElementById('orderDevice').value;
+        const problem = document.getElementById('orderProblem').value;
+
+        // Get current time
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const currentTime = `${hours}:${minutes}`;
+
+        // Combine location and specific location
+        const finalLocation = specificLocation ? `${location} - ${specificLocation}` : location;
+
+        // Generate new order ID (increment from highest existing ID, or start with 1 if empty)
+        const newOrderId = workOrders.length > 0 ? Math.max(...workOrders.map(order => order.id)) + 1 : 1;
+
+        // Create new order object
+        const newOrder = {
+          id: newOrderId,
+          priority: priority,
+          time: currentTime,
+          requester: requesterName, // Using the name directly instead of ID
+          location: finalLocation, // Use the combined location
+          device: device,
+          problem: problem,
+          executors: [], // No executors initially
+          workingHours: '0 jam', // Will be updated when work starts
+          status: 'pending',
+          safetyChecklist: []
+        };
+
+        // Add the new order to the work orders array
+        workOrders.push(newOrder);
+
+        // Refresh the work orders table
+        populateWorkOrdersTable();
+
+        // Update summary counts
+        updateSummaryCounts();
+
+        // Close the popup and reset the form
+        createOrderPopup.classList.add('hidden');
+        createOrderForm.reset();
+
+        // Hide specific location field when resetting form
+        specificLocationContainer.classList.add('hidden');
+
+        // Show success message
+        alert(`Work Order #${newOrderId} berhasil dibuat!`);
+      });
+
+      // Status filter tab click events
+      statusFilterTabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+          const status = this.dataset.statusFilter;
+          currentStatusFilter = status;
+
+          // Update the filter tabs UI
+          updateFilterTabs(status);
+
+          // Update the member list
+          populateMemberList(status);
+        });
+      });
+
+      // Search functionality
+      memberSearchInput.addEventListener('focus', function () {
+        showSearchDropdown();
+        populateSearchResults();
+      });
+
+      memberSearchInput.addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        populateSearchResults(searchTerm);
+      });
+
+      // Close search dropdown when clicking outside
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.relative')) {
+          searchDropdown.classList.add('hidden');
+        }
+      });
+
+      // Function to populate work orders table
+      function populateWorkOrdersTable() {
+        workOrdersTableBody.innerHTML = '';
+
+        // Sort work orders by priority (high first)
+        const sortedWorkOrders = [...workOrders].sort((a, b) => {
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+
+        sortedWorkOrders.forEach(order => {
+          const row = document.createElement('tr');
+
+          // Add high priority class for blinking effect
+          if (order.priority === 'high') {
+            row.classList.add('high-priority');
+          }
+
+          // Get priority badge HTML
+          let priorityBadge = '';
+          switch (order.priority) {
+            case 'high':
+              priorityBadge = '<span class="priority-badge priority-high">High Priority</span>';
+              break;
+            case 'medium':
+              priorityBadge = '<span class="priority-badge priority-medium">Medium</span>';
+              break;
+            case 'low':
+              priorityBadge = '<span class="priority-badge priority-low">Low</span>';
+              break;
+          }
+
+          // Get status badge HTML
+          let statusBadge = '';
+          switch (order.status) {
+            case 'pending':
+              statusBadge = '<span class="status-badge status-pending">Pending</span>';
+              break;
+            case 'progress':
+              statusBadge = '<span class="status-badge status-progress">On Progress</span>';
+              break;
+          }
+
+          // Get requester information - handle both ID and name cases
+          let requesterName = 'Unknown';
+          if (typeof order.requester === 'number') {
+            const requester = requesters.find(r => r.id === order.requester);
+            requesterName = requester ? requester.name : 'Unknown';
+          } else if (typeof order.requester === 'string') {
+            requesterName = order.requester;
+          }
+
+          // Get executors HTML - only show members with "onjob" status
+          let executorsHtml = '<div class="flex -space-x-2">';
+          order.executors.forEach((executorId, index) => {
+            const member = members.find(m => m.id === executorId);
+            // Only show the executor if they have "onjob" status
+            if (member && member.status === 'onjob') {
+              executorsHtml += `<img src="${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small">`;
+            }
+          });
+
+          // Add empty slots if less than 3 executors
+          const emptySlots = 3 - order.executors.length;
+          for (let i = 0; i < emptySlots; i++) {
+            executorsHtml += `<div class="empty-executor-slot" data-order-id="${order.id}" data-slot-index="${order.executors.length + i}" title="Ambil order ini">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>`;
+          }
+
+          executorsHtml += '</div>';
+
+          // Add delete button
+          const deleteButton = `<button class="delete-btn" data-order-id="${order.id}" title="Hapus order">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>`;
+
+          row.innerHTML = `
+          <td class="py-3 px-2 text-sm">${order.id}</td>
+          <td class="py-3 px-2 text-sm">${priorityBadge}</td>
+          <td class="py-3 px-2 text-sm">${order.time}</td>
+          <td class="py-3 px-2 text-sm">${requesterName}</td>
+          <td class="py-3 px-2 text-sm">${order.location}</td>
+          <td class="py-3 px-2 text-sm">${order.device}</td>
+          <td class="py-3 px-2 text-sm">${order.problem}</td>
+          <td class="py-3 px-2 text-sm">${executorsHtml}</td>
+          <td class="py-3 px-2 text-sm">${order.workingHours}</td>
+          <td class="py-3 px-2 text-sm">${statusBadge}</td>
+          <td class="py-3 px-2 text-sm">${deleteButton}</td>
+        `;
+
+          workOrdersTableBody.appendChild(row);
+        });
+
+        // Add event listeners for empty executor slots
+        document.querySelectorAll('.empty-executor-slot').forEach(slot => {
+          slot.addEventListener('click', function () {
+            const orderId = parseInt(this.dataset.orderId);
+            openTakeOrderPopup(orderId);
+          });
+        });
+
+        // Add event listeners for delete buttons
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', function () {
+            const orderId = parseInt(this.dataset.orderId);
+            deleteOrder(orderId);
+          });
+        });
+      }
+
+
+      function openTakeOrderPopup(orderId) {
+        const order = workOrders.find(o => o.id === orderId);
+        if (!order) return;
+
+        // Check if current user is already assigned to this order
+        if (order.executors.includes(currentUser.id)) {
+          alert('Anda sudah terdaftar sebagai pelaksana untuk order ini!');
+          return;
+        }
+
+        currentOrder = order;
+        selectedOperators = []; // UBAH: mulai dari array kosong
+        additionalOperators = [];
+
+        // ... sisanya sama
+
+        // Populate order details
+        document.getElementById('popupOrderId').textContent = order.id;
+        document.getElementById('popupPriority').textContent = order.priority.charAt(0).toUpperCase() + order.priority.slice(1);
+        document.getElementById('popupLocation').textContent = order.location;
+        document.getElementById('popupDevice').textContent = order.device;
+        document.getElementById('popupProblem').textContent = order.problem;
+
+        // Populate standby operators
+        populateStandbyOperators();
+
+        // Populate safety checklist
+        populateSafetyChecklist(order.location);
+
+        // Show popup
+        takeOrderPopup.classList.remove('hidden');
+      }
+
+      function populateStandbyOperators() {
+        const standbyOperatorsList = document.getElementById('standbyOperatorsList');
+        standbyOperatorsList.innerHTML = '';
+
+        const standbyMembers = members.filter(m =>
+          m.status === 'standby' && !currentOrder.executors.includes(m.id)
+        );
+
+        if (standbyMembers.length === 0) {
+          standbyOperatorsList.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada operator standby tersedia</p>';
+          return;
+        }
+
+        standbyMembers.forEach(member => {
+          const operatorDiv = document.createElement('div');
+          operatorDiv.className = 'flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'custom-checkbox';
+          checkbox.value = member.id;
+
+          checkbox.addEventListener('change', function () {
+            if (this.checked) {
+              if (!selectedOperators.includes(member.id)) {
+                selectedOperators.push(member.id);
+              }
+            } else {
+              const index = selectedOperators.indexOf(member.id);
+              if (index > -1) {
+                selectedOperators.splice(index, 1);
+              }
+            }
+          });
+
+          operatorDiv.innerHTML = `
+      <img src="${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
+      <div class="flex-1">
+        <div class="font-medium">${member.name}</div>
+        <div class="text-xs text-gray-500">Status: Stand By</div>
+      </div>
+    `;
+
+          operatorDiv.insertBefore(checkbox, operatorDiv.firstChild);
+          standbyOperatorsList.appendChild(operatorDiv);
+        });
+      }
+
+      // Function to populate safety checklist
+      function populateSafetyChecklist(location) {
+        const safetyChecklistDiv = document.getElementById('safetyChecklist');
+        safetyChecklistDiv.innerHTML = '';
+
+        // Extract the main location from the location string (remove specific location details)
+        let mainLocation = location;
+        if (location.includes(' - ')) {
+          mainLocation = location.split(' - ')[0];
+        }
+
+        // Get safety checklist items for the location, or use default if not found
+        const items = safetyChecklistItems[mainLocation] || safetyChecklistItems['default'];
+
+        if (items.length === 0) {
+          safetyChecklistDiv.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada checklist safety untuk lokasi ini</p>';
+          return;
+        }
+
+        items.forEach(item => {
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'flex items-center gap-3';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'custom-checkbox';
+          checkbox.id = item.id;
+          checkbox.dataset.required = item.required;
+
+          const label = document.createElement('label');
+          label.htmlFor = item.id;
+          label.className = 'flex-1 cursor-pointer';
+          label.innerHTML = `${item.text} ${item.required ? '<span class="text-red-500">*</span>' : ''}`;
+
+          itemDiv.appendChild(checkbox);
+          itemDiv.appendChild(label);
+          safetyChecklistDiv.appendChild(itemDiv);
+        });
+      }
+
+      // Function to show additional operators dialog
+      function showAdditionalOperatorsDialog() {
+        const nonStandbyMembers = members.filter(m => m.status !== 'standby' && m.status !== 'onjob');
+
+        if (nonStandbyMembers.length === 0) {
+          alert('Tidak ada operator tambahan yang tersedia');
+          return;
+        }
+
+        const operatorNames = nonStandbyMembers.map(m => `${m.name} (${m.status})`).join('\n');
+        const selectedNames = prompt(`Pilih operator tambahan (pisahkan dengan koma):\n\n${operatorNames}`);
+
+        if (selectedNames) {
+          const names = selectedNames.split(',').map(name => name.trim());
+          additionalOperators = [];
+
+          names.forEach(name => {
+            const member = nonStandbyMembers.find(m =>
+              m.name.toLowerCase().includes(name.toLowerCase())
+            );
+            if (member) {
+              additionalOperators.push(member.id);
+            }
+          });
+
+          if (additionalOperators.length > 0) {
+            alert(`Berhasil menambah ${additionalOperators.length} operator bantuan`);
+          }
+        }
+      }
+
+      // Function to confirm take order
+      function confirmTakeOrder() {
+        if (!currentOrder) return;
+
+        if (selectedOperators.length === 0 && additionalOperators.length === 0) {
+          alert('Harap pilih minimal satu operator untuk mengerjakan order ini');
+          return;
+        }
+
+        const requiredCheckboxes = document.querySelectorAll('#safetyChecklist input[data-required="true"]');
+        let allRequiredChecked = true;
+
+        requiredCheckboxes.forEach(checkbox => {
+          if (!checkbox.checked) {
+            allRequiredChecked = false;
+          }
+        });
+
+        if (!allRequiredChecked) {
+          alert('Harap centang semua item safety checklist yang wajib ditandai (*)');
+          return;
+        }
+
+        // Collect safety checklist data
+        const safetyChecklist = [];
+        document.querySelectorAll('#safetyChecklist input').forEach(checkbox => {
+          if (checkbox.checked) {
+            safetyChecklist.push(checkbox.id);
+          }
+        });
+
+        // Update order
+        const orderIndex = workOrders.findIndex(o => o.id === currentOrder.id);
+        if (orderIndex !== -1) {
+          // Add all selected operators
+          selectedOperators.forEach(operatorId => {
+            if (!workOrders[orderIndex].executors.includes(operatorId)) {
+              workOrders[orderIndex].executors.push(operatorId);
+            }
+          });
+
+          // Add additional operators
+          additionalOperators.forEach(operatorId => {
+            if (!workOrders[orderIndex].executors.includes(operatorId)) {
+              workOrders[orderIndex].executors.push(operatorId);
+            }
+          });
+
+          // Update safety checklist
+          workOrders[orderIndex].safetyChecklist = safetyChecklist;
+
+          // Update order status to progress if it was pending
+          if (workOrders[orderIndex].status === 'pending') {
+            workOrders[orderIndex].status = 'progress';
+          }
+
+          // Update operator statuses
+          selectedOperators.forEach(operatorId => {
+            updateMemberStatus(operatorId, 'onjob');
+          });
+
+          additionalOperators.forEach(operatorId => {
+            updateMemberStatus(operatorId, 'onjob');
+          });
+        }
+
+        // Refresh table
+        populateWorkOrdersTable();
+
+        // Update summary counts
+        updateSummaryCounts();
+
+        // Close popup and reset form
+        takeOrderPopup.classList.add('hidden');
+        resetTakeOrderForm();
+
+        // Show success message
+        alert(`Berhasil mengambil order #${currentOrder.id}!`);
+      }
+
+      // Function to reset take order form
+      function resetTakeOrderForm() {
+        currentOrder = null;
+        selectedOperators = [];
+        additionalOperators = [];
+
+        // Reset checkboxes
+        document.querySelectorAll('#standbyOperatorsList input').forEach(checkbox => {
+          checkbox.checked = false;
+          checkbox.disabled = false;
+        });
+
+        document.querySelectorAll('#safetyChecklist input').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+      }
+
+      // Function to delete an order
+      function deleteOrder(orderId) {
+        // Confirm deletion
+        if (!confirm(`Apakah Anda yakin ingin menghapus order #${orderId}?`)) {
+          return;
+        }
+
+        // Find the order
+        const orderIndex = workOrders.findIndex(o => o.id === orderId);
+        if (orderIndex === -1) return;
+
+        const order = workOrders[orderIndex];
+
+        // Remove current user from executors if they were assigned
+        const executorIndex = order.executors.indexOf(currentUser.id);
+        if (executorIndex !== -1) {
+          order.executors.splice(executorIndex, 1);
+
+          // Update current user status to standby if they were on job
+          if (currentUser.status === 'onjob') {
+            updateMemberStatus(currentUser.id, 'standby');
+          }
+        }
+
+        // Remove the order from the array
+        workOrders.splice(orderIndex, 1);
+
+        // Refresh the table
+        populateWorkOrdersTable();
+
+        // Update summary counts
+        updateSummaryCounts();
+
+        // Show success message
+        alert(`Order #${orderId} telah dihapus!`);
+      }
+
+      // Function to update summary counts
+      function updateSummaryCounts() {
+        const totalOrders = workOrders.length;
+        const pendingOrders = workOrders.filter(o => o.status === 'pending').length;
+        const progressOrders = workOrders.filter(o => o.status === 'progress').length;
+        const completedOrders = totalOrders - pendingOrders - progressOrders;
+
+        document.getElementById('totalOrdersCount').textContent = totalOrders;
+        document.getElementById('pendingOrdersCount').textContent = pendingOrders;
+        document.getElementById('progressOrdersCount').textContent = progressOrders;
+        document.getElementById('completedOrdersCount').textContent = completedOrders;
+      }
+
+      // Function to update filter tabs UI
+      function updateFilterTabs(activeStatus) {
+        statusFilterTabs.forEach(tab => {
+          if (tab.dataset.statusFilter === activeStatus) {
+            tab.classList.remove('bg-gray-200', 'text-gray-700');
+            tab.classList.add('bg-blue-500', 'text-white');
+          } else {
+            tab.classList.remove('bg-blue-500', 'text-white');
+            tab.classList.add('bg-gray-200', 'text-gray-700');
+          }
+        });
+      }
+
+      // Function to show search dropdown
+      function showSearchDropdown() {
+        searchDropdown.classList.remove('hidden');
+      }
+
+      // Function to hide search dropdown
+      function hideSearchDropdown() {
+        searchDropdown.classList.add('hidden');
+      }
+
+      // Function to populate search results
+      function populateSearchResults(searchTerm = '') {
+        searchResults.innerHTML = '';
+
+        const filteredMembers = members.filter(member =>
+          member.name.toLowerCase().includes(searchTerm)
+        );
+
+        if (filteredMembers.length === 0) {
+          searchResults.innerHTML = '<div class="px-4 py-2 text-gray-500 text-sm">No members found</div>';
+          return;
+        }
+
+        filteredMembers.forEach(member => {
+          const memberItem = document.createElement('div');
+          memberItem.className = 'flex items-center gap-3 px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors';
+
+          // Get status color based on member status
+          let statusColor = 'bg-gray-500';
+          let statusText = 'Unknown';
+
+          switch (member.status) {
+            case 'standby':
+              statusColor = 'bg-green-500';
+              statusText = 'Stand By';
+              break;
+            case 'onjob':
+              statusColor = 'bg-blue-500';
+              statusText = 'On Job';
+              break;
+            case 'support':
+              statusColor = 'bg-yellow-400';
+              statusText = 'Support';
+              break;
+            case 'nextshift':
+              statusColor = 'bg-purple-500';
+              statusText = 'Next Shift';
+              break;
+          }
+
+          memberItem.innerHTML = `
+          <img src="${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full object-cover">
+          <div class="flex-1">
+            <div class="font-medium text-gray-800">${member.name}</div>
+            <div class="flex items-center gap-2 text-xs text-gray-600">
+              <span class="w-2 h-2 rounded-full ${statusColor}"></span>
+              <span>${statusText}</span>
+            </div>
+          </div>
+        `;
+
+          memberItem.addEventListener('click', function () {
+            selectMember(member);
+          });
+
+          searchResults.appendChild(memberItem);
+        });
+      }
+
+      // Function to handle member selection
+      function selectMember(member) {
+        memberSearchInput.value = member.name;
+        hideSearchDropdown();
+
+        // Highlight the selected member in their status container
+        highlightMember(member.id);
+      }
+
+      // Function to highlight a selected member
+      function highlightMember(memberId) {
+        // Remove any existing highlights
+        document.querySelectorAll('.member-highlight').forEach(el => {
+          el.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+        });
+
+        // Add highlight to the selected member
+        const memberImg = document.querySelector(`img[data-member-id="${memberId}"]`);
+        if (memberImg) {
+          memberImg.classList.add('member-highlight', 'ring-2', 'ring-blue-500', 'ring-offset-2');
+
+          // Remove highlight after 3 seconds
+          setTimeout(() => {
+            memberImg.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+          }, 3000);
+        }
+      }
+
+      // Function to initialize member images on page load
+      function initializeMemberImages() {
+        members.forEach(member => {
+          const statusContainer = document.getElementById(`status-${member.status}`);
+          if (statusContainer) {
+            const memberImagesContainer = statusContainer.querySelector('.member-images');
+            const memberImg = document.createElement('img');
+            memberImg.src = member.avatar;
+            memberImg.alt = member.name;
+            memberImg.className = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
+            memberImg.dataset.memberId = member.id;
+            memberImagesContainer.appendChild(memberImg);
+          }
+        });
+
+        // Update display for all status containers
+        statusContainers.forEach(container => {
+          updateMemberDisplay(container);
+        });
+      }
+
+      // Function to open member status popup
+      function openMemberStatusPopup(statusFilter = 'all') {
+        memberStatusPopup.classList.remove('hidden');
+        populateMemberList(statusFilter);
+      }
+
+      // Function to populate member list in popup
+      function populateMemberList(statusFilter = 'all') {
+        memberList.innerHTML = '';
+
+        let filteredMembers = members;
+
+        // Filter by status if not "all"
+        if (statusFilter !== 'all') {
+          filteredMembers = members.filter(member => member.status === statusFilter);
+        }
+
+        if (filteredMembers.length === 0) {
+          memberList.innerHTML = '<div class="text-center py-4 text-gray-500">No members found for this status</div>';
+          return;
+        }
+
+        filteredMembers.forEach(member => {
+          const memberItem = document.createElement('div');
+          memberItem.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg';
+
+          memberItem.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="${member.avatar}" alt="${member.name}" class="w-12 h-12 rounded-full">
+            <span class="font-medium">${member.name}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-600">Status:</span>
+            <select class="status-select px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" data-member-id="${member.id}">
+              <option value="standby" ${member.status === 'standby' ? 'selected' : ''}>Stand By</option>
+              <option value="onjob" ${member.status === 'onjob' ? 'selected' : ''}>On Job</option>
+              <option value="support" ${member.status === 'support' ? 'selected' : ''}>Support</option>
+              <option value="nextshift" ${member.status === 'nextshift' ? 'selected' : ''}>Next Shift</option>
+            </select>
+          </div>
+        `;
+
+          memberList.appendChild(memberItem);
+        });
+
+        // Add event listeners to status selects
+        document.querySelectorAll('.status-select').forEach(select => {
+          select.addEventListener('change', function () {
+            const memberId = parseInt(this.dataset.memberId);
+            const newStatus = this.value;
+            updateMemberStatus(memberId, newStatus);
+          });
+        });
+      }
+
+      // Function to update member status
+      function updateMemberStatus(memberId, newStatus) {
+        // Find the member in the array
+        const memberIndex = members.findIndex(m => m.id === memberId);
+        if (memberIndex !== -1) {
+          const oldStatus = members[memberIndex].status;
+          members[memberIndex].status = newStatus;
+
+          // If changing from "onjob" to something else, remove from all work orders
+          if (oldStatus === 'onjob' && newStatus !== 'onjob') {
+            removeFromAllWorkOrders(memberId);
+          }
+
+          // Update the UI
+          updateStatusUI(members[memberIndex], oldStatus, newStatus);
+
+          // If the popup is open and we're filtering by status, refresh the list
+          if (!memberStatusPopup.classList.contains('hidden') && currentStatusFilter !== 'all') {
+            populateMemberList(currentStatusFilter);
+          }
+
+          // Refresh the work orders table to reflect changes
+          populateWorkOrdersTable();
+        }
+      }
+
+      // Function to remove a member from all work orders
+      function removeFromAllWorkOrders(memberId) {
+        workOrders.forEach(order => {
+          const executorIndex = order.executors.indexOf(memberId);
+          if (executorIndex !== -1) {
+            order.executors.splice(executorIndex, 1);
+
+            // If no executors left, change status to pending
+            if (order.executors.length === 0 && order.status === 'progress') {
+              order.status = 'pending';
+            }
+          }
+        });
+
+        // Update summary counts
+        updateSummaryCounts();
+      }
+
+      // Function to update the UI when member status changes
+      function updateStatusUI(member, oldStatus, newStatus) {
+        // Remove member from old status container
+        const oldStatusContainer = document.getElementById(`status-${oldStatus}`);
+        if (oldStatusContainer) {
+          const memberImg = oldStatusContainer.querySelector(`img[data-member-id="${member.id}"]`);
+          if (memberImg) {
+            memberImg.remove();
+            // Update display for old status container
+            updateMemberDisplay(oldStatusContainer);
+          }
+        }
+
+        // Add member to new status container
+        const newStatusContainer = document.getElementById(`status-${newStatus}`);
+        if (newStatusContainer) {
+          const memberImagesContainer = newStatusContainer.querySelector('.member-images');
+          const memberImg = document.createElement('img');
+          memberImg.src = member.avatar;
+          memberImg.alt = member.name;
+          memberImg.className = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
+          memberImg.dataset.memberId = member.id;
+          memberImagesContainer.appendChild(memberImg);
+
+          // Update display for new status container
+          updateMemberDisplay(newStatusContainer);
+        }
+      }
+
+      // Function to update member display (show only 3 images and +N if more)
+      function updateMemberDisplay(container) {
+        const memberImages = container.querySelectorAll('.member-images img');
+        const moreMembersDiv = container.querySelector('.more-members');
+
+        // If there are more than 3 members, show only the first 3 and add +N
+        if (memberImages.length > 3) {
+          // Hide all images beyond the first 3
+          for (let i = 3; i < memberImages.length; i++) {
+            memberImages[i].style.display = 'none';
+          }
+
+          // Show the +N indicator
+          moreMembersDiv.classList.remove('hidden');
+          moreMembersDiv.textContent = `+${memberImages.length - 3}`;
+        } else {
+          // Show all images
+          memberImages.forEach(img => {
+            img.style.display = 'block';
+          });
+
+          // Hide the +N indicator
+          moreMembersDiv.classList.add('hidden');
+        }
+      }
+    });
+
+
+
+  </script>
+
+</body>
+
+</html>
