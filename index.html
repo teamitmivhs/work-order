@@ -290,7 +290,7 @@
 
     <div
       class="flex items-center gap-3 bg-[#333] px-5 py-2 rounded-full shadow transition-all duration-300 hover:scale-105 relative">
-      <img src="d722262e277bb21e40d36ec5f2f5c773.jpg" class="w-10 h-10 rounded-full" />
+      <img src="boy.png" class="w-10 h-10 rounded-full" alt="alt" />
       <button id="profileDropdownBtn" class="text-white text-lg">▼</button>
 
       <!-- DROPDOWN -->
@@ -374,7 +374,7 @@
     <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Manage Member Status</h2>
-        <button id="closePopup" class="text-gray-500 hover:text-gray-700">
+        <button id="closePopup" class="text-gray-500 hover:text-gray-700" alt="Close Popup" aria-label="Close Popup">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -411,7 +411,7 @@
     <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-3xl max-h-[80vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Ambil Work Order</h2>
-        <button id="closeTakeOrderPopup" class="text-gray-500 hover:text-gray-700">
+        <button id="closeTakeOrderPopup" class="text-gray-500 hover:text-gray-700" aria-label="Close Take Order Popup">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -493,7 +493,8 @@
     <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Buat Work Order Baru</h2>
-        <button id="closeCreateOrderPopup" class="text-gray-500 hover:text-gray-700">
+        <button id="closeCreateOrderPopup" class="text-gray-500 hover:text-gray-700"
+          aria-label="Close Create Order Popup">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -635,7 +636,25 @@
         </div>
       </div>
     </div>
-
+    <div class="col-span-3">
+      <div class="footer-content flex items-center mt-6 px-4 py-2 w-full h-[4rem] bg-blue-100 rounded-lg">
+        <p class="text-sm text-gray-500">&copy; 2025 Team IT - For Internal Use Only</p>
+        <span class="mx-4  ml-auto flex items-center gap-4 ">
+          <svg class="w-6 h-6 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+            fill="none" viewBox="0 0 24 24">
+            <path fill="currentColor" fill-rule="evenodd"
+              d="M3 8a5 5 0 0 1 5-5h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8Zm5-3a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3H8Zm7.597 2.214a1 1 0 0 1 1-1h.01a1 1 0 1 1 0 2h-.01a1 1 0 0 1-1-1ZM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-5 3a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z"
+              clip-rule="evenodd" />
+          </svg>
+          <svg class="w-6 h-6 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="currentColor" viewBox="0 0 24 24">
+            <path fill-rule="evenodd"
+              d="M12.006 2a9.847 9.847 0 0 0-6.484 2.44 10.32 10.32 0 0 0-3.393 6.17 10.48 10.48 0 0 0 1.317 6.955 10.045 10.045 0 0 0 5.4 4.418c.504.095.683-.223.683-.494 0-.245-.01-1.052-.014-1.908-2.78.62-3.366-1.21-3.366-1.21a2.711 2.711 0 0 0-1.11-1.5c-.907-.637.07-.621.07-.621.317.044.62.163.885.346.266.183.487.426.647.71.135.253.318.476.538.655a2.079 2.079 0 0 0 2.37.196c.045-.52.27-1.006.635-1.37-2.219-.259-4.554-1.138-4.554-5.07a4.022 4.022 0 0 1 1.031-2.75 3.77 3.77 0 0 1 .096-2.713s.839-.275 2.749 1.05a9.26 9.26 0 0 1 5.004 0c1.906-1.325 2.74-1.05 2.74-1.05.37.858.406 1.828.101 2.713a4.017 4.017 0 0 1 1.029 2.75c0 3.939-2.339 4.805-4.564 5.058a2.471 2.471 0 0 1 .679 1.897c0 1.372-.012 2.477-.012 2.814 0 .272.18.592.687.492a10.05 10.05 0 0 0 5.388-4.421 10.473 10.473 0 0 0 1.313-6.948 10.32 10.32 0 0 0-3.39-6.165A9.847 9.847 0 0 0 12.007 2Z"
+              clip-rule="evenodd" />
+          </svg>
+          </span>
+      </div>
+    </div>
   </main>
 
   <br><br>
@@ -674,21 +693,21 @@
   <script>
     // Member Status Management
     document.addEventListener('DOMContentLoaded', function () {
-      // Sample member data
+
       const members = [
-        { id: 1, name: 'John Doe', avatar: 'https://i.pravatar.cc/40?img=15', status: 'standby' },
-        { id: 2, name: 'Jane Smith', avatar: 'https://i.pravatar.cc/40?img=12', status: 'onjob' },
-        { id: 3, name: 'Bob Johnson', avatar: 'https://i.pravatar.cc/40?img=7', status: 'support' },
-        { id: 4, name: 'Alice Williams', avatar: 'https://i.pravatar.cc/40?img=20', status: 'nextshift' },
-        { id: 5, name: 'Charlie Brown', avatar: 'https://i.pravatar.cc/40?img=1', status: 'standby' },
-        { id: 6, name: 'Diana Prince', avatar: 'https://i.pravatar.cc/40?img=2', status: 'onjob' },
-        { id: 7, name: 'Ethan Hunt', avatar: 'https://i.pravatar.cc/40?img=3', status: 'support' },
-        { id: 8, name: 'Fiona Green', avatar: 'https://i.pravatar.cc/40?img=4', status: 'nextshift' },
-        { id: 9, name: 'George Miller', avatar: 'https://i.pravatar.cc/40?img=5', status: 'nextshift' },
-        { id: 10, name: 'Hannah Davis', avatar: 'https://i.pravatar.cc/40?img=6', status: 'nextshift' },
-        { id: 11, name: 'Ian Wilson', avatar: 'https://i.pravatar.cc/40?img=8', status: 'nextshift' },
-        { id: 12, name: 'Julia Taylor', avatar: 'https://i.pravatar.cc/40?img=9', status: 'nextshift' },
-        { id: 13, name: 'Kevin Anderson', avatar: 'https://i.pravatar.cc/40?img=10', status: 'nextshift' }
+        { id: 1, name: 'John Doe', avatar: 'boy.png', status: 'standby' },
+        { id: 2, name: 'Jane Smith', avatar: 'boy.png', status: 'onjob' },
+        { id: 3, name: 'Bob Johnson', avatar: 'boy.png', status: 'support' },
+        { id: 4, name: 'Alice Williams', avatar: 'boy.png', status: 'nextshift' },
+        { id: 5, name: 'Charlie Brown', avatar: 'boy.png', status: 'standby' },
+        { id: 6, name: 'Diana Prince', avatar: 'boy.png', status: 'onjob' },
+        { id: 7, name: 'Ethan Hunt', avatar: 'boy.png', status: 'support' },
+        { id: 8, name: 'Fiona Green', avatar: 'boy.png', status: 'nextshift' },
+        { id: 9, name: 'George Miller', avatar: 'boy.png', status: 'nextshift' },
+        { id: 10, name: 'Hannah Davis', avatar: 'boy.png', status: 'nextshift' },
+        { id: 11, name: 'Ian Wilson', avatar: 'boy.png', status: 'nextshift' },
+        { id: 12, name: 'Julia Taylor', avatar: 'boy.png', status: 'nextshift' },
+        { id: 13, name: 'Kevin Anderson', avatar: 'boy.png', status: 'nextshift' }
       ];
 
       // Sample requester data
