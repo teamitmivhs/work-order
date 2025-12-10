@@ -1,0 +1,161 @@
+
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Blinking animation for high priority */
+    @keyframes blink {
+      0% {
+        background-color: rgba(239, 68, 68, 0.2);
+      }
+
+      50% {
+        background-color: rgba(239, 68, 68, 0.5);
+      }
+
+      100% {
+        background-color: rgba(239, 68, 68, 0.2);
+      }
+    }
+
+    .high-priority {
+      animation: blink 2s infinite;
+    }
+
+    /* Table responsive styles */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .table {
+      min-width: 100%;
+      width: max-content;
+    }
+
+    /* Member avatar styles */
+    .member-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .member-avatar-small {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid white;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Status badge styles */
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .status-pending {
+      background-color: rgba(251, 191, 36, 0.2);
+      color: #92400e;
+    }
+
+    .status-progress {
+      background-color: rgba(59, 130, 246, 0.2);
+      color: #1e3a8a;
+    }
+
+    /* Priority badge styles */
+    .priority-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .priority-high {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: #991b1b;
+    }
+
+    .priority-medium {
+      background-color: rgba(245, 158, 11, 0.2);
+      color: #92400e;
+    }
+
+    .priority-low {
+      background-color: rgba(34, 197, 94, 0.2);
+      color: #14532d;
+    }
+
+    /* Empty executor slot styles */
+    .empty-executor-slot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #e5e7eb;
+      border: 1px solid #d1d5db;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .empty-executor-slot:hover {
+      background-color: #d1d5db;
+    }
+
+    /* Delete button styles */
+    .delete-btn {
+      color: #ef4444;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .delete-btn:hover {
+      color: #dc2626;
+      transform: scale(1.1);
+    }
+
+    /* Checkbox custom styles */
+    .custom-checkbox {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #d1d5db;
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .custom-checkbox:checked {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+    }
+
+    .custom-checkbox:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 14px;
+    }
+  
+
+    .fade-slide {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  
