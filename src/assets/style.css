@@ -19,7 +19,7 @@
     }
 
     .high-priority {
-      animation: blink 2s infinite;
+      animation: blink 2s infinity;
     }
 
     /* Table responsive styles */
