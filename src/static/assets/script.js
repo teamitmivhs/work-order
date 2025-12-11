@@ -495,6 +495,17 @@
           </svg>
         </button>`;
 
+          // Add done button only for "progress" status
+          let actionButtons = deleteButton;
+          if (order.status === 'progress') {
+            const doneButton = `<button class="done-btn" data-order-id="${order.id}" title="Tandai sebagai selesai">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </button>`;
+            actionButtons = doneButton + deleteButton;
+          }
+
           row.innerHTML = `
           <td class="py-3 px-2 text-sm">${order.id}</td>
           <td class="py-3 px-2 text-sm">${priorityBadge}</td>
@@ -506,7 +517,7 @@
           <td class="py-3 px-2 text-sm">${executorsHtml}</td>
           <td class="py-3 px-2 text-sm">${order.workingHours}</td>
           <td class="py-3 px-2 text-sm">${statusBadge}</td>
-          <td class="py-3 px-2 text-sm">${deleteButton}</td>
+          <td class="py-3 px-2 text-sm">${actionButtons}</td>
         `;
 
           workOrdersTableBody.appendChild(row);
@@ -525,6 +536,14 @@
           btn.addEventListener('click', function () {
             const orderId = parseInt(this.dataset.orderId);
             deleteOrder(orderId);
+          });
+        });
+
+        // Add event listeners for done buttons
+        document.querySelectorAll('.done-btn').forEach(btn => {
+          btn.addEventListener('click', function () {
+            const orderId = parseInt(this.dataset.orderId);
+            markOrderDone(orderId);
           });
         });
       }
@@ -777,6 +796,47 @@
         document.querySelectorAll('#safetyChecklist input').forEach(checkbox => {
           checkbox.checked = false;
         });
+      }
+
+      // Function to mark an order as done
+      function markOrderDone(orderId) {
+        const orderIndex = workOrders.findIndex(o => o.id === orderId);
+        if (orderIndex === -1) return;
+
+        const order = workOrders[orderIndex];
+
+        // Get current time for completion timestamp
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const completionTime = `${hours}:${minutes}`;
+
+        // Mark as completed
+        order.status = 'completed';
+        order.completedAt = completionTime;
+
+        // Save to localStorage for summary page
+        let completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+        completedOrders.push({
+          ...order,
+          completedAt: completionTime
+        });
+        localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
+
+        // Update member statuses - set all executors to standby
+        order.executors.forEach(executorId => {
+          const memberIndex = members.findIndex(m => m.id === executorId);
+          if (memberIndex !== -1 && members[memberIndex].status === 'onjob') {
+            members[memberIndex].status = 'standby';
+          }
+        });
+
+        // Refresh table and stats
+        populateWorkOrdersTable();
+        updateSummaryCounts();
+
+        // Show success message
+        alert(`Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`);
       }
 
       // Function to delete an order

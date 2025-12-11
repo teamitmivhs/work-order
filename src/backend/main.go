@@ -47,6 +47,10 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../techguide.html")
 	})
 
+	r.GET("/summary", func(c *gin.Context) {
+		c.File("../summary.html")
+	})
+
 	r.NoRoute(func(c *gin.Context) {
 		c.File("../index.html")
 	})
