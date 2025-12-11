@@ -33,6 +33,11 @@ func main() {
 		c.File("../index.html")
 	})
 
+	// TechGuide page
+	r.GET("/techguide", func(c *gin.Context) {
+		c.File("../techguide.html")
+	})
+
 	// Fallback for unknown paths (optional SPA support)
 	r.NoRoute(func(c *gin.Context) {
 		c.File("../index.html")

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechGuide - Work Instructions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Roboto', sans-serif;
+        }
+        .guide-content-item {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- NAVIGATION BAR -->
+    <nav class="bg-white shadow-md sticky top-0 z-40">
+        <div class="px-10 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="/" class="text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Kembali
+                </a>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">TechGuide - Work Instructions</h1>
+            <div class="w-20"></div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="px-10 py-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
+            <!-- DEVICE SELECTOR -->
+            <div class="mb-8">
+                <label class="block text-lg font-semibold text-gray-800 mb-3" for="techGuideDeviceSelect">Pilih Perangkat</label>
+                <select id="techGuideDeviceSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">
+                    <option value="Server">Server</option>
+                    <option value="Upgrading PC">Upgrading PC</option>
+                    <option value="Troubleshooting Windows">Troubleshooting Windows</option>
+                    <option value="Troubleshooting CCTV">Troubleshooting CCTV</option>
+                </select>
+            </div>
+
+            <!-- GUIDE CONTENT -->
+            <div id="techGuideContent" class="bg-gray-50 p-6 rounded-lg border border-gray-200 min-h-[400px]">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tech Guide Content Database
+        const techGuides = {
+            "Server": {
+                title: "Server - Work Instructions",
+                steps: [
+                    {
+                        step: 1,
+                        title: "Server Startup",
+                        content: "Ensure the server machine is connected to power and network. Press the power button and wait for the system to fully boot (usually 2-3 minutes)."
+                    },
+                    {
+                        step: 2,
+                        title: "Check System Status",
+                        content: "Log in using your admin credentials. Open System Monitor to verify CPU usage is normal (below 80%) and RAM usage is reasonable."
+                    },
+                    {
+                        step: 3,
+                        title: "Network Connectivity",
+                        content: "Verify network connectivity by pinging the gateway. Check that all network interfaces are up and showing green status in the Network Manager."
+                    },
+                    {
+                        step: 4,
+                        title: "Service Verification",
+                        content: "Restart all critical services (database, web service, etc.) using systemctl. Verify each service started successfully by checking its status."
+                    },
+                    {
+                        step: 5,
+                        title: "Backup Check",
+                        content: "Verify the latest backup completed successfully. Check backup logs to ensure data integrity and full backup completion."
+                    }
+                ]
+            },
+            "Upgrading PC": {
+                title: "Upgrading PC - Work Instructions",
+                steps: [
+                    {
+                        step: 1,
+                        title: "Pre-Upgrade Preparation",
+                        content: "Backup all important data to external storage. Create a system restore point. Ensure sufficient free disk space (at least 20GB)."
+                    },
+                    {
+                        step: 2,
+                        title: "Hardware Compatibility Check",
+                        content: "Verify all hardware components are compatible with the new OS version. Check manufacturer websites for driver availability."
+                    },
+                    {
+                        step: 3,
+                        title: "Disable Antivirus",
+                        content: "Temporarily disable antivirus software during upgrade to prevent conflicts. Re-enable immediately after upgrade completion."
+                    },
+                    {
+                        step: 4,
+                        title: "Run Upgrade Process",
+                        content: "Download the latest version from official source. Run the upgrade installer and follow all prompts. Do not interrupt the process."
+                    },
+                    {
+                        step: 5,
+                        title: "Post-Upgrade Verification",
+                        content: "Verify system boots normally and all critical applications launch. Check Device Manager for any unknown devices or errors."
+                    }
+                ]
+            },
+            "Troubleshooting Windows": {
+                title: "Troubleshooting Windows - Work Instructions",
+                steps: [
+                    {
+                        step: 1,
+                        title: "System Diagnostics",
+                        content: "Run Windows Disk Check (chkdsk) to identify file system errors. Check Event Viewer for critical errors and warnings."
+                    },
+                    {
+                        step: 2,
+                        title: "Memory Test",
+                        content: "Run Windows Memory Diagnostic to test RAM integrity. Restart system and allow full test cycle (usually takes 30+ minutes)."
+                    },
+                    {
+                        step: 3,
+                        title: "Update & Drivers",
+                        content: "Install latest Windows updates through Windows Update. Update all device drivers, especially chipset, graphics, and network drivers."
+                    },
+                    {
+                        step: 4,
+                        title: "Malware Scan",
+                        content: "Run a full system scan with Windows Defender. If issues persist, use additional tools like Malwarebytes in Safe Mode."
+                    },
+                    {
+                        step: 5,
+                        title: "System Cleanup",
+                        content: "Clear temporary files using Disk Cleanup utility. Disable unnecessary startup programs. Consider running a clean boot."
+                    }
+                ]
+            },
+            "Troubleshooting CCTV": {
+                title: "Troubleshooting CCTV - Work Instructions",
+                steps: [
+                    {
+                        step: 1,
+                        title: "Check Physical Connections",
+                        content: "Verify all cables are firmly connected. Check for visible damage to cables and connectors. Test power supply to cameras."
+                    },
+                    {
+                        step: 2,
+                        title: "Camera Status",
+                        content: "Check if camera LEDs are illuminated. Access camera web interface using IP address. Verify camera is receiving video input."
+                    },
+                    {
+                        step: 3,
+                        title: "Network Configuration",
+                        content: "Ping the camera IP address to verify network connectivity. Check DHCP server for camera IP assignment. Verify network switch ports."
+                    },
+                    {
+                        step: 4,
+                        title: "DVR/NVR Check",
+                        content: "Restart the DVR/NVR system. Verify all camera channels show status as 'Online'. Check recording settings and storage space."
+                    },
+                    {
+                        step: 5,
+                        title: "Firmware & Software",
+                        content: "Check for available firmware updates for cameras and DVR/NVR. Update if available. Review system logs for error messages."
+                    }
+                ]
+            }
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const select = document.getElementById('techGuideDeviceSelect');
+            
+            // Load initial guide
+            renderTechGuide(select.value);
+            
+            // Handle device selection change
+            select.addEventListener('change', function() {
+                renderTechGuide(this.value);
+            });
+        });
+
+        // Render guide content
+        function renderTechGuide(device) {
+            const guide = techGuides[device];
+            const contentDiv = document.getElementById('techGuideContent');
+            
+            if (!guide) {
+                contentDiv.innerHTML = '<p class="text-gray-500">No guide available for this device.</p>';
+                return;
+            }
+
+            let html = `<h2 class="text-2xl font-bold text-gray-800 mb-6">${guide.title}</h2>`;
+            html += '<div class="space-y-4">';
+            
+            guide.steps.forEach(step => {
+                html += `
+                    <div class="guide-content-item bg-white p-5 rounded-lg border-l-4 border-blue-500 hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold text-blue-600 mb-2">Step ${step.step}: ${step.title}</h3>
+                        <p class="text-gray-700 leading-relaxed">${step.content}</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            contentDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
