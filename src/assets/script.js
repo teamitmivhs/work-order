@@ -827,6 +827,12 @@
         document.getElementById('pendingOrdersCount').textContent = pendingOrders;
         document.getElementById('progressOrdersCount').textContent = progressOrders;
         document.getElementById('completedOrdersCount').textContent = completedOrders;
+        // If Kaizen popup is open, refresh its evaluation
+        const kPopupExisting = document.getElementById('kaizenPopup');
+        if (kPopupExisting && !kPopupExisting.classList.contains('hidden')) {
+          // renderKaizenEvaluation is declared later; call if available
+          if (typeof renderKaizenEvaluation === 'function') renderKaizenEvaluation();
+        }
       }
 
       // Function to update filter tabs UI
@@ -1112,6 +1118,85 @@
           // Hide the +N indicator
           moreMembersDiv.classList.add('hidden');
         }
+      }
+
+      // --- Kaizen Activity: Evaluation and UI ---
+      // Show evaluation results based on summary counts
+      const kaizenBtn = document.getElementById('kaizenBtn');
+      const kaizenPopup = document.getElementById('kaizenPopup');
+      const closeKaizenPopup = document.getElementById('closeKaizenPopup');
+      const kaizenRefreshBtn = document.getElementById('kaizenRefreshBtn');
+
+      if (kaizenBtn) {
+        kaizenBtn.addEventListener('click', function () {
+          // Render current evaluation and open popup
+          if (typeof renderKaizenEvaluation === 'function') renderKaizenEvaluation();
+          kaizenPopup.classList.remove('hidden');
+        });
+      }
+
+      if (closeKaizenPopup) {
+        closeKaizenPopup.addEventListener('click', function () {
+          kaizenPopup.classList.add('hidden');
+        });
+      }
+
+      if (kaizenRefreshBtn) {
+        kaizenRefreshBtn.addEventListener('click', function () {
+          if (typeof renderKaizenEvaluation === 'function') renderKaizenEvaluation();
+        });
+      }
+
+      function renderKaizenEvaluation() {
+        const total = workOrders.length;
+        const pending = workOrders.filter(o => o.status === 'pending').length;
+        const progress = workOrders.filter(o => o.status === 'progress').length;
+        const completed = total - pending - progress;
+
+        const elTotal = document.getElementById('kaizenTotal');
+        const elPending = document.getElementById('kaizenPending');
+        const elProgress = document.getElementById('kaizenProgress');
+        const elCompleted = document.getElementById('kaizenCompleted');
+        const elBar = document.getElementById('kaizenCompletionBar');
+        const elText = document.getElementById('kaizenCompletionText');
+        const elRating = document.getElementById('kaizenRating');
+        const elSuggestion = document.getElementById('kaizenSuggestion');
+
+        if (elTotal) elTotal.textContent = total;
+        if (elPending) elPending.textContent = pending;
+        if (elProgress) elProgress.textContent = progress;
+        if (elCompleted) elCompleted.textContent = completed;
+
+        if (total === 0) {
+          if (elBar) elBar.style.width = '0%';
+          if (elText) elText.textContent = 'No data';
+          if (elRating) elRating.textContent = '-';
+          if (elSuggestion) elSuggestion.textContent = 'No work orders available to evaluate.';
+          return;
+        }
+
+        const completionRate = Math.round((completed / total) * 100);
+        if (elBar) elBar.style.width = completionRate + '%';
+        if (elText) elText.textContent = completionRate + '%';
+
+        let rating = '';
+        let suggestion = '';
+        if (completionRate >= 80) {
+          rating = 'Excellent';
+          suggestion = 'Keep up the good work. Maintain current processes and document improvements.';
+        } else if (completionRate >= 60) {
+          rating = 'Good';
+          suggestion = 'Performance is solid. Focus on reducing pending items and streamlining handoffs.';
+        } else if (completionRate >= 40) {
+          rating = 'Fair';
+          suggestion = 'Consider process improvements and reviewing frequent causes of delays.';
+        } else {
+          rating = 'Needs Improvement';
+          suggestion = 'Investigate bottlenecks and assign resources to reduce pending orders quickly.';
+        }
+
+        if (elRating) elRating.textContent = rating;
+        if (elSuggestion) elSuggestion.textContent = suggestion;
       }
     });
 
