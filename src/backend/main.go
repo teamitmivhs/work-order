@@ -41,27 +41,35 @@ func setupStaticRoutes(r *gin.Engine) {
 
 func setupPageRoutes(r *gin.Engine) {
 	r.GET("/", func(c *gin.Context) {
-		c.File("../index.html")
+		c.File("src/index.html")
 	})
 
+	// TechGuide routes
 	r.GET("/techguide", func(c *gin.Context) {
-		c.File("../techguide.html")
+		c.File("src/techguide.html")
+	})
+	r.GET("/src/techguide.html", func(c *gin.Context) {
+		c.File("src/techguide.html")
 	})
 
-	r.GET("/src/techguide", func(c *gin.Context) {
-		c.File("../techguide.html")
-	})
-
+	// Summary routes
 	r.GET("/summary", func(c *gin.Context) {
-		c.File("../summary.html")
+		c.File("src/summary.html")
+	})
+	r.GET("/src/summary.html", func(c *gin.Context) {
+		c.File("src/summary.html")
 	})
 
-	r.GET("/src/summary", func(c *gin.Context) {
-		c.File("../summary.html")
-	})
-
+	// Fallback to index for any unmatched routes
 	r.NoRoute(func(c *gin.Context) {
-		c.File("../index.html")
+		path := c.Request.URL.Path
+		if path == "/techguide.html" {
+			c.File("src/techguide.html")
+		} else if path == "/summary.html" {
+			c.File("src/summary.html")
+		} else {
+			c.File("src/index.html")
+		}
 	})
 }
 
