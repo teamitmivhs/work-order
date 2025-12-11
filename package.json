@@ -1,0 +1,21 @@
+{
+  "name": "work-order",
+  "version": "1.0.0",
+  "description": "This is a project of an IT MIVHS Work Order and Helpdesk system designed for the **TEAM IT MIVHS**.   The goal is to provide a simple, fast, and user‑friendly interface for requests, helps, and any other thing related to devices on SMK MITRA INDUSTRI MM2100",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teamitmivhs/work-order.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/teamitmivhs/work-order/issues"
+  },
+  "homepage": "https://github.com/teamitmivhs/work-order#readme"
+}
