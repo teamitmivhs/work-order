@@ -126,7 +126,7 @@ Rating based on completion rate:
 This system was created for internal use by the **Web developer of IT MIVHS Team**.  
 It's a complete **full-stack work order management system** with:
 
-- ✅ Frontend UI (HTML5, TailwindCSS, Vanilla JS)
+- ✅ Frontend UI (HTML, TailwindCSS, Vanilla JS)
 - ✅ Backend API (Go + Gin Framework)
 - ✅ Real-time status tracking
 - ✅ Team member management
