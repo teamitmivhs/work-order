@@ -1198,6 +1198,91 @@
         if (elRating) elRating.textContent = rating;
         if (elSuggestion) elSuggestion.textContent = suggestion;
       }
+
+        // --- TechGuide: Work instructions modal ---
+        const techGuideBtn = document.getElementById('techGuideBtn');
+        const techGuidePopup = document.getElementById('techGuidePopup');
+        const closeTechGuidePopup = document.getElementById('closeTechGuidePopup');
+        const techGuideSelect = document.getElementById('techGuideSelect');
+        const techGuideContent = document.getElementById('techGuideContent');
+        const techGuideCloseBtn = document.getElementById('techGuideCloseBtn');
+
+        const techGuides = {
+          'Server': `
+            <h3 class="text-lg font-semibold">Server Maintenance</h3>
+            <ol class="list-decimal list-inside mt-2 text-sm text-gray-700">
+              <li>Backup critical data and configs.</li>
+              <li>Verify power and network connectivity.</li>
+              <li>Check system logs: <code>/var/log</code>.</li>
+              <li>Apply OS updates during maintenance window.</li>
+              <li>Confirm services are running (nginx, mysql, etc.).</li>
+              <li>Document changes and notify stakeholders.</li>
+            </ol>
+          `,
+          'Upgrading PC': `
+            <h3 class="text-lg font-semibold">Upgrading PC</h3>
+            <ol class="list-decimal list-inside mt-2 text-sm text-gray-700">
+              <li>Power off and unplug the PC.</li>
+              <li>Ground yourself and open the chassis.</li>
+              <li>Install RAM/SSD/GPU safely and secure cables.</li>
+              <li>Power on and enter BIOS to verify new hardware.</li>
+              <li>Install drivers and run stress tests.</li>
+              <li>Update asset inventory and notes.</li>
+            </ol>
+          `,
+          'Troubleshooting Windows': `
+            <h3 class="text-lg font-semibold">Troubleshooting Windows</h3>
+            <ol class="list-decimal list-inside mt-2 text-sm text-gray-700">
+              <li>Ask for error details and reproduce the issue.</li>
+              <li>Check Event Viewer for critical errors.</li>
+              <li>Run System File Checker: <code>sfc /scannow</code>.</li>
+              <li>Verify drivers and Windows Update status.</li>
+              <li>Boot into Safe Mode to isolate third-party issues.</li>
+              <li>If needed, restore from known good backup or reinstall.</li>
+            </ol>
+          `,
+          'Troubleshooting CCTV': `
+            <h3 class="text-lg font-semibold">Troubleshooting CCTV</h3>
+            <ol class="list-decimal list-inside mt-2 text-sm text-gray-700">
+              <li>Confirm power and PoE switch status.</li>
+              <li>Check network connectivity and IP addressing.</li>
+              <li>Access camera web UI and review logs.</li>
+              <li>Verify NVR/DVR recordings and storage health.</li>
+              <li>Replace cabling or camera if hardware fault suspected.</li>
+              <li>Document serial numbers and actions taken.</li>
+            </ol>
+          `
+        };
+
+        function renderTechGuide() {
+          if (!techGuideContent || !techGuideSelect) return;
+          const key = techGuideSelect.value;
+          techGuideContent.innerHTML = techGuides[key] || '<p class="text-sm text-gray-600">No guide available.</p>';
+        }
+
+        if (techGuideBtn) {
+          techGuideBtn.addEventListener('click', function () {
+            if (techGuideSelect) techGuideSelect.value = 'Server';
+            renderTechGuide();
+            if (techGuidePopup) techGuidePopup.classList.remove('hidden');
+          });
+        }
+
+        if (closeTechGuidePopup) {
+          closeTechGuidePopup.addEventListener('click', function () {
+            techGuidePopup.classList.add('hidden');
+          });
+        }
+
+        if (techGuideCloseBtn) {
+          techGuideCloseBtn.addEventListener('click', function () {
+            techGuidePopup.classList.add('hidden');
+          });
+        }
+
+        if (techGuideSelect) {
+          techGuideSelect.addEventListener('change', renderTechGuide);
+        }
     });
 
 
