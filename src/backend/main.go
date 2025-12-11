@@ -44,7 +44,7 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("src/index.html")
 	})
 
-	// TechGuide routes
+	// TechGuide route
 	r.GET("/techguide", func(c *gin.Context) {
 		c.File("src/techguide.html")
 	})
@@ -52,7 +52,7 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("src/techguide.html")
 	})
 
-	// Summary routes
+	// Summary route
 	r.GET("/summary", func(c *gin.Context) {
 		c.File("src/summary.html")
 	})
@@ -60,7 +60,7 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("src/summary.html")
 	})
 
-	// Fallback to index for any unmatched routes
+	// Fallback to index for any unmatched route
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
 		if path == "/techguide.html" {
