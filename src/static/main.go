@@ -20,7 +20,7 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	r.Static("/static", "../")
+	r.Static("/static", "./")
 
 	r.GET("/", func(c *gin.Context) {
 		c.File("../index.html")
