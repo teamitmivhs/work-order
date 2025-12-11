@@ -13,11 +13,11 @@ var DB *sql.DB
 
 func InitDB() error {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
+		os.Getenv("adminit2025"),
+		os.Getenv("databaseitadmin2045"),
+		os.Getenv("localhost"),
+		os.Getenv("3306"),
+		os.Getenv("dbwoit"),
 	)
 
 	var err error
