@@ -36,6 +36,7 @@ func setupMiddleware(r *gin.Engine) {
 
 func setupStaticRoutes(r *gin.Engine) {
 	r.Static("/static", "../static")
+	r.Static("/src/static", "../static")
 }
 
 func setupPageRoutes(r *gin.Engine) {
@@ -47,7 +48,15 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../techguide.html")
 	})
 
+	r.GET("/src/techguide", func(c *gin.Context) {
+		c.File("../techguide.html")
+	})
+
 	r.GET("/summary", func(c *gin.Context) {
+		c.File("../summary.html")
+	})
+
+	r.GET("/src/summary", func(c *gin.Context) {
 		c.File("../summary.html")
 	})
 
