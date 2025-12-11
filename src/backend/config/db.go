@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+    "time" // Tambahkan import time untuk konfigurasi pool
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -12,12 +13,20 @@ import (
 var DB *sql.DB
 
 func InitDB() error {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
-		os.Getenv("adminit2025"),
-		os.Getenv("databaseitadmin2045"),
-		os.Getenv("localhost"),
-		os.Getenv("3306"),
-		os.Getenv("dbwoit"),
+    // Gunakan nama variabel lingkungan yang sebenarnya
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+    // Tambahkan parameter parseTime dan loc yang penting untuk MySQL driver
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		dbUser,
+		dbPass,
+		dbHost,
+		dbPort,
+		dbName,
 	)
 
 	var err error
@@ -25,6 +34,11 @@ func InitDB() error {
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
+
+    // Tambahkan konfigurasi pool koneksi di sini
+    DB.SetMaxOpenConns(100)
+    DB.SetMaxIdleConns(10)
+    DB.SetConnMaxLifetime(time.Hour)
 
 	err = DB.Ping()
 	if err != nil {
@@ -39,5 +53,6 @@ func CloseDB() error {
 	if DB == nil {
 		return nil
 	}
+	log.Println("Database connection closed.")
 	return DB.Close()
 }
