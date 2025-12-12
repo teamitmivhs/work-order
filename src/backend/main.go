@@ -93,7 +93,7 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../kaizen.html")
 	})
 
-	// Fallback to index for any unmatched route
+	//fallback route
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
 		if path == "/techguide.html" {
