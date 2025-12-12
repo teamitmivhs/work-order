@@ -1,4 +1,3 @@
-
 new Swiper(".mySwiper", {
   loop: true,
   autoplay: { delay: 2400 },
@@ -121,6 +120,55 @@ function showPopup(title, message, type = 'info') {
   }
 }
 
+// Custom Confirmation Popup System
+function showConfirmationPopup(title, message, onConfirm) {
+  // Remove existing popup if any
+  const existingPopup = document.getElementById('customConfirmationPopup');
+  if (existingPopup) {
+    existingPopup.remove();
+  }
+
+  // Create popup elements
+  const popup = document.createElement('div');
+  popup.id = 'customConfirmationPopup';
+  popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center';
+
+  popup.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-yellow-50 to-yellow-100 mb-4">
+                        <svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
+                    <div class="flex justify-center gap-4">
+                        <button id="confirmBtn" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-200">
+                            Ya
+                        </button>
+                        <button id="cancelBtn" class="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-200">
+                            Tidak
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+  // Add to body
+  document.body.appendChild(popup);
+
+  // Event listeners for the buttons
+  document.getElementById('confirmBtn').addEventListener('click', function() {
+    onConfirm();
+    popup.remove();
+  });
+
+  document.getElementById('cancelBtn').addEventListener('click', function() {
+    popup.remove();
+  });
+}
+
 // Function to update the Quick Summary title based on the current date
 function updateQuickSummaryTitle() {
   const quickSummaryTitleElement = document.getElementById('quickSummaryTitle');
@@ -135,24 +183,45 @@ function updateQuickSummaryTitle() {
 }
 
 // Member Status Management
-document.addEventListener('DOMContentLoaded', function () {
-
-  // const members = [
-  //   { id: 1, name: 'John Doe', avatar: 'boy.png', status: 'standby' },
-  //   { id: 2, name: 'Jane Smith', avatar: 'boy.png', status: 'onjob' },
-  //   { id: 3, name: 'Bob Johnson', avatar: 'boy.png', status: 'support' },
-  //   { id: 4, name: 'Alice Williams', avatar: 'boy.png', status: 'nextshift' },
-  //   { id: 5, name: 'Charlie Brown', avatar: 'boy.png', status: 'standby' },
-  //   { id: 6, name: 'Diana Prince', avatar: 'boy.png', status: 'onjob' },
-  //   { id: 7, name: 'Ethan Hunt', avatar: 'boy.png', status: 'support' },
-  //   { id: 8, name: 'Fiona Green', avatar: 'boy.png', status: 'nextshift' },
-  //   { id: 9, name: 'George Miller', avatar: 'boy.png', status: 'nextshift' },
-  //   { id: 10, name: 'Hannah Davis', avatar: 'boy.png', status: 'nextshift' },
-  //   { id: 11, name: 'Ian Wilson', avatar: 'boy.png', status: 'nextshift' },
-  //   { id: 12, name: 'Julia Taylor', avatar: 'boy.png', status: 'nextshift' },
-  //   { id: 13, name: 'Kevin Anderson', avatar: 'boy.png', status: 'nextshift' }
-  // ];
+document.addEventListener('DOMContentLoaded', async function () {
+  
   let members = [];
+  
+  // DOM elements for DOM
+  const memberStatusPopup = document.getElementById('memberStatusPopup');
+  const memberList = document.getElementById('memberList');
+  const closePopupBtn = document.getElementById('closePopup');
+  const statusContainers = document.querySelectorAll('.status-container');
+  const workOrdersTableBody = document.getElementById('workOrdersTableBody');
+
+  // Take order popup elements
+  const takeOrderPopup = document.getElementById('takeOrderPopup');
+  const closeTakeOrderPopupBtn = document.getElementById('closeTakeOrderPopup');
+  const cancelTakeOrderBtn = document.getElementById('cancelTakeOrderBtn');
+  const confirmTakeOrderBtn = document.getElementById('confirmTakeOrderBtn');
+  const addMoreOperatorsBtn = document.getElementById('addMoreOperatorsBtn');
+
+  // Create order popup elements
+  const createOrderPopup = document.getElementById('createOrderPopup');
+  const closeCreateOrderPopupBtn = document.getElementById('closeCreateOrderPopup');
+  const cancelCreateOrderBtn = document.getElementById('cancelCreateOrderBtn');
+  const createOrderForm = document.getElementById('createOrderForm');
+  const createOrderBtn = document.getElementById('createOrderBtn');
+  const orderRequesterInput = document.getElementById('orderRequester');
+
+  // New elements for specific location
+  const orderLocationSelect = document.getElementById('orderLocation');
+  const specificLocationContainer = document.getElementById('specificLocationContainer');
+  const specificLocationInput = document.getElementById('specificLocation');
+
+  // Search elements
+  const memberSearchInput = document.getElementById('memberSearchInput');
+  const searchDropdown = document.getElementById('searchDropdown');
+  const searchResults = document.getElementById('searchResults');
+
+  // Status filter tabs
+  const statusFilterTabs = document.querySelectorAll('.status-filter-tab');
+  let currentStatusFilter = 'all';
 
   // Sample requester data
   const requesters = [
@@ -269,49 +338,15 @@ document.addEventListener('DOMContentLoaded', function () {
     ]
   };
 
+  await fetchMembers();
+
   // Current logged-in user (for demonstration, using member with id 1)
-  const currentUser = members[0];
+  const currentUser = members.length > 0 ? members[0] : null;
 
   // Current order being processed
   let currentOrder = [1];
   let selectedOperators = [];
   let additionalOperators = [];
-
-  // DOM elements for DOM
-  const memberStatusPopup = document.getElementById('memberStatusPopup');
-  const memberList = document.getElementById('memberList');
-  const closePopupBtn = document.getElementById('closePopup');
-  const statusContainers = document.querySelectorAll('.status-container');
-  const workOrdersTableBody = document.getElementById('workOrdersTableBody');
-
-  // Take order popup elements
-  const takeOrderPopup = document.getElementById('takeOrderPopup');
-  const closeTakeOrderPopupBtn = document.getElementById('closeTakeOrderPopup');
-  const cancelTakeOrderBtn = document.getElementById('cancelTakeOrderBtn');
-  const confirmTakeOrderBtn = document.getElementById('confirmTakeOrderBtn');
-  const addMoreOperatorsBtn = document.getElementById('addMoreOperatorsBtn');
-
-  // Create order popup elements
-  const createOrderPopup = document.getElementById('createOrderPopup');
-  const closeCreateOrderPopupBtn = document.getElementById('closeCreateOrderPopup');
-  const cancelCreateOrderBtn = document.getElementById('cancelCreateOrderBtn');
-  const createOrderForm = document.getElementById('createOrderForm');
-  const createOrderBtn = document.getElementById('createOrderBtn');
-  const orderRequesterInput = document.getElementById('orderRequester');
-
-  // New elements for specific location
-  const orderLocationSelect = document.getElementById('orderLocation');
-  const specificLocationContainer = document.getElementById('specificLocationContainer');
-  const specificLocationInput = document.getElementById('specificLocation');
-
-  // Search elements
-  const memberSearchInput = document.getElementById('memberSearchInput');
-  const searchDropdown = document.getElementById('searchDropdown');
-  const searchResults = document.getElementById('searchResults');
-
-  // Status filter tabs
-  const statusFilterTabs = document.querySelectorAll('.status-filter-tab');
-  let currentStatusFilter = 'all';
 
   // Initialize member images on page load
   initializeMemberImages();
@@ -369,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Create order popup event listeners
   createOrderBtn.addEventListener('click', function () {
+    console.log("Create order button clicked");
     createOrderPopup.classList.remove('hidden');
   });
 
@@ -605,26 +641,27 @@ document.addEventListener('DOMContentLoaded', function () {
       executorsHtml += '</div>';
 
       // Action Buttons
-      let actionButtons = '';
+      let actionButtons = '<div class="flex items-center gap-2">';
       if (order.status === 'pending') {
-        actionButtons += `<button class="take-order-btn" data-order-id="${order.id}" title="Ambil order ini">
+        actionButtons += `<button class="take-order-btn bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Ambil order ini">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
               </button>`;
       } else if (order.status === 'progress') {
-        actionButtons += `<button class="done-btn" data-order-id="${order.id}" title="Tandai sebagai selesai">
+        actionButtons += `<button class="done-btn bg-green-500 text-white rounded-full p-1 hover:bg-green-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Tandai sebagai selesai">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                   </svg>
               </button>`;
       }
       // Always allow deletion, but place it consistently
-      actionButtons += `<button class="delete-btn" data-order-id="${order.id}" title="Hapus order">
+      actionButtons += `<button class="delete-btn bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Hapus order">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
           </button>`;
+      actionButtons += '</div>';
 
 
       row.innerHTML = `
@@ -674,6 +711,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const order = workOrders.find(o => o.id === orderId);
     if (!order) return;
 
+
+    if (!currentUser) {
+      showPopup('Error', 'Tidak dapat mengambil order, data pengguna tidak ditemukan.', 'error');
+      return;
+    }
 
     // Check if current user is already assigned to this order
     if (order.executors.includes(currentUser.id)) {
@@ -964,43 +1006,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Function to delete an order
   function deleteOrder(orderId) {
-    // Confirm deletion
-    if (!confirm(`Apakah Anda yakin ingin menghapus order #${orderId}?`)) {
-      return;
-    }
+    showConfirmationPopup(
+      'Konfirmasi Hapus Order',
+      `Apakah Anda yakin ingin menghapus order #${orderId}?`,
+      function() {
+        // Find the order
+        const orderIndex = workOrders.findIndex(o => o.id === orderId);
+        if (orderIndex === -1) return;
 
-    // Find the order
-    const orderIndex = workOrders.findIndex(o => o.id === orderId);
-    if (orderIndex === -1) return;
+        const order = workOrders[orderIndex];
 
-    const order = workOrders[orderIndex];
+        // Remove current user from executors if they were assigned
+        if (currentUser && order.executors.includes(currentUser.id)) {
+          const executorIndex = order.executors.indexOf(currentUser.id);
+          if (executorIndex !== -1) {
+            order.executors.splice(executorIndex, 1);
 
-    // Remove current user from executors if they were assigned
-    const executorIndex = order.executors.indexOf(currentUser.id);
-    if (executorIndex !== -1) {
-      order.executors.splice(executorIndex, 1);
+            // Update current user status to standby if they were on job
+            if (currentUser.status === 'onjob') {
+              updateMemberStatus(currentUser.id, 'standby');
+            }
+          }
+        }
 
-      // Update current user status to standby if they were on job
-      if (currentUser.status === 'onjob') {
-        updateMemberStatus(currentUser.id, 'standby');
+        // Remove the order from the array
+        workOrders.splice(orderIndex, 1);
+
+        // Save the updated workOrders array to localStorage
+        localStorage.setItem('workOrders', JSON.stringify(workOrders));
+
+        // Refresh the table
+        populateWorkOrdersTable();
+
+        // Update summary counts
+        updateSummaryCounts();
+
+        // Show success message
+        showPopup('Order Dihapus!', `Order #${orderId} telah berhasil dihapus dari daftar work orders.`, 'success');
       }
-    }
-
-    // Remove the order from the array
-    workOrders.splice(orderIndex, 1);
-
-    // Save the updated workOrders array to localStorage
-    localStorage.setItem('workOrders', JSON.stringify(workOrders));
-
-    // Refresh the table
-    populateWorkOrdersTable();
-
-    // Update summary counts
-    updateSummaryCounts();
-
-
-    // Show success message
-    showPopup('Order Dihapus!', `Order #${orderId} telah berhasil dihapus dari daftar work orders.`, 'success');
+    );
   }
 
   // Function to update summary counts
@@ -1058,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', function () {
     );
 
     if (filteredMembers.length === 0) {
-      searchResults.innerHTML = '<div class="px-4 py-2 text-gray-500 text-sm">No members found</div>';
+      searchResults.innerHTML = '<div class="text-center py-4 text-gray-500">No members found</div>';
       return;
     }
 
@@ -1319,11 +1363,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-
-
-
 });
-
-
-
-
