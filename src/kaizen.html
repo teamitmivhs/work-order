@@ -252,9 +252,13 @@
             } else if (completionRate >= 40) {
                 rating = 'Kurang';
                 suggestion = 'Kinerja perlu ditingkatkan, identifikasi masalah dan cari solusi bersama.';
-            } else {
-                rating = 'Perlu Perbaikan';
-                suggestion = 'Review sangat diperlukan, meeting dengan tim untuk identifikasi masalah. ';
+            } else if (completionRate > 10) {
+                rating = 'Sangat buruk';
+                suggestion = 'Kinerja tim sangat buruk, tindakan perbaikan segera diperlukan.';
+            }
+            else {
+                rating = 'Belum ada review';
+                suggestion = 'User belum menambahkan review atau catatan pada work order.';
             }
 
             document.getElementById('currentRating').textContent = rating;
@@ -283,7 +287,10 @@
                 qualityText = 'Dokumentasi baik';
             } else if (notesQuality >= 40) {
                 qualityText = 'Dokumentasi cukup';
-            } else {
+            } else if (notesQuality > 0) {
+                qualityText = 'Belum ada review.';
+            }
+            else {
                 qualityText = 'Perlu lebih banyak review';
             }
 
