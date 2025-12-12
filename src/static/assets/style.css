@@ -1,25 +1,15 @@
-
-    body {
+body {
       font-family: 'Poppins', sans-serif;
     }
 
     /* Blinking animation for high priority */
     @keyframes blink {
-      0% {
-        background-color: rgba(239, 68, 68, 0.2);
+      0%, 100% {
+        background-color: #fee2e2;
       }
-
       50% {
-        background-color: rgba(239, 68, 68, 0.5);
+        background-color: #fca5a5;
       }
-
-      100% {
-        background-color: rgba(239, 68, 68, 0.2);
-      }
-    }
-
-    .high-priority {
-      animation: blink 2s infinity;
     }
 
     /* Table responsive styles */
@@ -74,16 +64,17 @@
     /* Priority badge styles */
     .priority-badge {
       display: inline-block;
-      padding: 0.25rem 0.5rem;
+      padding: 0.25rem 0.75rem;
       border-radius: 9999px;
       font-size: 0.75rem;
-      font-weight: 500;
+      font-weight: 600;
       text-align: center;
     }
 
     .priority-high {
-      background-color: rgba(239, 68, 68, 0.2);
+      background-color: #fee2e2;
       color: #991b1b;
+      animation: blink 1s infinite;
     }
 
     .priority-medium {
@@ -171,4 +162,4 @@
       opacity: 0;
       transform: translateY(20px);
     }
-  
+
