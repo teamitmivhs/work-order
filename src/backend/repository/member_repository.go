@@ -8,7 +8,7 @@ import (
 )
 
 func GetAllMembers() ([]models.Member, error) {
-	rows, err := config.DB.Query("SELECT id, name, avatar, status FROM members")
+	rows, err := config.DB.Query("SELECT ID, Name, Role, Status, Avatar FROM members")
 	if err != nil {
 		return nil, err
 	}

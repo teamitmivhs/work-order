@@ -137,21 +137,22 @@
     // Member Status Management
     document.addEventListener('DOMContentLoaded', function () {
 
-      const members = [
-        { id: 1, name: 'John Doe', avatar: 'boy.png', status: 'standby' },
-        { id: 2, name: 'Jane Smith', avatar: 'boy.png', status: 'onjob' },
-        { id: 3, name: 'Bob Johnson', avatar: 'boy.png', status: 'support' },
-        { id: 4, name: 'Alice Williams', avatar: 'boy.png', status: 'nextshift' },
-        { id: 5, name: 'Charlie Brown', avatar: 'boy.png', status: 'standby' },
-        { id: 6, name: 'Diana Prince', avatar: 'boy.png', status: 'onjob' },
-        { id: 7, name: 'Ethan Hunt', avatar: 'boy.png', status: 'support' },
-        { id: 8, name: 'Fiona Green', avatar: 'boy.png', status: 'nextshift' },
-        { id: 9, name: 'George Miller', avatar: 'boy.png', status: 'nextshift' },
-        { id: 10, name: 'Hannah Davis', avatar: 'boy.png', status: 'nextshift' },
-        { id: 11, name: 'Ian Wilson', avatar: 'boy.png', status: 'nextshift' },
-        { id: 12, name: 'Julia Taylor', avatar: 'boy.png', status: 'nextshift' },
-        { id: 13, name: 'Kevin Anderson', avatar: 'boy.png', status: 'nextshift' }
-      ];
+      // const members = [
+      //   { id: 1, name: 'John Doe', avatar: 'boy.png', status: 'standby' },
+      //   { id: 2, name: 'Jane Smith', avatar: 'boy.png', status: 'onjob' },
+      //   { id: 3, name: 'Bob Johnson', avatar: 'boy.png', status: 'support' },
+      //   { id: 4, name: 'Alice Williams', avatar: 'boy.png', status: 'nextshift' },
+      //   { id: 5, name: 'Charlie Brown', avatar: 'boy.png', status: 'standby' },
+      //   { id: 6, name: 'Diana Prince', avatar: 'boy.png', status: 'onjob' },
+      //   { id: 7, name: 'Ethan Hunt', avatar: 'boy.png', status: 'support' },
+      //   { id: 8, name: 'Fiona Green', avatar: 'boy.png', status: 'nextshift' },
+      //   { id: 9, name: 'George Miller', avatar: 'boy.png', status: 'nextshift' },
+      //   { id: 10, name: 'Hannah Davis', avatar: 'boy.png', status: 'nextshift' },
+      //   { id: 11, name: 'Ian Wilson', avatar: 'boy.png', status: 'nextshift' },
+      //   { id: 12, name: 'Julia Taylor', avatar: 'boy.png', status: 'nextshift' },
+      //   { id: 13, name: 'Kevin Anderson', avatar: 'boy.png', status: 'nextshift' }
+      // ];
+      let members = [];
 
       // Sample requester data
       const requesters = [
@@ -513,6 +514,27 @@
           searchDropdown.classList.add('hidden');
         }
       });
+
+      // Fungsi asinkron untuk mengambil data dari Go API
+      async function fetchMembers() {
+          try {
+              // Panggil endpoint API Go Anda (sesuaikan URL jika perlu)
+              const response = await fetch('http://localhost:8080/api/members'); 
+              
+              if (!response.ok) {
+                  throw new Error('Network response was not ok: ' + response.statusText);
+              }
+
+              // Konversi respons JSON menjadi array objek JS
+              members = await response.json();
+              console.log("Data members berhasil di-fetch dari Go API:", members);
+
+          } catch (error) {
+              console.error("Error fetching members:", error);
+              // Tampilkan pesan error di UI jika perlu
+              memberList.innerHTML = '<div class="text-center py-4 text-red-500">Failed to load member data.</div>';
+          }
+      }
 
       // Function to populate work orders table
       function populateWorkOrdersTable() {
@@ -1136,7 +1158,11 @@
       }
 
       // Function to open member status popup
-      function openMemberStatusPopup(statusFilter = 'all') {
+      async function openMemberStatusPopup(statusFilter = 'all') {
+        // Pastikan data sudah di-fetch sebelum mengisi list
+        if (members.length === 0) {
+          await fetchMembers(); 
+        }
         memberStatusPopup.classList.remove('hidden');
         populateMemberList(statusFilter);
       }
@@ -1160,10 +1186,11 @@
         filteredMembers.forEach(member => {
           const memberItem = document.createElement('div');
           memberItem.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg';
+          let avatar = `/static/public/${member.avatar}`
 
           memberItem.innerHTML = `
           <div class="flex items-center gap-3">
-            <img src="${member.avatar}" alt="${member.name}" class="w-12 h-12 rounded-full">
+            <img src="${avatar}" alt="${member.name}" class="w-12 h-12 rounded-full">
             <span class="font-medium">${member.name}</span>
           </div>
           <div class="flex items-center gap-2">
@@ -1173,6 +1200,7 @@
               <option value="onjob" ${member.status === 'onjob' ? 'selected' : ''}>On Job</option>
               <option value="support" ${member.status === 'support' ? 'selected' : ''}>Support</option>
               <option value="nextshift" ${member.status === 'nextshift' ? 'selected' : ''}>Next Shift</option>
+              <option value="offduty" ${member.status === 'offduty' ? 'selected' : ''}>Off Duty</option>
             </select>
           </div>
         `;
