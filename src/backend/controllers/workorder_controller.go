@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"teamitmivhs/work-order-backend/models"
+	"teamitmivhs/work-order-backend/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -159,4 +160,16 @@ func GetKaizen(c *gin.Context) {
 		"rating":         rating,
 		"suggestion":     suggestion,
 	})
+}
+
+func GetMembersHandler(c *gin.Context) {
+	members, err := repository.GetAllMembers()
+	if err != nil {
+		// Jika terjadi error database, kembalikan status 500 Internal Server Error
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve members"})
+		return
+	}
+
+	// Jika sukses, kembalikan data dalam format JSON dengan status 200 OK
+	c.JSON(http.StatusOK, members)
 }

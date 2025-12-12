@@ -15,4 +15,5 @@ func RegisterWorkorderRoutes(rg *gin.RouterGroup) {
 
 	rg.GET("/summary", controllers.GetSummary)
 	rg.GET("/kaizen", controllers.GetKaizen)
+	rg.GET("/members", controllers.GetMembersHandler)
 }
