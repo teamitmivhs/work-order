@@ -47,7 +47,9 @@ function showPopup(title, message, type = 'info') {
   // Create popup elements
   const popup = document.createElement('div');
   popup.id = 'customPopup';
-  popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center popup-fade-in';
+  popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center';
+  const popupContent = document.createElement('div');
+  popupContent.className = 'bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all popup-fade-in';
 
   // Set icon based on type
   let icon = '';
@@ -92,28 +94,25 @@ function showPopup(title, message, type = 'info') {
       iconColor = 'text-blue-500';
   }
 
-  popup.innerHTML = `
-            <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all">
-                <div class="text-center">
-                    <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br ${bgColor} mb-4">
-                        ${icon}
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
-                    <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
-                    <button class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200">
-                        OK
-                    </button>
+  popupContent.innerHTML = `
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br ${bgColor} mb-4">
+                    ${icon}
                 </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
+                <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
+                <button class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200">
+                    OK
+                </button>
             </div>
         `;
-
-  // Add to body
+  popup.appendChild(popupContent);
   document.body.appendChild(popup);
 
   const okButton = popup.querySelector('button');
   okButton.addEventListener('click', () => {
-    popup.classList.remove('popup-fade-in');
-    popup.classList.add('popup-fade-out');
+    popupContent.classList.remove('popup-fade-in');
+    popupContent.classList.add('popup-fade-out');
     setTimeout(() => popup.remove(), 300);
   });
 
@@ -121,8 +120,8 @@ function showPopup(title, message, type = 'info') {
   if (type !== 'error') {
     setTimeout(() => {
       if (popup.parentNode) {
-        popup.classList.remove('popup-fade-in');
-        popup.classList.add('popup-fade-out');
+        popupContent.classList.remove('popup-fade-in');
+        popupContent.classList.add('popup-fade-out');
         setTimeout(() => popup.remove(), 300);
       }
     }, 5000);
@@ -140,61 +139,62 @@ function showConfirmationPopup(title, message, onConfirm) {
   // Create popup elements
   const popup = document.createElement('div');
   popup.id = 'customConfirmationPopup';
-  popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center popup-fade-in';
+  popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center';
+  const popupContent = document.createElement('div');
+  popupContent.className = 'bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all popup-fade-in';
 
-  popup.innerHTML = `
-            <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all">
-                <div class="text-center">
-                    <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-yellow-50 to-yellow-100 mb-4">
-                        <svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
-                    <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
-                    <div class="flex justify-center gap-4">
-                        <button id="confirmBtn" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-200">
-                            Ya
-                        </button>
-                        <button id="cancelBtn" class="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-200">
-                            Tidak
-                        </button>
-                    </div>
+  popupContent.innerHTML = `
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-yellow-50 to-yellow-100 mb-4">
+                    <svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
+                <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
+                <div class="flex justify-center gap-4">
+                    <button id="confirmBtn" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-200">
+                        Ya
+                    </button>
+                    <button id="cancelBtn" class="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-200">
+                        Tidak
+                    </button>
                 </div>
             </div>
         `;
-
-  // Add to body
+  popup.appendChild(popupContent);
   document.body.appendChild(popup);
 
-  // Event listeners for the buttons
   document.getElementById('confirmBtn').addEventListener('click', function() {
     onConfirm();
-    popup.classList.remove('popup-fade-in');
-    popup.classList.add('popup-fade-out');
+    popupContent.classList.remove('popup-fade-in');
+    popupContent.classList.add('popup-fade-out');
     setTimeout(() => popup.remove(), 300);
   });
 
   document.getElementById('cancelBtn').addEventListener('click', function() {
-    popup.classList.remove('popup-fade-in');
-    popup.classList.add('popup-fade-out');
+    popupContent.classList.remove('popup-fade-in');
+    popupContent.classList.add('popup-fade-out');
     setTimeout(() => popup.remove(), 300);
   });
 }
 
 function showAnimatedPopup(popupElement) {
+  const popupContent = popupElement.firstElementChild;
   popupElement.classList.remove('hidden');
-  popupElement.classList.add('popup-fade-in');
+  popupContent.classList.remove('popup-fade-out');
+  popupContent.classList.add('popup-fade-in');
 }
 
 function hideAnimatedPopup(popupElement) {
-  popupElement.classList.remove('popup-fade-in');
-  popupElement.classList.add('popup-fade-out');
+  const popupContent = popupElement.firstElementChild;
+  popupContent.classList.remove('popup-fade-in');
+  popupContent.classList.add('popup-fade-out');
   setTimeout(() => {
     popupElement.classList.add('hidden');
-    popupElement.classList.remove('popup-fade-out');
   }, 300);
 }
+
 
 // Function to update the Quick Summary title based on the current date
 function updateQuickSummaryTitle() {
@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     updateSummaryCounts();
 
     // Close the popup and reset the form
-    createOrderPopup.classList.add('hidden');
+    hideAnimatedPopup(createOrderPopup);
     createOrderForm.reset();
 
     // Hide specific location field when resetting form
@@ -594,7 +594,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch (error) {
       console.error("Error fetching members:", error);
       // Tampilkan pesan error di UI jika perlu
-      memberList.innerHTML = '<div class="text-center py-4 text-red-500">Failed to load member data.</div>';
+      if (memberList) {
+        memberList.innerHTML = '<div class="text-center py-4 text-red-500">Failed to load member data.</div>';
+      }
     }
   }
 
@@ -968,7 +970,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     updateSummaryCounts();
 
     // Close popup and reset form
-    takeOrderPopup.classList.add('hidden');
+    hideAnimatedPopup(takeOrderPopup);
     resetTakeOrderForm();
 
 
@@ -1368,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const memberImages = container.querySelectorAll('.member-images img');
     const moreMembersDiv = container.querySelector('.more-members');
 
-    // If there are more than 3 members, show only the first 3 and add +N
+    // If there are more than 3 members, show only the first 3 and +N
     if (memberImages.length > 3) {
       // Hide all images beyond the first 3
       for (let i = 3; i < memberImages.length; i++) {
