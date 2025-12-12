@@ -598,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function () {
         order.executors.forEach(executorId => {
           const member = members.find(m => m.id === executorId);
           if (member) {
-            executorsHtml += `<img src="${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small">`;
+            executorsHtml += `<img src="/static/public/${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small">`;
           }
         });
       }
@@ -740,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       operatorDiv.innerHTML = `
-      <img src="${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
+      <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
       <div class="flex-1">
         <div class="font-medium">${member.name}</div>
         <div class="text-xs text-gray-500">Status: Stand By</div>
@@ -1090,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       memberItem.innerHTML = `
-          <img src="${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full object-cover">
+          <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full object-cover">
           <div class="flex-1">
             <div class="font-medium text-gray-800">${member.name}</div>
             <div class="flex items-center gap-2 text-xs text-gray-600">
@@ -1143,7 +1143,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (statusContainer) {
         const memberImagesContainer = statusContainer.querySelector('.member-images');
         const memberImg = document.createElement('img');
-        memberImg.src = member.avatar;
+        let avatar = `/static/public/${member.avatar}`
+        memberImg.src = avatar;
         memberImg.alt = member.name;
         memberImg.className = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
         memberImg.dataset.memberId = member.id;
@@ -1280,7 +1281,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (newStatusContainer) {
       const memberImagesContainer = newStatusContainer.querySelector('.member-images');
       const memberImg = document.createElement('img');
-      memberImg.src = member.avatar;
+      let avatar = `/static/public/${member.avatar}`
+      memberImg.src = avatar;
       memberImg.alt = member.name;
       memberImg.className = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
       memberImg.dataset.memberId = member.id;
