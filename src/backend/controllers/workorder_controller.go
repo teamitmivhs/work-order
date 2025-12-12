@@ -73,7 +73,7 @@ func UpdateWorkOrder(c *gin.Context) {
 			if payload.SafetyChecklist != nil {
 				workOrders[i].SafetyChecklist = payload.SafetyChecklist
 			}
-			if payload.WorkingHours != "" {
+			if payload.WorkingHours != nil {
 				workOrders[i].WorkingHours = payload.WorkingHours
 			}
 			c.JSON(http.StatusOK, workOrders[i])

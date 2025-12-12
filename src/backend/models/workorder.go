@@ -9,7 +9,7 @@ type WorkOrder struct {
 	Device          string   `json:"device"`
 	Problem         string   `json:"problem"`
 	Executors       []int    `json:"executors"`
-	WorkingHours    string   `json:"workingHours"`
+	WorkingHours    *int   `json:"workingHours,omitempty"`
 	Status          string   `json:"status"`
 	SafetyChecklist []string `json:"safetyChecklist"`
 }
