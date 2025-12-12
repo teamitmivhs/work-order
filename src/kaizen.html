@@ -30,6 +30,77 @@
 
     <br>
     
+
+    <!-- NOTES VIEW MODAL -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center" id="notesModal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-3xl max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Detail Notes & Evaluasi</h2>
+                <button id="closeNotesModal" class="text-gray-500 hover:text-gray-700">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg mb-6 space-y-2">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="font-medium text-gray-600">No. Order:</span>
+                        <span class="text-gray-800 font-semibold" id="modalOrderId">-</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-600">Requester:</span>
+                        <span class="text-gray-800 font-semibold" id="modalOrderRequester">-</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-600">Device:</span>
+                        <span class="text-gray-800 font-semibold" id="modalOrderDevice">-</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-600">Location:</span>
+                        <span class="text-gray-800 font-semibold" id="modalOrderLocation">-</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-600">Priority:</span>
+                        <span class="inline-block" id="modalOrderPriority">-</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-600">Completed At:</span>
+                        <span class="text-gray-800 font-semibold" id="modalOrderCompletedAt">-</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-600">Problem Description:</span>
+                    <p class="text-gray-800 mt-1" id="modalOrderProblem">-</p>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-600">Executors:</span>
+                    <span class="text-gray-800" id="modalOrderExecutors">-</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-600">Working Hours:</span>
+                    <span class="text-gray-800" id="modalOrderWorkingHours">-</span>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">Notes & Evaluations</h3>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                    <p class="text-gray-800 leading-relaxed whitespace-pre-wrap" id="modalOrderNotes">No notes available</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button id="closeNotesModalBtn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <br>
+    
     <!-- MAIN CONTENT -->
     <main class="px-10 mt-8">
         <!-- OVERVIEW STATS -->
@@ -289,16 +360,60 @@
             renderTable();
         });
 
-        // View note functionality
+
+        // Open notes modal functionality
+        function openNotesModal(orderId) {
+            const order = completedOrders.find(o => o.id === orderId);
+            if (!order) return;
+
+            // Populate modal with order details
+            document.getElementById('modalOrderId').textContent = order.id;
+            document.getElementById('modalOrderRequester').textContent = typeof order.requester === 'object' ? order.requester.name : order.requester;
+            document.getElementById('modalOrderDevice').textContent = order.device;
+            document.getElementById('modalOrderLocation').textContent = order.location;
+            document.getElementById('modalOrderProblem').textContent = order.problem;
+            document.getElementById('modalOrderExecutors').textContent = order.executors && order.executors.length > 0 ? order.executors.join(', ') : '-';
+            document.getElementById('modalOrderWorkingHours').textContent = order.workingHours || '-';
+            document.getElementById('modalOrderCompletedAt').textContent = order.completedAt || 'N/A';
+            
+            // Set priority badge
+            const priorityElement = document.getElementById('modalOrderPriority');
+            priorityElement.innerHTML = `<span class="priority-badge priority-${order.priority}">${order.priority.charAt(0).toUpperCase() + order.priority.slice(1)}</span>`;
+            
+            // Set notes content
+            const notesElement = document.getElementById('modalOrderNotes');
+            if (order.notes && order.notes.trim() !== '') {
+                notesElement.textContent = order.notes;
+            } else {
+                notesElement.textContent = 'No notes available for this work order.';
+                notesElement.classList.add('text-gray-500');
+            }
+
+            // Show modal
+            document.getElementById('notesModal').classList.remove('hidden');
+        }
+
+        // Close notes modal functionality
+        function closeNotesModal() {
+            document.getElementById('notesModal').classList.add('hidden');
+        }
+
+        // View note functionality - replaced alert with modal
         document.addEventListener('click', function(e) {
             if (e.target.closest('.view-note-btn')) {
                 const orderId = parseInt(e.target.closest('.view-note-btn').dataset.orderId);
-                const order = completedOrders.find(o => o.id === orderId);
-                if (order && order.notes) {
-                    alert(`Notes for Order #${orderId}:\n\n${order.notes}`);
-                } else {
-                    alert('No notes available for this order.');
-                }
+                openNotesModal(orderId);
+            }
+        });
+
+        // Modal event listeners
+        document.getElementById('closeNotesModal').addEventListener('click', closeNotesModal);
+        document.getElementById('closeNotesModalBtn').addEventListener('click', closeNotesModal);
+        
+        // Close modal when clicking outside
+        document.getElementById('notesModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNotesModal();
             }
         });
 
