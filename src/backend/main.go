@@ -60,6 +60,14 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../summary.html")
 	})
 
+	// Kaizen route
+	r.GET("/kaizen", func(c *gin.Context) {
+		c.File("../kaizen.html")
+	})
+	r.GET("/src/kaizen.html", func(c *gin.Context) {
+		c.File("../kaizen.html")
+	})
+
 	// Fallback to index for any unmatched route
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
@@ -67,6 +75,8 @@ func setupPageRoutes(r *gin.Engine) {
 			c.File("../techguide.html")
 		} else if path == "/summary.html" {
 			c.File("../summary.html")
+		} else if path == "/kaizen.html" {
+			c.File("../kaizen.html")
 		} else {
 			c.File("../index.html")
 		}
