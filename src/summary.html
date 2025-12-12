@@ -223,20 +223,21 @@
 
     <script>
 
-        // Completed work orders log (stored in localStorage)
-        let completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+        // All work orders (pending, in progress, completed) stored in localStorage
+        let allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
+        let completedOrders = allWorkOrders.filter(order => order.status === 'completed'); // Filter for completed orders
 
-        // Function to reload completed orders from localStorage
-        function reloadCompletedOrders() {
-            const stored = JSON.parse(localStorage.getItem('completedOrders')) || [];
-            completedOrders = stored;
+        // Function to reload all work orders from localStorage and filter for completed ones
+        function reloadWorkOrdersAndFilterCompleted() {
+            allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
+            completedOrders = allWorkOrders.filter(order => order.status === 'completed');
         }
 
 
         // Display stats
         function updateStats() {
             // Always reload latest data from localStorage
-            reloadCompletedOrders();
+            reloadWorkOrdersAndFilterCompleted();
             
             const total = completedOrders.length;
             const high = completedOrders.filter(o => o.priority === 'high').length;
@@ -296,9 +297,7 @@
 
         function filterTable() {
             // Always reload latest data from localStorage
-            reloadCompletedOrders();
-            
-            const requesterFilter = document.getElementById('searchRequester').value.toLowerCase();
+            reloadWorkOrdersAndFilterCompleted();
             const deviceFilter = document.getElementById('searchDevice').value.toLowerCase();
             const sortBy = document.getElementById('sortBy').value;
 
@@ -359,8 +358,8 @@
             resetNoteModal();
 
             // Reload the latest data to ensure we have the most recent version
-            reloadCompletedOrders();
-            const order = completedOrders.find(o => o.id === orderId);
+            reloadWorkOrdersAndFilterCompleted();
+            const order = allWorkOrders.find(o => o.id === orderId);
 
             // If the order isn't found, show an error and stop
             if (!order) {
@@ -402,21 +401,21 @@
             const orderId = parseInt(document.getElementById('noteModal').dataset.orderId);
             const notes = document.getElementById('noteText').value.trim();
 
-            // Always get fresh data from localStorage
-            let currentCompletedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+            // Always get fresh data from localStorage (all work orders)
+            let currentAllWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
             
-            // Find the specific order
-            const orderIndex = currentCompletedOrders.findIndex(o => o.id === orderId);
+            // Find the specific order within all work orders
+            const orderIndex = currentAllWorkOrders.findIndex(o => o.id === orderId);
             if (orderIndex !== -1) {
                 // Safe update: preserve the entire object and only modify notes property
-                const existingOrder = currentCompletedOrders[orderIndex];
+                const existingOrder = currentAllWorkOrders[orderIndex];
                 existingOrder.notes = notes;
                 
-                // Save back to localStorage
-                localStorage.setItem('completedOrders', JSON.stringify(currentCompletedOrders));
+                // Save back the entire workOrders array to localStorage
+                localStorage.setItem('workOrders', JSON.stringify(currentAllWorkOrders));
                 
-                // Update local state to match localStorage exactly
-                completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+                // Update local state by reloading and filtering
+                reloadWorkOrdersAndFilterCompleted(); // Use the new reload function
                 
                 renderTable();
                 closeNoteModal();

@@ -210,13 +210,16 @@
     <br><br>
 
     <script>
-        // Work orders data from localStorage
-        let workOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
-        let completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+        // All work orders data from localStorage
+        let allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
+        let completedOrders = allWorkOrders.filter(order => order.status === 'completed');
 
         // Display overview stats
         function updateOverviewStats() {
-            const totalOrders = workOrders.length + completedOrders.length;
+            allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || []; // Reload all work orders
+            completedOrders = allWorkOrders.filter(order => order.status === 'completed'); // Filter for completed ones
+
+            const totalOrders = allWorkOrders.length; // Use allWorkOrders for total
             const completed = completedOrders.length;
             const completionRate = totalOrders > 0 ? Math.round((completed / totalOrders) * 100) : 0;
             const evaluations = completedOrders.filter(order => order.notes && order.notes.trim() !== '').length;
@@ -230,7 +233,10 @@
 
         // Display performance evaluation
         function displayPerformanceEvaluation() {
-            const totalOrders = workOrders.length + completedOrders.length;
+            allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || []; // Reload all work orders
+            completedOrders = allWorkOrders.filter(order => order.status === 'completed'); // Filter for completed ones
+
+            const totalOrders = allWorkOrders.length; // Use allWorkOrders for total
             const completed = completedOrders.length;
             const completionRate = totalOrders > 0 ? (completed / totalOrders) * 100 : 0;
 
@@ -287,6 +293,9 @@
 
         // Display table
         function renderTable(orders = completedOrders) {
+            allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || []; // Reload all work orders
+            completedOrders = allWorkOrders.filter(order => order.status === 'completed'); // Filter for completed ones
+
             const tbody = document.getElementById('ordersTableBody');
             
             if (orders.length === 0) {
@@ -333,6 +342,9 @@
 
         // Filter & Search functionality
         function filterTable() {
+            allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || []; // Reload all work orders
+            completedOrders = allWorkOrders.filter(order => order.status === 'completed'); // Filter for completed ones
+
             const requesterFilter = document.getElementById('searchRequester').value.toLowerCase();
             const deviceFilter = document.getElementById('searchDevice').value.toLowerCase();
             const priorityFilter = document.getElementById('filterPriority').value;
@@ -364,7 +376,10 @@
 
         // Open notes modal functionality
         function openNotesModal(orderId) {
-            const order = completedOrders.find(o => o.id === orderId);
+            allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || []; // Reload all work orders
+            completedOrders = allWorkOrders.filter(order => order.status === 'completed'); // Filter for completed ones
+            
+            const order = allWorkOrders.find(o => o.id === orderId); // Find in all orders
             if (!order) return;
 
             // Populate modal with order details

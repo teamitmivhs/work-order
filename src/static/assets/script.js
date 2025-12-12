@@ -121,6 +121,19 @@
         }
     }
 
+    // Function to update the Quick Summary title based on the current date
+    function updateQuickSummaryTitle() {
+        const quickSummaryTitleElement = document.getElementById('quickSummaryTitle');
+        if (quickSummaryTitleElement) {
+          const currentDate = new Date();
+          if (currentDate.getDate() === 1) { // Check if it's the 1st of the month
+            quickSummaryTitleElement.textContent = 'Quick Summary Bulan Ini';
+          } else {
+            quickSummaryTitleElement.textContent = 'Quick Summary'; // Default text for other days
+          }
+        }
+    }
+
     // Member Status Management
     document.addEventListener('DOMContentLoaded', function () {
 
@@ -154,8 +167,7 @@
         { id: 110, name: 'Meredith Palmer', department: 'Supplier Relations' }
       ];
 
-      // Sample work orders data - DIKOSONGKAN SEMUA DATA
-      const workOrders = [];
+      let workOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
 
       // Comprehensive safety checklist items for all locations
       const safetyChecklistItems = {
@@ -431,11 +443,7 @@
         const finalLocation = specificLocation ? `${location} - ${specificLocation}` : location;
 
         // Generate a new, globally unique order ID
-        const completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
-        const existingIds = [
-            ...workOrders.map(order => order.id),
-            ...completedOrders.map(order => order.id)
-        ];
+        const existingIds = workOrders.map(order => order.id);
         const newOrderId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
 
         // Create new order object
@@ -519,8 +527,8 @@
         sortedWorkOrders.forEach(order => {
           const row = document.createElement('tr');
 
-          // Add high priority class for blinking effect
-          if (order.priority === 'high') {
+          // Add high priority class for blinking effect, only if not completed
+          if (order.priority === 'high' && order.status !== 'completed') {
             row.classList.add('high-priority');
           }
 
@@ -547,6 +555,9 @@
             case 'progress':
               statusBadge = '<span class="status-badge status-progress">On Progress</span>';
               break;
+            case 'completed':
+              statusBadge = '<span class="status-badge status-completed">Completed</span>';
+              break;
           }
 
           // Get requester information - handle both ID and name cases
@@ -559,44 +570,40 @@
           }
 
           // Get executors HTML - only show members with "onjob" status
+          // If order is completed, show all assigned executors (regardless of current status)
           let executorsHtml = '<div class="flex -space-x-2">';
-          order.executors.forEach((executorId, index) => {
-            const member = members.find(m => m.id === executorId);
-            // Only show the executor if they have "onjob" status
-            if (member && member.status === 'onjob') {
-              executorsHtml += `<img src="${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small">`;
-            }
-          });
-
-          // Add empty slots if less than 3 executors
-          const emptySlots = 3 - order.executors.length;
-          for (let i = 0; i < emptySlots; i++) {
-            executorsHtml += `<div class="empty-executor-slot" data-order-id="${order.id}" data-slot-index="${order.executors.length + i}" title="Ambil order ini">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-          </div>`;
+          if (order.executors && order.executors.length > 0) {
+              order.executors.forEach(executorId => {
+                  const member = members.find(m => m.id === executorId);
+                  if (member) {
+                      executorsHtml += `<img src="${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small">`;
+                  }
+              });
           }
-
           executorsHtml += '</div>';
-
-          // Add delete button
-          const deleteButton = `<button class="delete-btn" data-order-id="${order.id}" title="Hapus order">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>`;
-
-          // Add done button only for "progress" status
-          let actionButtons = deleteButton;
-          if (order.status === 'progress') {
-            const doneButton = `<button class="done-btn" data-order-id="${order.id}" title="Tandai sebagai selesai">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </button>`;
-            actionButtons = doneButton + deleteButton;
+          
+          // Action Buttons
+          let actionButtons = '';
+          if (order.status === 'pending') {
+              actionButtons += `<button class="take-order-btn" data-order-id="${order.id}" title="Ambil order ini">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+              </button>`;
+          } else if (order.status === 'progress') {
+              actionButtons += `<button class="done-btn" data-order-id="${order.id}" title="Tandai sebagai selesai">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+              </button>`;
           }
+          // Always allow deletion, but place it consistently
+          actionButtons += `<button class="delete-btn" data-order-id="${order.id}" title="Hapus order">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+          </button>`;
+
 
           row.innerHTML = `
           <td class="py-3 px-2 text-sm">${order.id}</td>
@@ -607,7 +614,7 @@
           <td class="py-3 px-2 text-sm">${order.device}</td>
           <td class="py-3 px-2 text-sm">${order.problem}</td>
           <td class="py-3 px-2 text-sm">${executorsHtml}</td>
-          <td class="py-3 px-2 text-sm">${order.workingHours}</td>
+          <td class="py-3 px-2 text-sm">${order.workingHours || '-'}</td>
           <td class="py-3 px-2 text-sm">${statusBadge}</td>
           <td class="py-3 px-2 text-sm">${actionButtons}</td>
         `;
@@ -615,12 +622,12 @@
           workOrdersTableBody.appendChild(row);
         });
 
-        // Add event listeners for empty executor slots
-        document.querySelectorAll('.empty-executor-slot').forEach(slot => {
-          slot.addEventListener('click', function () {
-            const orderId = parseInt(this.dataset.orderId);
-            openTakeOrderPopup(orderId);
-          });
+        // Add event listeners for take order buttons (empty executor slots become take order buttons)
+        document.querySelectorAll('.take-order-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const orderId = parseInt(this.dataset.orderId);
+                openTakeOrderPopup(orderId);
+            });
         });
 
         // Add event listeners for delete buttons
@@ -913,13 +920,8 @@
         order.status = 'completed';
         order.completedAt = completionTime;
 
-        // Save to localStorage for summary page
-        let completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
-        completedOrders.push({
-          ...order,
-          completedAt: completionTime
-        });
-        localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
+        // Save the updated workOrders array to localStorage
+        localStorage.setItem('workOrders', JSON.stringify(workOrders));
 
         // Update member statuses - set all executors to standby
         order.executors.forEach(executorId => {
@@ -965,6 +967,9 @@
         // Remove the order from the array
         workOrders.splice(orderIndex, 1);
 
+        // Save the updated workOrders array to localStorage
+        localStorage.setItem('workOrders', JSON.stringify(workOrders));
+
         // Refresh the table
         populateWorkOrdersTable();
 
@@ -981,12 +986,16 @@
         const totalOrders = workOrders.length;
         const pendingOrders = workOrders.filter(o => o.status === 'pending').length;
         const progressOrders = workOrders.filter(o => o.status === 'progress').length;
-        const completedOrders = totalOrders - pendingOrders - progressOrders;
+        const completedOrders = workOrders.filter(o => o.status === 'completed').length; // Explicitly count completed
 
         document.getElementById('totalOrdersCount').textContent = totalOrders;
         document.getElementById('pendingOrdersCount').textContent = pendingOrders;
         document.getElementById('progressOrdersCount').textContent = progressOrders;
         document.getElementById('completedOrdersCount').textContent = completedOrders;
+
+        // Save the current state of workOrders to localStorage
+        localStorage.setItem('workOrders', JSON.stringify(workOrders));
+
         // If Kaizen popup is open, refresh its evaluation
         const kPopupExisting = document.getElementById('kaizenPopup');
         if (kPopupExisting && !kPopupExisting.classList.contains('hidden')) {
