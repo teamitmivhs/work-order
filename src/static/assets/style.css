@@ -2,7 +2,6 @@ body {
       font-family: 'Poppins', sans-serif;
     }
 
-    /* Blinking animation for high priority */
     @keyframes blink {
       0%, 100% {
         background-color: #fee2e2;
@@ -12,7 +11,6 @@ body {
       }
     }
 
-    /* On Progress Fade Animation */
     @keyframes fadeLeftYellow {
       0%, 100% {
         background-color: #fbbf24;
@@ -22,7 +20,6 @@ body {
       }
     }
 
-    /* Table responsive styles */
     .table-container {
       overflow-x: auto;
     }
@@ -32,7 +29,6 @@ body {
       width: max-content;
     }
 
-    /* Member avatar styles */
     .member-avatar {
       width: 28px;
       height: 28px;
@@ -51,7 +47,6 @@ body {
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
-    /* Status badge styles */
     .status-badge {
       display: inline-block;
       padding: 0.25rem 0.5rem;
@@ -71,7 +66,6 @@ body {
       color: #1e3a8a;
     }
 
-    /* Priority badge styles */
     .priority-badge {
       display: inline-block;
       padding: 0.25rem 0.75rem;
@@ -97,7 +91,6 @@ body {
       color: #14532d;
     }
 
-    /* Empty executor slot styles */
     .empty-executor-slot {
       width: 24px;
       height: 24px;
@@ -115,7 +108,6 @@ body {
       background-color: #d1d5db;
     }
 
-    /* Delete button styles */
     .delete-btn {
       color: #ef4444;
       cursor: pointer;
@@ -127,7 +119,6 @@ body {
       transform: scale(1.1);
     }
 
-    /* Done button styles */
     .done-btn {
       color: #22c55e;
       cursor: pointer;
@@ -140,7 +131,6 @@ body {
       transform: scale(1.1);
     }
 
-    /* Checkbox custom styles */
     .custom-checkbox {
       appearance: none;
       width: 20px;
@@ -177,4 +167,3 @@ body {
       animation: fadeLeftYellow 1.5s infinite !important;
       background-color: #fbbf24 !important;
     }
-

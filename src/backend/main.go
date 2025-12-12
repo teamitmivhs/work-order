@@ -17,7 +17,6 @@ const (
 func main() {
 	println("🚀 Starting Work Order Server...")
 
-	// Initialize database connection (optional - server runs without DB)
 	dbErr := config.InitDB()
 	if dbErr != nil {
 		println("Warning: Database connection failed - " + dbErr.Error())
@@ -28,7 +27,6 @@ func main() {
 	}
 	defer config.CloseDB()
 
-	// Create Gin router
 	r := gin.Default()
 
 	setupMiddleware(r)
@@ -36,7 +34,6 @@ func main() {
 	setupPageRoutes(r)
 	setupAPIRoutes(r)
 
-	// Start server
 	println("Server starting on port 8080")
 	println("Frontend available at: http://localhost:8080")
 	println("Summary page: http://localhost:8080/summary")
@@ -69,7 +66,6 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../index.html")
 	})
 
-	// TechGuide route
 	r.GET("/techguide", func(c *gin.Context) {
 		c.File("../techguide.html")
 	})
@@ -77,7 +73,6 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../techguide.html")
 	})
 
-	// Summary route
 	r.GET("/summary", func(c *gin.Context) {
 		c.File("../summary.html")
 	})
@@ -85,7 +80,6 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../summary.html")
 	})
 
-	// Kaizen route
 	r.GET("/kaizen", func(c *gin.Context) {
 		c.File("../kaizen.html")
 	})
@@ -93,7 +87,6 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../kaizen.html")
 	})
 
-	//fallback route
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
 		if path == "/techguide.html" {

@@ -13,7 +13,6 @@ import (
 var DB *sql.DB
 
 func InitDB() error {
-	// Set default values for database configuration
 	dbUser := os.Getenv("DB_USER")
 	if dbUser == "" {
 		dbUser = "adminit2025"

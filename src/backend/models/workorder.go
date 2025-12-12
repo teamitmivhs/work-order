@@ -18,6 +18,6 @@ type Member struct {
 	ID     int    `json:"id"`
 	Name   string `json:"name"`
 	Role   string `json:"role"`
-	Status string `json:"status"` // MySQL mungkin menyimpan 'standby', 'onjob', dll.
-	Avatar string `json:"avatar"` // MySQL mungkin menyimpan nama file seperti 'boy.png'
+	Status string `json:"status"`
+	Avatar string `json:"avatar"`
 }
