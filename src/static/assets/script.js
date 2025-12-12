@@ -47,7 +47,7 @@ function showPopup(title, message, type = 'info') {
   // Create popup elements
   const popup = document.createElement('div');
   popup.id = 'customPopup';
-  popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center';
+  popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center popup-fade-in';
 
   // Set icon based on type
   let icon = '';
@@ -100,7 +100,7 @@ function showPopup(title, message, type = 'info') {
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
                     <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
-                    <button class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200" onclick="this.closest('#customPopup').remove()">
+                    <button class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200">
                         OK
                     </button>
                 </div>
@@ -110,11 +110,20 @@ function showPopup(title, message, type = 'info') {
   // Add to body
   document.body.appendChild(popup);
 
+  const okButton = popup.querySelector('button');
+  okButton.addEventListener('click', () => {
+    popup.classList.remove('popup-fade-in');
+    popup.classList.add('popup-fade-out');
+    setTimeout(() => popup.remove(), 300);
+  });
+
   // Auto close after 5 seconds for non-error messages
   if (type !== 'error') {
     setTimeout(() => {
       if (popup.parentNode) {
-        popup.remove();
+        popup.classList.remove('popup-fade-in');
+        popup.classList.add('popup-fade-out');
+        setTimeout(() => popup.remove(), 300);
       }
     }, 5000);
   }
@@ -131,7 +140,7 @@ function showConfirmationPopup(title, message, onConfirm) {
   // Create popup elements
   const popup = document.createElement('div');
   popup.id = 'customConfirmationPopup';
-  popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center';
+  popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center popup-fade-in';
 
   popup.innerHTML = `
             <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all">
@@ -161,12 +170,30 @@ function showConfirmationPopup(title, message, onConfirm) {
   // Event listeners for the buttons
   document.getElementById('confirmBtn').addEventListener('click', function() {
     onConfirm();
-    popup.remove();
+    popup.classList.remove('popup-fade-in');
+    popup.classList.add('popup-fade-out');
+    setTimeout(() => popup.remove(), 300);
   });
 
   document.getElementById('cancelBtn').addEventListener('click', function() {
-    popup.remove();
+    popup.classList.remove('popup-fade-in');
+    popup.classList.add('popup-fade-out');
+    setTimeout(() => popup.remove(), 300);
   });
+}
+
+function showAnimatedPopup(popupElement) {
+  popupElement.classList.remove('hidden');
+  popupElement.classList.add('popup-fade-in');
+}
+
+function hideAnimatedPopup(popupElement) {
+  popupElement.classList.remove('popup-fade-in');
+  popupElement.classList.add('popup-fade-out');
+  setTimeout(() => {
+    popupElement.classList.add('hidden');
+    popupElement.classList.remove('popup-fade-out');
+  }, 300);
 }
 
 // Function to update the Quick Summary title based on the current date
@@ -376,18 +403,18 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // Close popup when close button is clicked
   closePopupBtn.addEventListener('click', function () {
-    memberStatusPopup.classList.add('hidden');
+    hideAnimatedPopup(memberStatusPopup);
   });
 
 
   // Take order popup event listeners
   closeTakeOrderPopupBtn.addEventListener('click', function () {
-    takeOrderPopup.classList.add('hidden');
+    hideAnimatedPopup(takeOrderPopup);
     resetTakeOrderForm();
   });
 
   cancelTakeOrderBtn.addEventListener('click', function () {
-    takeOrderPopup.classList.add('hidden');
+    hideAnimatedPopup(takeOrderPopup);
     resetTakeOrderForm();
   });
 
@@ -404,19 +431,18 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // Create order popup event listeners
   createOrderBtn.addEventListener('click', function () {
-    console.log("Create order button clicked");
-    createOrderPopup.classList.remove('hidden');
+    showAnimatedPopup(createOrderPopup);
   });
 
   closeCreateOrderPopupBtn.addEventListener('click', function () {
-    createOrderPopup.classList.add('hidden');
+    hideAnimatedPopup(createOrderPopup);
     createOrderForm.reset();
     // Hide specific location field when closing
     specificLocationContainer.classList.add('hidden');
   });
 
   cancelCreateOrderBtn.addEventListener('click', function () {
-    createOrderPopup.classList.add('hidden');
+    hideAnimatedPopup(createOrderPopup);
     createOrderForm.reset();
     // Hide specific location field when canceling
     specificLocationContainer.classList.add('hidden');
@@ -743,7 +769,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     populateSafetyChecklist(order.location);
 
     // Show popup
-    takeOrderPopup.classList.remove('hidden');
+    showAnimatedPopup(takeOrderPopup);
   }
 
   function populateStandbyOperators() {
@@ -1208,7 +1234,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (members.length === 0) {
       await fetchMembers();
     }
-    memberStatusPopup.classList.remove('hidden');
+    showAnimatedPopup(memberStatusPopup);
     populateMemberList(statusFilter);
   }
 
