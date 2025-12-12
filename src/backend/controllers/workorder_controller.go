@@ -138,17 +138,17 @@ func GetKaizen(c *gin.Context) {
 	if total > 0 {
 		completionRate = (completed * 100) / total
 	}
-	rating := "Needs Improvement"
-	suggestion := "Investigate bottlenecks."
+	rating := "Perlu perbaikan"
+	suggestion := "Investigasi hambatan kerja."
 	if completionRate >= 80 {
-		rating = "Excellent"
-		suggestion = "Keep up the good work."
+		rating = "Sempurna"
+		suggestion = "Pertahankan kinerja tim."
 	} else if completionRate >= 60 {
-		rating = "Good"
-		suggestion = "Focus on reducing pending items."
+		rating = "Baik"
+		suggestion = "Performa baik, namun masih ada ruang untuk peningkatan."
 	} else if completionRate >= 40 {
-		rating = "Fair"
-		suggestion = "Consider process improvements."
+		rating = "Cukup"
+		suggestion = "Perbaikan perlu dipertimbangkan."
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"total":          total,

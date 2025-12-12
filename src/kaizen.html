@@ -166,17 +166,17 @@
             let suggestion = '';
 
             if (completionRate >= 80) {
-                rating = 'Excellent';
-                suggestion = 'Keep up the excellent work! Team performance is outstanding.';
+                rating = 'Mantap';
+                suggestion = 'Performa tim sangat baik, pertahankan dan terus tingkatkan kualitas kerja.';
             } else if (completionRate >= 60) {
-                rating = 'Good';
-                suggestion = 'Good performance. Focus on reducing pending orders and improving efficiency.';
+                rating = 'Ok';
+                suggestion = 'Performa baik, namun masih ada ruang untuk peningkatan.';
             } else if (completionRate >= 40) {
-                rating = 'Fair';
-                suggestion = 'Performance needs improvement. Review processes and resource allocation.';
+                rating = 'Kurang';
+                suggestion = 'Kinerja perlu ditingkatkan, identifikasi masalah dan cari solusi bersama.';
             } else {
-                rating = 'Needs Improvement';
-                suggestion = 'Urgent review needed. Investigate bottlenecks and assign more resources.';
+                rating = 'Perlu Perbaikan';
+                suggestion = 'Review sangat diperlukan, meeting dengan tim untuk identifikasi masalah. ';
             }
 
             document.getElementById('currentRating').textContent = rating;
@@ -200,13 +200,13 @@
             
             let qualityText = '';
             if (notesQuality >= 80) {
-                qualityText = 'Excellent Documentation';
+                qualityText = 'Dokumentasi sangat baik';
             } else if (notesQuality >= 60) {
-                qualityText = 'Good Documentation';
+                qualityText = 'Dokumentasi baik';
             } else if (notesQuality >= 40) {
-                qualityText = 'Fair Documentation';
+                qualityText = 'Dokumentasi cukup';
             } else {
-                qualityText = 'Needs More Documentation';
+                qualityText = 'Perlu lebih banyak review';
             }
 
             document.getElementById('notesQuality').textContent = Math.round(notesQuality) + '%';
