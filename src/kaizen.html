@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaizen Activity - IT Work Order</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/static/assets/style.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-[#f3f4f6] text-black">
+    <!-- NAVBAR -->
+    <nav class="w-full bg-[#222] px-6 py-4 flex flex-wrap items-center justify-between shadow-xl gap-4">
+        <div class="flex flex-wrap items-center gap-8 px-8">
+            <a href="/" class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105">
+                <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back
+            </a>
+        </div>
+        <h1 class="text-white text-2xl font-bold">Kaizen Activity - Evaluation & Notes</h1>
+        <div class="w-20"></div>
+    </nav>
+
+    <br>
+    
+    <!-- MAIN CONTENT -->
+    <main class="px-10 mt-8">
+        <!-- OVERVIEW STATS -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <p class="text-sm text-gray-600">Total Work Orders</p>
+                <p class="text-4xl font-bold text-blue-600" id="totalOrders">0</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <p class="text-sm text-gray-600">Completed</p>
+                <p class="text-4xl font-bold text-green-600" id="completedOrders">0</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <p class="text-sm text-gray-600">Completion Rate</p>
+                <p class="text-4xl font-bold text-purple-600" id="completionRate">0%</p>
+                <div class="w-full bg-gray-200 rounded h-2 mt-2">
+                    <div id="completionBar" class="bg-green-500 h-2 rounded" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <p class="text-sm text-gray-600">Evaluations</p>
+                <p class="text-4xl font-bold text-orange-600" id="evaluationCount">0</p>
+            </div>
+        </div>
+
+        <!-- PERFORMANCE EVALUATION -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Performance Evaluation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-green-800">Current Rating</h3>
+                    <p class="text-3xl font-bold text-green-600" id="currentRating">-</p>
+                    <p class="text-sm text-green-700" id="ratingSuggestion">-</p>
+                </div>
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-blue-800">Average Completion Time</h3>
+                    <p class="text-3xl font-bold text-blue-600" id="avgCompletionTime">-</p>
+                    <p class="text-sm text-blue-700">Based on working hours</p>
+                </div>
+                <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-purple-800">Notes Quality</h3>
+                    <p class="text-3xl font-bold text-purple-600" id="notesQuality">-</p>
+                    <p class="text-sm text-purple-700" id="notesQualityDetail">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Filter & Search</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search by Requester</label>
+                    <input type="text" id="searchRequester" placeholder="Cari nama requester..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search by Device</label>
+                    <input type="text" id="searchDevice" placeholder="Cari nama device..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                    <select id="filterPriority" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Priorities</option>
+                        <option value="high">High Priority</option>
+                        <option value="medium">Medium Priority</option>
+                        <option value="low">Low Priority</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="clearFilters" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">Clear Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORK ORDERS WITH NOTES -->
+        <div class="bg-white rounded-2xl shadow-xl p-6">
+            <h2 class="text-2xl font-semibold mb-4">Work Orders with Notes & Evaluations</h2>
+            <div class="table-container overflow-x-auto">
+                <table class="w-full table">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-4 font-semibold text-sm">No</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Prioritas</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Jam</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Requester</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Lokasi</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Device</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Masalah</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Pelaksana</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Working Hours</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Waktu Selesai</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Catatan/Evaluasi</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr>
+                            <td colspan="12" class="text-center py-8 text-gray-500">Tidak ada work order dengan catatan</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <br><br>
+
+    <script>
+        // Work orders data from localStorage
+        let workOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
+        let completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+
+        // Display overview stats
+        function updateOverviewStats() {
+            const totalOrders = workOrders.length + completedOrders.length;
+            const completed = completedOrders.length;
+            const completionRate = totalOrders > 0 ? Math.round((completed / totalOrders) * 100) : 0;
+            const evaluations = completedOrders.filter(order => order.notes && order.notes.trim() !== '').length;
+
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('completedOrders').textContent = completed;
+            document.getElementById('completionRate').textContent = completionRate + '%';
+            document.getElementById('completionBar').style.width = completionRate + '%';
+            document.getElementById('evaluationCount').textContent = evaluations;
+        }
+
+        // Display performance evaluation
+        function displayPerformanceEvaluation() {
+            const totalOrders = workOrders.length + completedOrders.length;
+            const completed = completedOrders.length;
+            const completionRate = totalOrders > 0 ? (completed / totalOrders) * 100 : 0;
+
+            let rating = '';
+            let suggestion = '';
+
+            if (completionRate >= 80) {
+                rating = 'Excellent';
+                suggestion = 'Keep up the excellent work! Team performance is outstanding.';
+            } else if (completionRate >= 60) {
+                rating = 'Good';
+                suggestion = 'Good performance. Focus on reducing pending orders and improving efficiency.';
+            } else if (completionRate >= 40) {
+                rating = 'Fair';
+                suggestion = 'Performance needs improvement. Review processes and resource allocation.';
+            } else {
+                rating = 'Needs Improvement';
+                suggestion = 'Urgent review needed. Investigate bottlenecks and assign more resources.';
+            }
+
+            document.getElementById('currentRating').textContent = rating;
+            document.getElementById('ratingSuggestion').textContent = suggestion;
+
+            // Calculate average completion time
+            const ordersWithHours = completedOrders.filter(order => order.workingHours && order.workingHours !== '0 jam');
+            let avgHours = 0;
+            if (ordersWithHours.length > 0) {
+                const totalHours = ordersWithHours.reduce((sum, order) => {
+                    const hours = parseFloat(order.workingHours) || 0;
+                    return sum + hours;
+                }, 0);
+                avgHours = totalHours / ordersWithHours.length;
+            }
+            document.getElementById('avgCompletionTime').textContent = avgHours.toFixed(1) + ' hours';
+
+            // Calculate notes quality
+            const ordersWithNotes = completedOrders.filter(order => order.notes && order.notes.trim() !== '').length;
+            const notesQuality = completedOrders.length > 0 ? (ordersWithNotes / completedOrders.length) * 100 : 0;
+            
+            let qualityText = '';
+            if (notesQuality >= 80) {
+                qualityText = 'Excellent Documentation';
+            } else if (notesQuality >= 60) {
+                qualityText = 'Good Documentation';
+            } else if (notesQuality >= 40) {
+                qualityText = 'Fair Documentation';
+            } else {
+                qualityText = 'Needs More Documentation';
+            }
+
+            document.getElementById('notesQuality').textContent = Math.round(notesQuality) + '%';
+            document.getElementById('notesQualityDetail').textContent = qualityText;
+        }
+
+        // Display table
+        function renderTable(orders = completedOrders) {
+            const tbody = document.getElementById('ordersTableBody');
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Tidak ada work order dengan catatan</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map((order, index) => `
+                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="py-3 px-4 text-sm">${index + 1}</td>
+                    <td class="py-3 px-4 text-sm">
+                        <span class="priority-badge priority-${order.priority}">${order.priority.charAt(0).toUpperCase() + order.priority.slice(1)}</span>
+                    </td>
+                    <td class="py-3 px-4 text-sm">${order.time}</td>
+                    <td class="py-3 px-4 text-sm">${typeof order.requester === 'object' ? order.requester.name : order.requester}</td>
+                    <td class="py-3 px-4 text-sm">${order.location}</td>
+                    <td class="py-3 px-4 text-sm">${order.device}</td>
+                    <td class="py-3 px-4 text-sm">${order.problem}</td>
+                    <td class="py-3 px-4 text-sm">
+                        ${order.executors && order.executors.length > 0 ? order.executors.join(', ') : '-'}
+                    </td>
+                    <td class="py-3 px-4 text-sm">${order.workingHours || '-'}</td>
+                    <td class="py-3 px-4 text-sm text-green-600 font-semibold">${order.completedAt || 'N/A'}</td>
+                    <td class="py-3 px-4 text-sm">
+                        <div class="max-w-xs">
+                            ${order.notes ? `
+                                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" title="${order.notes}">
+                                    ${order.notes.length > 50 ? order.notes.substring(0, 50) + '...' : order.notes}
+                                </span>
+                            ` : '<span class="text-gray-400 text-sm">No notes</span>'}
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-sm">
+                        <button class="view-note-btn text-blue-500 hover:text-blue-700 transition-colors" data-order-id="${order.id}" title="View Full Notes">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Filter & Search functionality
+        function filterTable() {
+            const requesterFilter = document.getElementById('searchRequester').value.toLowerCase();
+            const deviceFilter = document.getElementById('searchDevice').value.toLowerCase();
+            const priorityFilter = document.getElementById('filterPriority').value;
+
+            let filtered = completedOrders.filter(order => {
+                const requester = typeof order.requester === 'object' ? order.requester.name : order.requester;
+                const matchesRequester = requester.toLowerCase().includes(requesterFilter);
+                const matchesDevice = order.device.toLowerCase().includes(deviceFilter);
+                const matchesPriority = priorityFilter === '' || order.priority === priorityFilter;
+                
+                return matchesRequester && matchesDevice && matchesPriority;
+            });
+
+            renderTable(filtered);
+        }
+
+        // Event listeners
+        document.getElementById('searchRequester').addEventListener('input', filterTable);
+        document.getElementById('searchDevice').addEventListener('input', filterTable);
+        document.getElementById('filterPriority').addEventListener('change', filterTable);
+
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            document.getElementById('searchRequester').value = '';
+            document.getElementById('searchDevice').value = '';
+            document.getElementById('filterPriority').value = '';
+            renderTable();
+        });
+
+        // View note functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.view-note-btn')) {
+                const orderId = parseInt(e.target.closest('.view-note-btn').dataset.orderId);
+                const order = completedOrders.find(o => o.id === orderId);
+                if (order && order.notes) {
+                    alert(`Notes for Order #${orderId}:\n\n${order.notes}`);
+                } else {
+                    alert('No notes available for this order.');
+                }
+            }
+        });
+
+        // Load page
+        updateOverviewStats();
+        displayPerformanceEvaluation();
+        renderTable();
+    </script>
+</body>
+</html>

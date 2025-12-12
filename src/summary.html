@@ -159,11 +159,22 @@
     <br><br>
 
     <script>
+
         // Completed work orders log (stored in localStorage)
         let completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
 
+        // Function to reload completed orders from localStorage
+        function reloadCompletedOrders() {
+            const stored = JSON.parse(localStorage.getItem('completedOrders')) || [];
+            completedOrders = stored;
+        }
+
+
         // Display stats
         function updateStats() {
+            // Always reload latest data from localStorage
+            reloadCompletedOrders();
+            
             const total = completedOrders.length;
             const high = completedOrders.filter(o => o.priority === 'high').length;
             const medium = completedOrders.filter(o => o.priority === 'medium').length;
@@ -219,7 +230,11 @@
         document.getElementById('searchDevice').addEventListener('input', filterTable);
         document.getElementById('sortBy').addEventListener('change', filterTable);
 
+
         function filterTable() {
+            // Always reload latest data from localStorage
+            reloadCompletedOrders();
+            
             const requesterFilter = document.getElementById('searchRequester').value.toLowerCase();
             const deviceFilter = document.getElementById('searchDevice').value.toLowerCase();
             const sortBy = document.getElementById('sortBy').value;
@@ -271,17 +286,29 @@
             document.getElementById('noteModal').classList.add('hidden');
         }
 
+
         function saveNote() {
             const orderId = parseInt(document.getElementById('noteModal').dataset.orderId);
             const notes = document.getElementById('noteText').value;
 
-            const orderIndex = completedOrders.findIndex(o => o.id === orderId);
+            // Load latest data from localStorage to prevent data loss
+            let currentCompletedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+            
+            const orderIndex = currentCompletedOrders.findIndex(o => o.id === orderId);
             if (orderIndex !== -1) {
-                completedOrders[orderIndex].notes = notes;
-                localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
+                currentCompletedOrders[orderIndex].notes = notes;
+                
+                // Save the updated data back to localStorage
+                localStorage.setItem('completedOrders', JSON.stringify(currentCompletedOrders));
+                
+                // Update the local variable
+                completedOrders = currentCompletedOrders;
+                
                 renderTable();
                 closeNoteModal();
                 alert('Catatan berhasil disimpan!');
+            } else {
+                alert('Order tidak ditemukan!');
             }
         }
 
@@ -296,6 +323,7 @@
                 openNoteModal(orderId);
             }
         });
+
 
         document.getElementById('clearFilters').addEventListener('click', function() {
             document.getElementById('searchRequester').value = '';
