@@ -35,6 +35,92 @@
     });
   
 
+
+
+    // Custom Popup System
+    function showPopup(title, message, type = 'info') {
+        // Remove existing popup if any
+        const existingPopup = document.getElementById('customPopup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        // Create popup elements
+        const popup = document.createElement('div');
+        popup.id = 'customPopup';
+        popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center';
+
+        // Set icon based on type
+        let icon = '';
+        let bgColor = '';
+        let iconColor = '';
+        
+        switch (type) {
+            case 'success':
+                icon = `
+                    <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                `;
+                bgColor = 'from-green-50 to-green-100';
+                iconColor = 'text-green-500';
+                break;
+            case 'warning':
+                icon = `
+                    <svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                `;
+                bgColor = 'from-yellow-50 to-yellow-100';
+                iconColor = 'text-yellow-500';
+                break;
+            case 'error':
+                icon = `
+                    <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                `;
+                bgColor = 'from-red-50 to-red-100';
+                iconColor = 'text-red-500';
+                break;
+            default:
+                icon = `
+                    <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                `;
+                bgColor = 'from-blue-50 to-blue-100';
+                iconColor = 'text-blue-500';
+        }
+
+        popup.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br ${bgColor} mb-4">
+                        ${icon}
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
+                    <button class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200" onclick="this.closest('#customPopup').remove()">
+                        OK
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Add to body
+        document.body.appendChild(popup);
+
+        // Auto close after 5 seconds for non-error messages
+        if (type !== 'error') {
+            setTimeout(() => {
+                if (popup.parentNode) {
+                    popup.remove();
+                }
+            }, 5000);
+        }
+    }
+
     // Member Status Management
     document.addEventListener('DOMContentLoaded', function () {
 
@@ -344,8 +430,13 @@
         // Combine location and specific location
         const finalLocation = specificLocation ? `${location} - ${specificLocation}` : location;
 
-        // Generate new order ID (increment from highest existing ID, or start with 1 if empty)
-        const newOrderId = workOrders.length > 0 ? Math.max(...workOrders.map(order => order.id)) + 1 : 1;
+        // Generate a new, globally unique order ID
+        const completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+        const existingIds = [
+            ...workOrders.map(order => order.id),
+            ...completedOrders.map(order => order.id)
+        ];
+        const newOrderId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
 
         // Create new order object
         const newOrder = {
@@ -378,8 +469,9 @@
         // Hide specific location field when resetting form
         specificLocationContainer.classList.add('hidden');
 
+
         // Show success message
-        alert(`Work Order #${newOrderId} berhasil dibuat!`);
+        showPopup('Work Order Berhasil Dibuat!', `Work Order #${newOrderId} telah berhasil dibuat dan ditambahkan ke daftar.`, 'success');
       });
 
       // Status filter tab click events
@@ -553,9 +645,10 @@
         const order = workOrders.find(o => o.id === orderId);
         if (!order) return;
 
+
         // Check if current user is already assigned to this order
         if (order.executors.includes(currentUser.id)) {
-          alert('Anda sudah terdaftar sebagai pelaksana untuk order ini!');
+          showPopup('Peringatan', 'Anda sudah terdaftar sebagai pelaksana untuk order ini!', 'warning');
           return;
         }
 
@@ -674,8 +767,9 @@
       function showAdditionalOperatorsDialog() {
         const nonStandbyMembers = members.filter(m => m.status !== 'standby' && m.status !== 'onjob');
 
+
         if (nonStandbyMembers.length === 0) {
-          alert('Tidak ada operator tambahan yang tersedia');
+          showPopup('Informasi', 'Tidak ada operator tambahan yang tersedia', 'info');
           return;
         }
 
@@ -695,8 +789,9 @@
             }
           });
 
+
           if (additionalOperators.length > 0) {
-            alert(`Berhasil menambah ${additionalOperators.length} operator bantuan`);
+            showPopup('Operator Berhasil Ditambah!', `Berhasil menambah ${additionalOperators.length} operator bantuan untuk order ini.`, 'success');
           }
         }
       }
@@ -705,8 +800,9 @@
       function confirmTakeOrder() {
         if (!currentOrder) return;
 
+
         if (selectedOperators.length === 0 && additionalOperators.length === 0) {
-          alert('Harap pilih minimal satu operator untuk mengerjakan order ini');
+          showPopup('Peringatan', 'Harap pilih minimal satu operator untuk mengerjakan order ini!', 'warning');
           return;
         }
 
@@ -719,8 +815,9 @@
           }
         });
 
+
         if (!allRequiredChecked) {
-          alert('Harap centang semua item safety checklist yang wajib ditandai (*)');
+          showPopup('Safety Checklist Required', 'Harap centang semua item safety checklist yang wajib ditandai (*) sebelum melanjutkan!', 'warning');
           return;
         }
 
@@ -777,8 +874,9 @@
         takeOrderPopup.classList.add('hidden');
         resetTakeOrderForm();
 
+
         // Show success message
-        alert(`Berhasil mengambil order #${currentOrder.id}!`);
+        showPopup('Order Berhasil Diambil!', `Berhasil mengambil order #${currentOrder.id}! Anda sekarang terdaftar sebagai pelaksana order ini.`, 'success');
       }
 
       // Function to reset take order form
@@ -835,8 +933,9 @@
         populateWorkOrdersTable();
         updateSummaryCounts();
 
+
         // Show success message
-        alert(`Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`);
+        showPopup('Order Selesai!', `Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`, 'success');
       }
 
       // Function to delete an order
@@ -872,8 +971,9 @@
         // Update summary counts
         updateSummaryCounts();
 
+
         // Show success message
-        alert(`Order #${orderId} telah dihapus!`);
+        showPopup('Order Dihapus!', `Order #${orderId} telah berhasil dihapus dari daftar work orders.`, 'success');
       }
 
       // Function to update summary counts

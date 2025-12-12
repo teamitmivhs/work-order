@@ -355,40 +355,42 @@
 
         // Edit Notes functionality
         function openNoteModal(orderId) {
-            // Force close any existing modal first
-            closeNoteModal();
-            
-            // Wait a moment for DOM to settle, then reset modal
-            setTimeout(() => {
-                // Reset modal to completely clean state
-                resetNoteModal();
-                
-                // Always reload the latest data to avoid stale information
-                reloadCompletedOrders();
-                const order = completedOrders.find(o => o.id === orderId);
-                if (!order) {
-                    alert('Order tidak ditemukan!');
-                    return;
-                }
+            // Immediately reset the modal to a clean state
+            resetNoteModal();
 
-                const modal = document.getElementById('noteModal');
-                document.getElementById('noteOrderId').textContent = order.id;
-                document.getElementById('noteOrderDevice').textContent = order.device;
-                document.getElementById('noteOrderRequester').textContent = typeof order.requester === 'object' ? order.requester.name : order.requester;
-                
-                // Force set the notes value from the order data
-                const noteTextArea = document.getElementById('noteText');
-                noteTextArea.value = order.notes || '';
-                noteTextArea.textContent = order.notes || '';
-                
-                // Store the order ID in the modal dataset
-                document.getElementById('noteModal').dataset.orderId = orderId;
-                modal.classList.remove('hidden');
-            }, 100);
+            // Reload the latest data to ensure we have the most recent version
+            reloadCompletedOrders();
+            const order = completedOrders.find(o => o.id === orderId);
+
+            // If the order isn't found, show an error and stop
+            if (!order) {
+                showErrorModal('Work order tidak ditemukan!');
+                return;
+            }
+
+            const modal = document.getElementById('noteModal');
+            
+            // Populate the modal with the correct order details
+            document.getElementById('noteOrderId').textContent = order.id;
+            document.getElementById('noteOrderDevice').textContent = order.device;
+            document.getElementById('noteOrderRequester').textContent = typeof order.requester === 'object' ? order.requester.name : order.requester;
+            
+            // Set the notes value from the order data
+            const noteTextArea = document.getElementById('noteText');
+            noteTextArea.value = order.notes || '';
+            
+            // Store the correct order ID in the modal's dataset
+            modal.dataset.orderId = orderId;
+            
+            // Show the modal
+            modal.classList.remove('hidden');
         }
 
         function closeNoteModal() {
-            document.getElementById('noteModal').classList.add('hidden');
+            const modal = document.getElementById('noteModal');
+            modal.classList.add('hidden');
+            // Reset the modal's state when it's closed
+            resetNoteModal();
         }
 
 

@@ -15,9 +15,16 @@ const (
 )
 
 func main() {
-	// Initialize database connection
-	if err := config.InitDB(); err != nil {
-		panic("Failed to connect to database: " + err.Error())
+	println("🚀 Starting Work Order Server...")
+
+	// Initialize database connection (optional - server runs without DB)
+	dbErr := config.InitDB()
+	if dbErr != nil {
+		println("⚠️  Warning: Database connection failed - " + dbErr.Error())
+		println("📝 Server akan tetap berjalan tanpa database")
+		println("💾 Data akan disimpan di localStorage di frontend")
+	} else {
+		println("✅ Database connected successfully")
 	}
 	defer config.CloseDB()
 
@@ -30,14 +37,23 @@ func main() {
 	setupAPIRoutes(r)
 
 	// Start server
-	r.Run(port)
+	println("🌐 Server starting on port 8080")
+	println("📱 Frontend available at: http://localhost:8080")
+	println("📊 Summary page: http://localhost:8080/summary")
+	println("🎯 Kaizen page: http://localhost:8080/kaizen")
+	println("📋 TechGuide page: http://localhost:8080/techguide")
+	println("")
+
+	if err := r.Run(port); err != nil {
+		println("❌ Failed to start server:", err.Error())
+	}
 }
 
 func setupMiddleware(r *gin.Engine) {
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:8000", "http://127.0.0.1:8000"},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
