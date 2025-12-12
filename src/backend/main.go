@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"teamitmivhs/work-order-backend/config"
 	"teamitmivhs/work-order-backend/routes"
 
 	"github.com/gin-contrib/cors"
@@ -14,6 +15,13 @@ const (
 )
 
 func main() {
+	// Initialize database connection
+	if err := config.InitDB(); err != nil {
+		panic("Failed to connect to database: " + err.Error())
+	}
+	defer config.CloseDB()
+
+	// Create Gin router
 	r := gin.Default()
 
 	setupMiddleware(r)
@@ -21,6 +29,7 @@ func main() {
 	setupPageRoutes(r)
 	setupAPIRoutes(r)
 
+	// Start server
 	r.Run(port)
 }
 

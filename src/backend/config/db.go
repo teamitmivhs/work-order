@@ -13,12 +13,31 @@ import (
 var DB *sql.DB
 
 func InitDB() error {
+	// Set default values for database configuration
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "adminit2025"
+	}
 
-	dbUser := os.Getenv("adminit2025")
-	dbPass := os.Getenv("databaseit2045")
-	dbHost := os.Getenv("localhost")
-	dbPort := os.Getenv("3306")
-	dbName := os.Getenv("dbwoit")
+	dbPass := os.Getenv("DB_PASSWORD")
+	if dbPass == "" {
+		dbPass = "databaseit2045"
+	}
+
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+
+	dbPort := os.Getenv("DB_PORT")
+	if dbPort == "" {
+		dbPort = "3306"
+	}
+
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "dbwoit"
+	}
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbUser,

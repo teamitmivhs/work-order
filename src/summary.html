@@ -17,7 +17,8 @@
     <!-- NAVBAR -->
     <nav class="w-full bg-[#222] px-6 py-4 flex flex-wrap items-center justify-between shadow-xl gap-4">
         <div class="flex flex-wrap items-center gap-8 px-8">
-            <a href="/" class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105">
+
+            <a href="/index.html" class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105">
                 <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
@@ -157,6 +158,7 @@
         </div>
     </div>
 
+
     <!-- SUCCESS MESSAGE MODAL -->
     <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center" id="successModal">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-md">
@@ -181,6 +183,36 @@
 
             <div class="flex justify-center">
                 <button id="closeSuccessModalBtn" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ERROR MESSAGE MODAL -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center" id="errorModal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-red-600">Error!</h2>
+                <button id="closeErrorModal" class="text-gray-500 hover:text-gray-700">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <div class="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <p class="text-center text-gray-800 text-lg font-medium" id="errorMessage">Work order tidak ditemukan!</p>
+                <p class="text-center text-gray-600 text-sm mt-2">Silakan refresh halaman dan coba lagi.</p>
+            </div>
+
+            <div class="flex justify-center">
+                <button id="closeErrorModalBtn" class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
                     OK
                 </button>
             </div>
@@ -362,6 +394,8 @@
 
 
 
+
+
         function saveNote() {
             const orderId = parseInt(document.getElementById('noteModal').dataset.orderId);
             const notes = document.getElementById('noteText').value.trim();
@@ -372,18 +406,15 @@
             // Find the specific order
             const orderIndex = currentCompletedOrders.findIndex(o => o.id === orderId);
             if (orderIndex !== -1) {
-                // Update ONLY this specific order's notes
-                // Preserve all other orders exactly as they are
-                currentCompletedOrders[orderIndex] = {
-                    ...currentCompletedOrders[orderIndex],
-                    notes: notes
-                };
+                // Safe update: preserve the entire object and only modify notes property
+                const existingOrder = currentCompletedOrders[orderIndex];
+                existingOrder.notes = notes;
                 
                 // Save back to localStorage
                 localStorage.setItem('completedOrders', JSON.stringify(currentCompletedOrders));
                 
-                // Update local state
-                completedOrders = [...currentCompletedOrders];
+                // Update local state to match localStorage exactly
+                completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
                 
                 renderTable();
                 closeNoteModal();
@@ -391,9 +422,11 @@
                 // Show success modal
                 showSuccessModal();
             } else {
-                alert('Order tidak ditemukan!');
+                // Show error modal instead of alert
+                showErrorModal('Work order tidak ditemukan!');
             }
         }
+
 
         // Show success modal
         function showSuccessModal() {
@@ -405,10 +438,22 @@
             document.getElementById('successModal').classList.add('hidden');
         }
 
+        // Show error modal
+        function showErrorModal(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorModal').classList.remove('hidden');
+        }
+
+        // Close error modal
+        function closeErrorModal() {
+            document.getElementById('errorModal').classList.add('hidden');
+        }
+
 
         document.getElementById('closeNoteModal').addEventListener('click', closeNoteModal);
         document.getElementById('cancelNoteBtn').addEventListener('click', closeNoteModal);
         document.getElementById('saveNoteBtn').addEventListener('click', saveNote);
+
 
         // Success modal event listeners
         document.getElementById('closeSuccessModal').addEventListener('click', closeSuccessModal);
@@ -418,6 +463,17 @@
         document.getElementById('successModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeSuccessModal();
+            }
+        });
+
+        // Error modal event listeners
+        document.getElementById('closeErrorModal').addEventListener('click', closeErrorModal);
+        document.getElementById('closeErrorModalBtn').addEventListener('click', closeErrorModal);
+        
+        // Close modal when clicking outside
+        document.getElementById('errorModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeErrorModal();
             }
         });
 
