@@ -12,6 +12,16 @@ body {
       }
     }
 
+    /* On Progress Fade Animation */
+    @keyframes fadeLeftYellow {
+      0%, 100% {
+        background-color: #fbbf24;
+      }
+      50% {
+        background-color: #ffffff;
+      }
+    }
+
     /* Table responsive styles */
     .table-container {
       overflow-x: auto;
@@ -161,5 +171,10 @@ body {
     .fade-slide {
       opacity: 0;
       transform: translateY(20px);
+    }
+
+    .progress-fade {
+      animation: fadeLeftYellow 1.5s infinite !important;
+      background-color: #fbbf24 !important;
     }
 
