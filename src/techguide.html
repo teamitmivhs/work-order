@@ -64,123 +64,123 @@
     <script>
         // Tech Guide Content Database
         const techGuides = {
-            "Server": {
-                title: "Server - Work Instructions",
+            "Server cloud": {
+                title: "Server cloud - Instruksi Kerja",
                 steps: [
                     {
                         step: 1,
                         title: "Server Startup",
-                        content: "Ensure the server machine is connected to power and network. Press the power button and wait for the system to fully boot (usually 2-3 minutes)."
+                        content: "Pastikan server terhubung ke sumber daya listrik dan jaringan. Nyalakan server dengan menekan tombol power di casing server."
                     },
                     {
                         step: 2,
-                        title: "Check System Status",
-                        content: "Log in using your admin credentials. Open System Monitor to verify CPU usage is normal (below 80%) and RAM usage is reasonable."
+                        title: "Cek status sistem",
+                        content: "Masuk menggunakan kredensial admin. Ketik btop untuk memverifikasi penggunaan CPU normal (di bawah 80%) dan penggunaan RAM yang wajar."
                     },
                     {
                         step: 3,
                         title: "Network Connectivity",
-                        content: "Verify network connectivity by pinging the gateway. Check that all network interfaces are up and showing green status in the Network Manager."
+                        content: "Verifikasi konektivitas jaringan dengan cara ping ke gateway atau ke DNS google (8.8.8.8). Periksa bahwa semua interface jaringan aktif (ethernet, zerotier) dan menunjukkan status hijau di Network Manager."
                     },
                     {
                         step: 4,
-                        title: "Service Verification",
-                        content: "Restart all critical services (database, web service, etc.) using systemctl. Verify each service started successfully by checking its status."
+                        title: "Service verification",
+                        content: "Restart semua critical service (SQL, Apache2, dll.) menggunakan systemctl. Verifikasi setiap layanan berhasil dijalankan dengan memeriksa statusnya."
                     },
                     {
                         step: 5,
                         title: "Backup Check",
-                        content: "Verify the latest backup completed successfully. Check backup logs to ensure data integrity and full backup completion."
+                        content: "Verifikasi backup terbaru yang telah selesai. Cek backup log untuk memastikan tidak ada error selama proses backup."
                     }
                 ]
             },
             "Upgrading PC": {
-                title: "Upgrading PC - Work Instructions",
+                title: "Upgrading PC - Instruksi Kerja",
                 steps: [
                     {
                         step: 1,
-                        title: "Pre-Upgrade Preparation",
-                        content: "Backup all important data to external storage. Create a system restore point. Ensure sufficient free disk space (at least 20GB)."
+                        title: "Persiapan Pre-Upgrade",
+                        content: "Backup semua data penting ke penyimpanan eksternal. Buat system restore point. Pastikan ruang disk yang cukup tersedia (minimal 20GB)."
                     },
                     {
                         step: 2,
-                        title: "Hardware Compatibility Check",
-                        content: "Verify all hardware components are compatible with the new OS version. Check manufacturer websites for driver availability."
+                        title: "Check Hardware Compatibility",
+                        content: "Verifikasi semua komponen hardware kompatibel dengan versi OS baru. Periksa situs web produsen untuk ketersediaan driver."
                     },
                     {
                         step: 3,
                         title: "Disable Antivirus",
-                        content: "Temporarily disable antivirus software during upgrade to prevent conflicts. Re-enable immediately after upgrade completion."
+                        content: "Nonaktifkan sementara software antivirus selama proses upgrade untuk mencegah konflik. Aktifkan kembali segera setelah upgrade selesai."
                     },
                     {
                         step: 4,
                         title: "Run Upgrade Process",
-                        content: "Download the latest version from official source. Run the upgrade installer and follow all prompts. Do not interrupt the process."
+                        content: "Download versi terbaru dari sumber resmi. Jalankan installer upgrade dan ikuti semua petunjuk. Jangan hentikan proses."
                     },
                     {
                         step: 5,
                         title: "Post-Upgrade Verification",
-                        content: "Verify system boots normally and all critical applications launch. Check Device Manager for any unknown devices or errors."
+                        content: "Verifikasi sistem booting dengan normal dan semua aplikasi critical berjalan."
                     }
                 ]
             },
             "Troubleshooting Windows": {
-                title: "Troubleshooting Windows - Work Instructions",
+                title: "Troubleshooting Windows - Instruksi Kerja",
                 steps: [
                     {
                         step: 1,
                         title: "System Diagnostics",
-                        content: "Run Windows Disk Check (chkdsk) to identify file system errors. Check Event Viewer for critical errors and warnings."
+                        content: "Jalankan Windows Disk Check (chkdsk) untuk mengidentifikasi kesalahan sistem file. Periksa Event Viewer untuk kesalahan dan peringatan kritis."
                     },
                     {
                         step: 2,
                         title: "Memory Test",
-                        content: "Run Windows Memory Diagnostic to test RAM integrity. Restart system and allow full test cycle (usually takes 30+ minutes)."
+                        content: "Jalankan Windows Memory Diagnostic untuk menguji integritas RAM. Restart sistem dan biarkan siklus pengujian selesai (biasanya memakan waktu lebih dari 30 menit)."
                     },
                     {
                         step: 3,
                         title: "Update & Drivers",
-                        content: "Install latest Windows updates through Windows Update. Update all device drivers, especially chipset, graphics, and network drivers."
+                        content: "Install driver terbaru dari windows update atau situs web produsen. Pastikan semua update Windows telah diinstal."
                     },
                     {
                         step: 4,
                         title: "Malware Scan",
-                        content: "Run a full system scan with Windows Defender. If issues persist, use additional tools like Malwarebytes in Safe Mode."
+                        content: "Jalankan full system scan dengan Windows Defender. Jika belum cukup, gunakan software tambahan seperti Malwarebytes dalam Safe Mode."
                     },
                     {
                         step: 5,
                         title: "System Cleanup",
-                        content: "Clear temporary files using Disk Cleanup utility. Disable unnecessary startup programs. Consider running a clean boot."
+                        content: "Bersihkan temporary file menggunakan Disk Cleanup. Nonaktifkan startup program yang tidak perlu."
                     }
                 ]
             },
             "Troubleshooting CCTV": {
-                title: "Troubleshooting CCTV - Work Instructions",
+                title: "Troubleshooting CCTV - Instruksi Kerja",
                 steps: [
                     {
                         step: 1,
                         title: "Check Physical Connections",
-                        content: "Verify all cables are firmly connected. Check for visible damage to cables and connectors. Test power supply to cameras."
+                        content: "Periksa semua kabel terhubung dengan kuat. Periksa kerusakan terlihat pada kabel dan konektor BNC."
                     },
                     {
                         step: 2,
                         title: "Camera Status",
-                        content: "Check if camera LEDs are illuminated. Access camera web interface using IP address. Verify camera is receiving video input."
+                        content: "Cek kamera dari monitor. akses IVMS menggunakan IP address. Verifikasi kamera menerima input video."
                     },
                     {
                         step: 3,
                         title: "Network Configuration",
-                        content: "Ping the camera IP address to verify network connectivity. Check DHCP server for camera IP assignment. Verify network switch ports."
+                        content: "Ping alamat IP kamera untuk memverifikasi konektivitas jaringan. Periksa server DHCP untuk IP kamera. Verifikasi port switch jaringan."
                     },
                     {
                         step: 4,
                         title: "DVR/NVR Check",
-                        content: "Restart the DVR/NVR system. Verify all camera channels show status as 'Online'. Check recording settings and storage space."
+                        content: "Restart sistem DVR/NVR. Verifikasi semua saluran kamera menunjukkan status 'Online'. Periksa pengaturan perekaman dan ruang penyimpanan."
                     },
                     {
                         step: 5,
                         title: "Firmware & Software",
-                        content: "Check for available firmware updates for cameras and DVR/NVR. Update if available. Review system logs for error messages."
+                        content: "Periksa pembaruan firmware yang tersedia untuk kamera dan DVR/NVR. Perbarui jika tersedia. Tinjau log sistem untuk pesan kesalahan."
                     }
                 ]
             }
