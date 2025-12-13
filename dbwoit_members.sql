@@ -38,11 +38,45 @@ CREATE TABLE `members` (
 
 LOCK TABLES `members` WRITE;
 /*!40000 ALTER TABLE `members` DISABLE KEYS */;
-INSERT INTO `members` VALUES (1,'Aldi Fadlurahman R','programmer','offduty','aldi.png'),(2,'Raditya Ihsan Athallah','data analyst','offduty','raditya.png'),(3,'Azzam Alfarizhi','maintenance','offduty','azzam.png'),(4,'Ghani Ilham Firdaus','programmer','offduty','ghani.png'),(5,'Gilang Yoga Pangestu','maintenance','offduty','gilang.png'),(6,'Charis Nur Noveli Alfaridzi','programmer','offduty','charis.png'),(7,'M Akbar Putra P','soundman','offduty','akbar.png'),(8,'Fahri Abdul Ghoni','maintenance','offduty','ghoni.png'),(9,'Ridwan Bagoes Setiawan','programmer','offduty','ridwan.png'),(10,'Moehammad Alvaro','programmer','offduty','alvaro.png'),(11,'Dzaky Alvaro','programmer','offduty','dzaky.png'),(12,'Maynaldi Freza A','programmer','offduty','maynaldi.png'),(13,'Muhammad Riva Nugraha','programmer','offduty','riva.png'),(14,'Muhammad Farel Sustisna','programmer','offduty','farel.png'),(15,'Faa\'iz Rizqi Haryono','programmer','offduty','faa\'iz.png'),(16,'Royan Fadlan Musaminah','maintenance','offduty','royan.png'),(17,'Muhammad Reyhansyah Hidayat','maintenance','offduty','reyhansyah.png'),(18,'Naufal Abdilah Saputra','maintenance','offduty','naufal.png'),(19,'Rizki Nuraulia','data analyst','offduty','rizki.png'),(20,'Khalishah Althaf','data analyst','offduty','althaf.png'),(21,'Dzakiyya Najdatul Rameyza','data analyst','offduty','dzakiyya.png'),(22,'Desvita Aurellia','data analyst','offduty','desvita.png'),(23,'Qiara Latifah Kaltsum','data analyst','offduty','qiara.png'),(24,'Dzaki Mathoriq','soundman','offduty','thoriq.png'),(25,'Alvaro Purnomo','data analyst','offduty','purnomo.png'),(26,'Chelsea Aurelia','programmer','offduty','chelsea.png'),(27,'Nabil Hilmy Zaenal','maintenance','offduty','nabil.png'),(28,'Wildan Bait Maki','data analyst','offduty','wildan.png'),(29,'Gian Alvarezi Savatino Putra','programmer','offduty','gian.png'),(30,'Jonathan Willy','programmer','offduty','willy.png'),(31,'Pramadani Bintang Jasuma','maintenance','offduty','pramadani.png'),(32,'Aira Nur Sabariyah Putri','programmer','offduty','aira.png'),(33,'Azka Fakhri Alfito','programmer','offduty','azka.png'),(34,'Ihsan Bintang Ghifari','programmer','offduty','ihsan.png'),(35,'M. Dhimas Alfachry','maintenance','offduty','dhimas.png'),(36,'Raissya hanjani','data analyst','offduty','raissya.png');
+INSERT INTO `members` VALUES (1,'Aldi Fadlurahman R','programmer','offduty','aldi.png'),
+(2,'Raditya Ihsan Athallah','data analyst','offduty','raditya.png'),
+(3,'Azzam Alfarizhi','maintenance','offduty','azzam.png'),
+(4,'Ghani Ilham Firdaus','programmer','offduty','ghani.png'),
+(5,'Gilang Yoga Pangestu','maintenance','offduty','gilang.png'),
+(6,'Charis Nur Noveli Alfaridzi','programmer','offduty','charis.png'),
+(7,'M Akbar Putra P','soundman','offduty','akbar.png'),
+(8,'Fahri Abdul Ghoni','maintenance','offduty','ghoni.png'),
+(9,'Ridwan Bagoes Setiawan','programmer','offduty','ridwan.png'),
+(10,'Moehammad Alvaro','programmer','offduty','alvaro.png'),
+(11,'Dzaky Alvaro','programmer','offduty','dzaky.png'),
+(12,'Maynaldi Freza A','programmer','offduty','maynaldi.png'),
+(13,'Muhammad Riva Nugraha','programmer','offduty','riva.png'),
+(14,'Muhammad Farel Sustisna','programmer','offduty','farel.png'),
+(15,'Faa\'iz Rizqi Haryono','programmer','offduty','faa\'iz.png'),
+(16,'Royan Fadlan Musaminah','maintenance','offduty','royan.png'),
+(17,'Muhammad Reyhansyah Hidayat','maintenance','offduty','reyhansyah.png'),
+(18,'Naufal Abdilah Saputra','maintenance','offduty','naufal.png'),
+(19,'Rizki Nuraulia','data analyst','offduty','rizki.png'),
+(20,'Khalishah Althaf','data analyst','offduty','althaf.png'),
+(21,'Dzakiyya Najdatul Rameyza','data analyst','offduty','dzakiyya.png'),
+(22,'Desvita Aurellia','data analyst','offduty','desvita.png'),
+(23,'Qiara Latifah Kaltsum','data analyst','offduty','qiara.png'),
+(24,'Dzaki Mathoriq','soundman','offduty','thoriq.png'),
+(25,'Alvaro Purnomo','data analyst','offduty','purnomo.png'),
+(26,'Chelsea Aurelia ','programmer ','offduty ','chelsea.png '),
+(27,'Nabil Hilmy Zaenal ','maintenance ','offduty ','nabil.png '),
+(28,'Wildan Bait Maki ','data analyst ','offduty ','wildan.png '),
+(29,'Gian Alvarezi Savatino Putra ','programmer ','offduty ','gian.png '),
+(30,'Jonathan Willy ','programmer ','offduty ','willy.png '),
+(31,'Pramadani Bintang Jasuma ','maintenance ','offduty ','pramadani.png '),
+(32,'Aira Nur Sabariyah Putri ','programmer ','offduty ','aira.png '),
+(33,'Azka Fakhri Alfito ','programmer ','offduty ','azka.png '),
+(34,'Ihsan Bintang Ghifari ','programmer ', 'offduty ', 'ihsan.png '), 
+(35, 'M. Dhimas Alfachry', 'maintenance', 'offduty', 'dhimas.png'), 
+(36, 'Raissya hanjani', 'data analyst', 'offduty', 'raissya.png');
 /*!40000 ALTER TABLE `members` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
