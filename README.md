@@ -3,22 +3,46 @@
 This is a project of an IT MIVHS Work Order and Helpdesk system designed for the **TEAM IT MIVHS**.  
 The goal is to provide a simple, fast, and user‑friendly interface for requests, helps, and any other thing related to devices on SMK MITRA INDUSTRI MM2100
 
+## 🚀 Getting Started
+
+To get the project up and running, follow these steps:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/parothegreat/work-order.git
+   ```
+
+2. **Run the application:**
+   The easiest way to run the application is using Docker Compose.
+   ```bash
+   docker-compose up -d
+   ```
+   This will start the following services:
+   - `workorder-backend`: The Go backend API.
+   - `db`: The PostgreSQL database.
+   - `nginx`: The Nginx web server.
+
+3. **Access the application:**
+   Once the services are running, you can access the application in your browser at [http://localhost:8080](http://localhost:8080).
 
 ## 📌 Features
 
 - Create and manage IT work orders  
 - Display team member status and task assignment  
 - Clean UI designed using TailwindCSS  
-- Interactive UI powered by JavaScript  
-
+- Interactive UI powered by JavaScript
+- User authentication and registration
 
 ## 🛠 Technologies Used
 
 - **HTML5**
 - **CSS3** (TailwindCSS + custom styles)
 - **JavaScript** (vanilla)
-- **GSAP** animations
-- **SwiperJS** (if present in the original prototype)
+- **Go** (Backend API)
+- **Gin Framework** (Go web framework)
+- **PostgreSQL** (Database)
+- **Docker** (Containerization)
+- **Nginx** (Web Server)
 
 ## 🔄 Work Flow
 
@@ -136,8 +160,6 @@ It's a complete **full-stack work order management system** with:
 - ✅ Responsive design
 
 Future enhancements may include:
-- Database integration (MySQL)
-- Authentication & user roles  
 - Email / Telegram notifications  
 - Advanced reporting & analytics
 - Mobile app
@@ -162,6 +184,5 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHER DEALINGS IN THE
 SOFTWARE.
