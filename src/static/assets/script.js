@@ -1392,3 +1392,97 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal functionality
+    const modal = document.getElementById("myModal");
+    const span = document.getElementsByClassName("close")[0];
+    const modalMessage = document.getElementById("modal-message");
+
+    function showModal(message) {
+        if (modal && modalMessage) {
+            modalMessage.textContent = message;
+            modal.style.display = "block";
+        }
+    }
+
+    if(span) {
+        span.onclick = function() {
+            if(modal) {
+                modal.style.display = "none";
+            }
+        }
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    // Login form submission
+    const loginForm = document.querySelector('.login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = event.target.username.value;
+            const password = event.target.password.value;
+            
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    showModal('Login successful!');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    showModal(data.error || 'Login failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showModal('An error occurred. Please try again.');
+            });
+        });
+    }
+
+    // Registration form submission
+    const registerForm = document.querySelector('.register-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = event.target.username.value;
+            const password = event.target.password.value;
+            
+            fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    showModal('Registration successful! Please log in.');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showModal(data.error || 'Registration failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showModal('An error occurred. Please try again.');
+            });
+        });
+    }
+});
