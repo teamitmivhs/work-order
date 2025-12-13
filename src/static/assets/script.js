@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   const closeTakeOrderPopupBtn = document.getElementById('closeTakeOrderPopup');
   const cancelTakeOrderBtn = document.getElementById('cancelTakeOrderBtn');
   const confirmTakeOrderBtn = document.getElementById('confirmTakeOrderBtn');
-  const addMoreOperatorsBtn = document.getElementById('addMoreOperatorsBtn');
+  const openSelectHelperOperatorModalBtn = document.getElementById('openSelectHelperOperatorModalBtn');
 
   // Create order popup elements
   const createOrderPopup = document.getElementById('createOrderPopup');
@@ -371,8 +371,8 @@ document.addEventListener('DOMContentLoaded', async function () {
   const currentUser = members.length > 0 ? members[0] : null;
 
   // Current order being processed
-  let currentOrder = [1];
-  let selectedOperators = [];
+  let currentOrder = null;
+
   let additionalOperators = [];
 
   // Initialize member images on page load
@@ -425,9 +425,125 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   // Add more operators button
-  addMoreOperatorsBtn.addEventListener('click', function () {
-    showAdditionalOperatorsDialog();
+  openSelectHelperOperatorModalBtn.addEventListener('click', openSelectHelperOperatorModal);
+
+  // Helper Operator Select popup elements
+  const selectHelperOperatorModal = document.getElementById('selectHelperOperatorModal');
+  const closeSelectHelperOperatorModalBtn = document.getElementById('closeSelectHelperOperatorModalBtn');
+  const availableStandbyOperatorsList = document.getElementById('availableStandbyOperatorsList');
+
+  // Close helper operator select popup
+  closeSelectHelperOperatorModalBtn.addEventListener('click', function () {
+    hideAnimatedPopup(selectHelperOperatorModal);
   });
+
+  // Function to open the select helper operator modal
+  function openSelectHelperOperatorModal() {
+    showAnimatedPopup(selectHelperOperatorModal);
+    populateAvailableStandbyOperators();
+  }
+
+  // Function to populate available standby operators in the modal
+  function populateAvailableStandbyOperators() {
+    availableStandbyOperatorsList.innerHTML = '';
+
+    const standbyMembers = members.filter(m => m.status === 'standby');
+
+    if (standbyMembers.length === 0) {
+      availableStandbyOperatorsList.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada operator standby tersedia</p>';
+      return;
+    }
+
+    standbyMembers.forEach(member => {
+      const memberDiv = document.createElement('div');
+      memberDiv.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
+      memberDiv.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
+            <span class="font-medium">${member.name}</span>
+          </div>
+          <button class="add-helper-operator-btn bg-green-500 text-white rounded-full p-2 hover:bg-green-600 transition-colors h-8 w-8 flex items-center justify-center" data-member-id="${member.id}" title="Tambahkan sebagai operator bantuan">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+          </button>
+        `;
+      availableStandbyOperatorsList.appendChild(memberDiv);
+    });
+
+    // Add event listeners for the new add helper operator buttons
+    document.querySelectorAll('.add-helper-operator-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const memberId = parseInt(this.dataset.memberId);
+        addHelperOperator(memberId);
+      });
+    });
+  }
+
+  // Function to add a helper operator
+  function addHelperOperator(memberId) {
+    if (!additionalOperators.includes(memberId)) {
+      additionalOperators.push(memberId);
+      showPopup('Operator Ditambahkan', `${members.find(m => m.id === memberId).name} ditambahkan sebagai operator bantuan.`, 'success');
+      // Optionally, update the display in the takeOrderPopup to show the added operator
+      populateStandbyOperatorsInTakeOrderPopup(); // A new function to update the list
+      hideAnimatedPopup(selectHelperOperatorModal); // Close the selection modal
+    } else {
+      showPopup('Peringatan', 'Operator ini sudah ditambahkan!', 'warning');
+    }
+  }
+
+  // Function to populate standby operators (including selected additional operators) in the takeOrderPopup
+  function populateStandbyOperatorsInTakeOrderPopup() {
+    const standbyOperatorsListDiv = document.getElementById('standbyOperatorsList');
+    standbyOperatorsListDiv.innerHTML = '';
+
+    // Combine initially selected (checkbox) operators with additional operators
+    const allSelectedOperatorIds = [...selectedOperators, ...additionalOperators];
+    const uniqueSelectedOperatorIds = [...new Set(allSelectedOperatorIds)]; // Ensure no duplicates
+
+    if (uniqueSelectedOperatorIds.length === 0) {
+      standbyOperatorsListDiv.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada operator bantuan yang dipilih.</p>';
+      return;
+    }
+
+    uniqueSelectedOperatorIds.forEach(memberId => {
+      const member = members.find(m => m.id === memberId);
+      if (member) {
+        const operatorDiv = document.createElement('div');
+        operatorDiv.className = 'flex items-center gap-3 p-2 bg-blue-50 rounded-lg shadow-sm';
+        operatorDiv.innerHTML = `
+            <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
+            <div class="flex-1">
+              <div class="font-medium">${member.name}</div>
+              <div class="text-xs text-blue-700">Operator Bantuan</div>
+            </div>
+            <button class="remove-helper-operator-btn text-red-500 hover:text-red-700 transition-colors" data-member-id="${member.id}" title="Hapus operator bantuan">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          `;
+        standbyOperatorsListDiv.appendChild(operatorDiv);
+      }
+    });
+
+    // Add event listeners for remove helper operator buttons
+    document.querySelectorAll('.remove-helper-operator-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const memberIdToRemove = parseInt(this.dataset.memberId);
+        removeHelperOperator(memberIdToRemove);
+      });
+    });
+  }
+
+  // Function to remove a helper operator
+  function removeHelperOperator(memberId) {
+    additionalOperators = additionalOperators.filter(id => id !== memberId);
+
+    showPopup('Operator Dihapus', `${members.find(m => m.id === memberId).name} dihapus dari operator bantuan.`, 'info');
+    populateStandbyOperatorsInTakeOrderPopup(); // Refresh the list
+  }
 
   // Create order popup event listeners
   createOrderBtn.addEventListener('click', function () {
@@ -752,7 +868,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     currentOrder = order;
-    selectedOperators = []; // UBAH: mulai dari array kosong
     additionalOperators = [];
 
     // ... sisanya sama
@@ -765,7 +880,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('popupProblem').textContent = order.problem;
 
     // Populate standby operators
-    populateStandbyOperators();
+    populateStandbyOperatorsInTakeOrderPopup();
 
     // Populate safety checklist
     populateSafetyChecklist(order.location);
@@ -774,53 +889,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     showAnimatedPopup(takeOrderPopup);
   }
 
-  function populateStandbyOperators() {
-    const standbyOperatorsList = document.getElementById('standbyOperatorsList');
-    standbyOperatorsList.innerHTML = '';
 
-    const standbyMembers = members.filter(m =>
-      m.status === 'standby' && !currentOrder.executors.includes(m.id)
-    );
-
-    if (standbyMembers.length === 0) {
-      standbyOperatorsList.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada operator standby tersedia</p>';
-      return;
-    }
-
-    standbyMembers.forEach(member => {
-      const operatorDiv = document.createElement('div');
-      operatorDiv.className = 'flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer';
-
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.className = 'custom-checkbox';
-      checkbox.value = member.id;
-
-      checkbox.addEventListener('change', function () {
-        if (this.checked) {
-          if (!selectedOperators.includes(member.id)) {
-            selectedOperators.push(member.id);
-          }
-        } else {
-          const index = selectedOperators.indexOf(member.id);
-          if (index > -1) {
-            selectedOperators.splice(index, 1);
-          }
-        }
-      });
-
-      operatorDiv.innerHTML = `
-      <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
-      <div class="flex-1">
-        <div class="font-medium">${member.name}</div>
-        <div class="text-xs text-gray-500">Status: Stand By</div>
-      </div>
-    `;
-
-      operatorDiv.insertBefore(checkbox, operatorDiv.firstChild);
-      standbyOperatorsList.appendChild(operatorDiv);
-    });
-  }
 
   // Function to populate safety checklist
   function populateSafetyChecklist(location) {
@@ -862,45 +931,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
   }
 
-  // Function to show additional operators dialog
-  function showAdditionalOperatorsDialog() {
-    const nonStandbyMembers = members.filter(m => m.status !== 'standby' && m.status !== 'onjob');
 
-
-    if (nonStandbyMembers.length === 0) {
-      showPopup('Informasi', 'Tidak ada operator tambahan yang tersedia', 'info');
-      return;
-    }
-
-    const operatorNames = nonStandbyMembers.map(m => `${m.name} (${m.status})`).join('\n');
-    const selectedNames = prompt(`Pilih operator tambahan (pisahkan dengan koma):\n\n${operatorNames}`);
-
-    if (selectedNames) {
-      const names = selectedNames.split(',').map(name => name.trim());
-      additionalOperators = [];
-
-      names.forEach(name => {
-        const member = nonStandbyMembers.find(m =>
-          m.name.toLowerCase().includes(name.toLowerCase())
-        );
-        if (member) {
-          additionalOperators.push(member.id);
-        }
-      });
-
-
-      if (additionalOperators.length > 0) {
-        showPopup('Operator Berhasil Ditambah!', `Berhasil menambah ${additionalOperators.length} operator bantuan untuk order ini.`, 'success');
-      }
-    }
-  }
 
   // Function to confirm take order
   function confirmTakeOrder() {
     if (!currentOrder) return;
 
+    // Combine all selected operators (from checkboxes and additional operators modal)
+    const allAssignedOperatorIds = [...new Set([currentUser.id, ...additionalOperators])];
 
-    if (selectedOperators.length === 0 && additionalOperators.length === 0) {
+    if (allAssignedOperatorIds.length === 0) {
       showPopup('Peringatan', 'Harap pilih minimal satu operator untuk mengerjakan order ini!', 'warning');
       return;
     }
@@ -913,7 +953,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         allRequiredChecked = false;
       }
     });
-
 
     if (!allRequiredChecked) {
       showPopup('Safety Checklist Required', 'Harap centang semua item safety checklist yang wajib ditandai (*) sebelum melanjutkan!', 'warning');
@@ -931,19 +970,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Update order
     const orderIndex = workOrders.findIndex(o => o.id === currentOrder.id);
     if (orderIndex !== -1) {
-      // Add all selected operators
-      selectedOperators.forEach(operatorId => {
-        if (!workOrders[orderIndex].executors.includes(operatorId)) {
-          workOrders[orderIndex].executors.push(operatorId);
-        }
-      });
-
-      // Add additional operators
-      additionalOperators.forEach(operatorId => {
-        if (!workOrders[orderIndex].executors.includes(operatorId)) {
-          workOrders[orderIndex].executors.push(operatorId);
-        }
-      });
+      workOrders[orderIndex].executors = allAssignedOperatorIds;
 
       // Update safety checklist
       workOrders[orderIndex].safetyChecklist = safetyChecklist;
@@ -954,11 +981,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
 
       // Update operator statuses
-      selectedOperators.forEach(operatorId => {
-        updateMemberStatus(operatorId, 'onjob');
-      });
-
-      additionalOperators.forEach(operatorId => {
+      allAssignedOperatorIds.forEach(operatorId => {
         updateMemberStatus(operatorId, 'onjob');
       });
     }
@@ -981,14 +1004,13 @@ document.addEventListener('DOMContentLoaded', async function () {
   // Function to reset take order form
   function resetTakeOrderForm() {
     currentOrder = null;
-    selectedOperators = [];
     additionalOperators = [];
 
-    // Reset checkboxes
-    document.querySelectorAll('#standbyOperatorsList input').forEach(checkbox => {
-      checkbox.checked = false;
-      checkbox.disabled = false;
-    });
+    // Reset checkboxes in the take order popup
+    const standbyOperatorsListDiv = document.getElementById('standbyOperatorsList');
+    if (standbyOperatorsListDiv) {
+      standbyOperatorsListDiv.innerHTML = '';
+    }
 
     document.querySelectorAll('#safetyChecklist input').forEach(checkbox => {
       checkbox.checked = false;

@@ -58,5 +58,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+	// Do not send the password to the frontend
+	member.Password = ""
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "member": member})
 }

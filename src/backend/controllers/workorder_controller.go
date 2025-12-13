@@ -117,8 +117,41 @@ func GetSummary(c *gin.Context) {
 			progress++
 		}
 	}
-	completed := total - pending - progress
-	c.JSON(http.StatusOK, gin.H{"total": total, "pending": pending, "progress": progress, "completed": completed})
+	completed := 0
+	executorMembersMap := make(map[int]models.Member) // To store unique executor members
+
+	allMembers, err := repository.GetAllMembers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve members for summary"})
+		return
+	}
+
+	memberIDToMember := make(map[int]models.Member)
+	for _, member := range allMembers {
+		memberIDToMember[member.ID] = member
+	}
+
+	for _, o := range workOrders {
+		if o.Status == "pending" {
+			pending++
+		} else if o.Status == "progress" {
+			progress++
+		} else if o.Status == "completed" {
+			completed++
+			for _, executorID := range o.Executors {
+				if member, ok := memberIDToMember[executorID]; ok {
+					executorMembersMap[executorID] = member
+				}
+			}
+		}
+	}
+
+	var uniqueExecutorMembers []models.Member
+	for _, member := range executorMembersMap {
+		uniqueExecutorMembers = append(uniqueExecutorMembers, member)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"total": total, "pending": pending, "progress": progress, "completed": completed, "executors": uniqueExecutorMembers})
 }
 
 func GetKaizen(c *gin.Context) {

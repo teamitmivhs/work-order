@@ -284,16 +284,14 @@
                                                         <!-- Standby operators will be populated here -->
                                                 </div>
                                         </div>
-                                        <button class="mt-3 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                                                id="addMoreOperatorsBtn">
-                                                <svg class="h-5 w-5" fill="none" stroke="currentColor"
-                                                        viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-linecap="round"
-                                                                stroke-linejoin="round" stroke-width="2"></path>
-                                                </svg>
-                                                Tambah Operator Bantuan
-                                        </button>
-                                </div>
+                                                                                 <button class="mt-3 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                                                                                        id="openSelectHelperOperatorModalBtn" aria-label="Tambah Operator Bantuan">
+                                                                                        <svg class="h-5 w-5" fill="none" stroke="currentColor"
+                                                                                                viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                                                <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-linecap="round"
+                                                                                                        stroke-linejoin="round" stroke-width="2"></path>
+                                                                                        </svg>
+                                                                                </button>                                </div>
                         </div>
                         <!-- Safety Checklist -->
                         <div class="mt-6">
@@ -312,6 +310,26 @@
                                         id="confirmTakeOrderBtn">
                                         Konfirmasi
                                 </button>
+                        </div>
+                </div>
+        </div>
+        <!-- Select Helper Operator POPUP -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center"
+                id="selectHelperOperatorModal">
+                <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-md max-h-[80vh] overflow-y-auto">
+                        <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold">Pilih Operator Bantuan</h2>
+                                <button aria-label="Close Helper Operator Select Popup"
+                                        class="text-gray-500 hover:text-gray-700" id="closeSelectHelperOperatorModalBtn">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round"
+                                                        stroke-linejoin="round" stroke-width="2"></path>
+                                        </svg>
+                                </button>
+                        </div>
+                        <div id="availableStandbyOperatorsList" class="space-y-3">
+                                <!-- Standby operators will be populated here by JavaScript -->
                         </div>
                 </div>
         </div>
