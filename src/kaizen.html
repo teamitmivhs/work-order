@@ -370,7 +370,8 @@
                         ${getExecutorHtml(order.executors)}
                     </td>
                     <td class="py-3 px-4 text-sm">${order.workingHours || '-'}</td>
-                    <td class="py-3 px-4 text-sm text-green-600 font-semibold">${order.completedAt || 'N/A'}</td>
+
+                    <td class="py-3 px-4 text-sm text-green-600">${order.completedAt || 'N/A'}</td>
                     <td class="py-3 px-4 text-sm">
                         <div class="max-w-xs">
                             ${order.notes ? `
