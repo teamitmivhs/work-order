@@ -1,0 +1,10 @@
+# Git
+.git
+.gitignore
+
+# Local binaries
+work-order-backend
+workorder-server
+
+# Docker files
+Dockerfile
