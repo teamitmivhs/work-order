@@ -7,9 +7,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="/static/assets/style.css" rel="stylesheet">
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
+        }
+        .member-avatar-small {
+            transition: all 0.2s ease;
+        }
+        .member-avatar-small:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            position: relative;
         }
     </style>
 </head>
@@ -221,16 +230,53 @@
 
     <br><br>
 
+
     <script>
+
 
         // All work orders (pending, in progress, completed) stored in localStorage
         let allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
         let completedOrders = allWorkOrders.filter(order => order.status === 'completed'); // Filter for completed orders
+        let members = []; // Member data for displaying executor photos
+
+        // Function to fetch member data from Go API
+        async function fetchMembers() {
+            try {
+                const response = await fetch('http://localhost:8080/api/members');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                members = await response.json();
+                console.log("Data members berhasil di-fetch dari Go API:", members);
+            } catch (error) {
+                console.error("Error fetching members:", error);
+                // Fallback to empty array if API fails
+                members = [];
+            }
+        }
+
 
         // Function to reload all work orders from localStorage and filter for completed ones
         function reloadWorkOrdersAndFilterCompleted() {
             allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
             completedOrders = allWorkOrders.filter(order => order.status === 'completed');
+        }
+
+        // Function to get executor HTML with photos
+        function getExecutorHtml(executors) {
+            if (!executors || executors.length === 0) {
+                return '<span class="text-gray-400">-</span>';
+            }
+
+            let executorsHtml = '<div class="flex -space-x-1">';
+            executors.forEach(executorId => {
+                const member = members.find(m => m.id === executorId);
+                if (member) {
+                    executorsHtml += `<img src="/static/public/${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small border-2 border-white rounded-full w-8 h-8 object-cover shadow-sm">`;
+                }
+            });
+            executorsHtml += '</div>';
+            return executorsHtml;
         }
 
 
@@ -270,8 +316,9 @@
                     <td class="py-3 px-4 text-sm">${order.location}</td>
                     <td class="py-3 px-4 text-sm">${order.device}</td>
                     <td class="py-3 px-4 text-sm">${order.problem}</td>
+
                     <td class="py-3 px-4 text-sm">
-                        ${order.executors && order.executors.length > 0 ? order.executors.join(', ') : '-'}
+                        ${getExecutorHtml(order.executors)}
                     </td>
                     <td class="py-3 px-4 text-sm">${order.workingHours || '-'}</td>
                     <td class="py-3 px-4 text-sm text-green-600 font-semibold">${order.completedAt || 'N/A'}</td>
@@ -494,9 +541,16 @@
             renderTable();
         });
 
+
         // Load page
-        updateStats();
-        renderTable();
+        async function loadPage() {
+            await fetchMembers();
+            updateStats();
+            renderTable();
+        }
+        
+        // Initialize page
+        loadPage();
     </script>
 </body>
 </html>

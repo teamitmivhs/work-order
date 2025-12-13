@@ -1,4 +1,4 @@
-new Swiper(".mySwiper", {
+ new Swiper(".mySwiper", {
   loop: true,
   autoplay: { delay: 2400 },
   pagination: { el: ".swiper-pagination", clickable: true },
@@ -370,10 +370,12 @@ document.addEventListener('DOMContentLoaded', async function () {
   // Current logged-in user (for demonstration, using member with id 1)
   const currentUser = members.length > 0 ? members[0] : null;
 
+
   // Current order being processed
   let currentOrder = null;
 
   let additionalOperators = [];
+  let selectedOperators = [];
 
   // Initialize member images on page load
   initializeMemberImages();
@@ -635,7 +637,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       device: device,
       problem: problem,
       executors: [], // No executors initially
-      workingHours: '0 jam', // Will be updated when work starts
+
+      workingHours: '0 menit', // Will be updated when work starts
       status: 'pending',
       safetyChecklist: []
     };
@@ -784,14 +787,26 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
       executorsHtml += '</div>';
 
+
       // Action Buttons
       let actionButtons = '<div class="flex items-center gap-2">';
       if (order.status === 'pending') {
-        actionButtons += `<button class="take-order-btn bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Ambil order ini">
+        // Check if order already has workers assigned
+        if (order.executors && order.executors.length > 0) {
+          // Order has workers, show "Add Worker" button
+          actionButtons += `<button class="add-worker-btn bg-green-500 text-white rounded-full p-1 hover:bg-green-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Tambah worker">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
               </button>`;
+        } else {
+          // No workers assigned, show "Take Order" button
+          actionButtons += `<button class="take-order-btn bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Ambil order ini">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+              </button>`;
+        }
       } else if (order.status === 'progress') {
         actionButtons += `<button class="done-btn bg-green-500 text-white rounded-full p-1 hover:bg-green-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Tandai sebagai selesai">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -825,11 +840,20 @@ document.addEventListener('DOMContentLoaded', async function () {
       workOrdersTableBody.appendChild(row);
     });
 
+
     // Add event listeners for take order buttons (empty executor slots become take order buttons)
     document.querySelectorAll('.take-order-btn').forEach(btn => {
       btn.addEventListener('click', function () {
         const orderId = parseInt(this.dataset.orderId);
         openTakeOrderPopup(orderId);
+      });
+    });
+
+    // Add event listeners for add worker buttons (for pending orders with existing workers)
+    document.querySelectorAll('.add-worker-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const orderId = parseInt(this.dataset.orderId);
+        openAddWorkerPopup(orderId);
       });
     });
 
@@ -851,10 +875,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
 
+
+
   function openTakeOrderPopup(orderId) {
     const order = workOrders.find(o => o.id === orderId);
     if (!order) return;
-
 
     if (!currentUser) {
       showPopup('Error', 'Tidak dapat mengambil order, data pengguna tidak ditemukan.', 'error');
@@ -869,8 +894,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     currentOrder = order;
     additionalOperators = [];
-
-    // ... sisanya sama
 
     // Populate order details
     document.getElementById('popupOrderId').textContent = order.id;
@@ -887,6 +910,110 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Show popup
     showAnimatedPopup(takeOrderPopup);
+  }
+
+  // Function to open the add worker popup for pending orders with existing workers
+  function openAddWorkerPopup(orderId) {
+    const order = workOrders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Check if order is still pending and has workers
+    if (order.status !== 'pending') {
+      showPopup('Error', 'Hanya bisa menambahkan worker ke order yang masih pending!', 'error');
+      return;
+    }
+
+    currentOrder = order;
+    additionalOperators = [];
+
+    // Populate order details
+    document.getElementById('popupOrderId').textContent = order.id;
+    document.getElementById('popupPriority').textContent = order.priority.charAt(0).toUpperCase() + order.priority.slice(1);
+    document.getElementById('popupLocation').textContent = order.location;
+    document.getElementById('popupDevice').textContent = order.device;
+    document.getElementById('popupProblem').textContent = order.problem;
+
+    // Populate available workers (exclude existing executors)
+    populateAvailableWorkersForAddWorker(order.executors);
+
+    // Show the helper operator modal directly
+    showAnimatedPopup(selectHelperOperatorModal);
+  }
+
+  // Function to populate available workers (excluding existing executors)
+  function populateAvailableWorkersForAddWorker(existingExecutorIds) {
+    availableStandbyOperatorsList.innerHTML = '';
+
+    // Filter out members who are already assigned to this order and only show standby members
+    const availableMembers = members.filter(m => 
+      m.status === 'standby' && !existingExecutorIds.includes(m.id)
+    );
+
+    if (availableMembers.length === 0) {
+      availableStandbyOperatorsList.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada worker standby yang tersedia</p>';
+      return;
+    }
+
+    availableMembers.forEach(member => {
+      const memberDiv = document.createElement('div');
+      memberDiv.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
+      memberDiv.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
+            <span class="font-medium">${member.name}</span>
+          </div>
+          <button class="add-helper-operator-btn bg-green-500 text-white rounded-full p-2 hover:bg-green-600 transition-colors h-8 w-8 flex items-center justify-center" data-member-id="${member.id}" title="Tambahkan sebagai worker">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+          </button>
+        `;
+      availableStandbyOperatorsList.appendChild(memberDiv);
+    });
+
+    // Add event listeners for the add helper operator buttons
+    document.querySelectorAll('.add-helper-operator-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const memberId = parseInt(this.dataset.memberId);
+        addWorkerToOrder(memberId);
+      });
+    });
+  }
+
+
+  // Function to add worker to order
+  function addWorkerToOrder(memberId) {
+    if (!currentOrder) return;
+
+    // Check if member is already assigned to this order
+    if (currentOrder.executors.includes(memberId)) {
+      showPopup('Peringatan', 'Worker ini sudah terdaftar untuk order ini!', 'warning');
+      return;
+    }
+
+    // Add the member to the order's executor list
+    currentOrder.executors.push(memberId);
+
+    // Update member status to "onjob"
+    updateMemberStatus(memberId, 'onjob');
+
+    // Update the work orders array
+    const orderIndex = workOrders.findIndex(o => o.id === currentOrder.id);
+    if (orderIndex !== -1) {
+      workOrders[orderIndex] = currentOrder;
+    }
+
+    // Refresh the table
+    populateWorkOrdersTable();
+
+    // Update summary counts
+    updateSummaryCounts();
+
+    // Close the modal
+    hideAnimatedPopup(selectHelperOperatorModal);
+
+    // Show success message
+    showPopup('Worker Ditambahkan', `${members.find(m => m.id === memberId).name} berhasil ditambahkan sebagai worker untuk order #${currentOrder.id}.`, 'success');
   }
 
 
