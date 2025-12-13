@@ -89,7 +89,8 @@
                     <span class="text-gray-800" id="modalOrderExecutors">-</span>
                 </div>
                 <div>
-                    <span class="font-medium text-gray-600">Working Hours:</span>
+
+                    <span class="font-medium text-gray-600">Working Minutes:</span>
                     <span class="text-gray-800" id="modalOrderWorkingHours">-</span>
                 </div>
             </div>
@@ -148,7 +149,8 @@
                 <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold text-blue-800">Average Completion Time</h3>
                     <p class="text-3xl font-bold text-blue-600" id="avgCompletionTime">-</p>
-                    <p class="text-sm text-blue-700">Berdasarkan jam kerja</p>
+
+                    <p class="text-sm text-blue-700">Berdasarkan menit kerja</p>
                 </div>
                 <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold text-purple-800">Notes Quality</h3>
@@ -200,7 +202,8 @@
                             <th class="text-left py-3 px-4 font-semibold text-sm">Device</th>
                             <th class="text-left py-3 px-4 font-semibold text-sm">Masalah</th>
                             <th class="text-left py-3 px-4 font-semibold text-sm">Pelaksana</th>
-                            <th class="text-left py-3 px-4 font-semibold text-sm">Working Hours</th>
+
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Working Minutes</th>
                             <th class="text-left py-3 px-4 font-semibold text-sm">Waktu Selesai</th>
                             <th class="text-left py-3 px-4 font-semibold text-sm">Catatan/Evaluasi</th>
                             <th class="text-left py-3 px-4 font-semibold text-sm">Aksi</th>
@@ -241,6 +244,7 @@
             }
         }
 
+
         // Function to get executor HTML with photos
         function getExecutorHtml(executors) {
             if (!executors || executors.length === 0) {
@@ -256,6 +260,46 @@
             });
             executorsHtml += '</div>';
             return executorsHtml;
+        }
+
+
+        // Function to convert working hours to smart time format
+        function convertToMinutes(hoursString) {
+            if (!hoursString || hoursString === '-') {
+                return '-';
+            }
+            
+            // Extract number from string (handle both "2 jam" and "2" formats)
+            const hours = parseFloat(hoursString.toString().replace(/[^0-9.]/g, '')) || 0;
+            const totalMinutes = Math.round(hours * 60);
+            
+            // Smart formatting: if less than 60 minutes, show in minutes
+            if (totalMinutes < 60) {
+                return totalMinutes + ' minutes';
+            }
+            
+            // If 60 minutes or more, convert back to hours format
+            const totalHours = totalMinutes / 60;
+            
+            // If it's a whole number of hours
+            if (totalHours % 1 === 0) {
+                return totalHours + ' hours';
+            }
+            
+            // If it's more than 1 hour with decimal
+            if (totalHours >= 1) {
+                const wholeHours = Math.floor(totalHours);
+                const remainingMinutes = totalMinutes % 60;
+                
+                if (remainingMinutes === 0) {
+                    return totalHours + ' hours';
+                } else {
+                    return `${wholeHours}h ${remainingMinutes}m`;
+                }
+            }
+            
+            // Fallback for very small values
+            return totalMinutes + ' minutes';
         }
 
         // Display overview stats
@@ -308,17 +352,32 @@
             document.getElementById('currentRating').textContent = rating;
             document.getElementById('ratingSuggestion').textContent = suggestion;
 
-            // Calculate average completion time
+
+
+            // Calculate average completion time in minutes
             const ordersWithHours = completedOrders.filter(order => order.workingHours && order.workingHours !== '0 jam');
-            let avgHours = 0;
+            let avgMinutes = 0;
             if (ordersWithHours.length > 0) {
-                const totalHours = ordersWithHours.reduce((sum, order) => {
-                    const hours = parseFloat(order.workingHours) || 0;
-                    return sum + hours;
+                const totalMinutes = ordersWithHours.reduce((sum, order) => {
+                    const hours = parseFloat(order.workingHours.toString().replace(/[^0-9.]/g, '')) || 0;
+                    return sum + Math.round(hours * 60);
                 }, 0);
-                avgHours = totalHours / ordersWithHours.length;
+                avgMinutes = totalMinutes / ordersWithHours.length;
+                
+                // Use smart formatting for average
+                const avgHours = avgMinutes / 60;
+                if (avgMinutes < 60) {
+                    document.getElementById('avgCompletionTime').textContent = Math.round(avgMinutes) + ' minutes';
+                } else if (avgHours % 1 === 0) {
+                    document.getElementById('avgCompletionTime').textContent = avgHours + ' hours';
+                } else {
+                    const wholeHours = Math.floor(avgHours);
+                    const remainingMinutes = Math.round(avgMinutes % 60);
+                    document.getElementById('avgCompletionTime').textContent = `${wholeHours}h ${remainingMinutes}m`;
+                }
+            } else {
+                document.getElementById('avgCompletionTime').textContent = '-';
             }
-            document.getElementById('avgCompletionTime').textContent = avgHours.toFixed(1) + ' hours';
 
             // Calculate notes quality
             const ordersWithNotes = completedOrders.filter(order => order.notes && order.notes.trim() !== '').length;
@@ -369,7 +428,8 @@
                     <td class="py-3 px-4 text-sm">
                         ${getExecutorHtml(order.executors)}
                     </td>
-                    <td class="py-3 px-4 text-sm">${order.workingHours || '-'}</td>
+
+                    <td class="py-3 px-4 text-sm">${convertToMinutes(order.workingHours)}</td>
 
                     <td class="py-3 px-4 text-sm text-green-600">${order.completedAt || 'N/A'}</td>
                     <td class="py-3 px-4 text-sm">
@@ -443,7 +503,8 @@
             document.getElementById('modalOrderProblem').textContent = order.problem;
 
             document.getElementById('modalOrderExecutors').innerHTML = getExecutorHtml(order.executors);
-            document.getElementById('modalOrderWorkingHours').textContent = order.workingHours || '-';
+
+            document.getElementById('modalOrderWorkingHours').textContent = convertToMinutes(order.workingHours) + ' minutes';
             document.getElementById('modalOrderCompletedAt').textContent = order.completedAt || 'N/A';
             
             // Set priority badge
