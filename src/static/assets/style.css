@@ -86,9 +86,28 @@ body {
       color: #92400e;
     }
 
+
     .priority-low {
       background-color: rgba(34, 197, 94, 0.2);
       color: #14532d;
+    }
+
+    .status-completed {
+      border: 2px solid #22c55e;
+      background-color: rgba(34, 197, 94, 0.1);
+      color: #14532d;
+      animation: blinkGreen 1s infinite;
+    }
+
+    @keyframes blinkGreen {
+      0%, 100% {
+        border-color: #22c55e;
+        background-color: rgba(34, 197, 94, 0.1);
+      }
+      50% {
+        border-color: #16a34a;
+        background-color: rgba(34, 197, 94, 0.2);
+      }
     }
 
     .empty-executor-slot {
