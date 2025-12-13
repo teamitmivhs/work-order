@@ -15,11 +15,12 @@ type WorkOrder struct {
 }
 
 type Member struct {
-	ID     int    `json:"id"`
-	Name   string `json:"name"`
-	Role   string `json:"role"`
-	Status string `json:"status"`
-	Avatar string `json:"avatar"`
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Password string `json:"password,omitempty"`
+	Role     string `json:"role"`
+	Status   string `json:"status"`
+	Avatar   string `json:"avatar"`
 }
 type Summary struct {
 	TotalWorkOrders      int `json:"totalWorkOrders"`

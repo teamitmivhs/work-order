@@ -30,3 +30,18 @@ func GetAllMembers() ([]models.Member, error) {
 
 	return members, nil
 }
+
+func CreateMember(member *models.Member) error {
+	_, err := config.DB.Exec("INSERT INTO members (Name, Password, Role, Status, Avatar) VALUES (?, ?, ?, ?, ?)", member.Name, member.Password, member.Role, member.Status, member.Avatar)
+	return err
+}
+
+func GetMemberByName(name string) (*models.Member, error) {
+	row := config.DB.QueryRow("SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE Name = ?", name)
+
+	var m models.Member
+	if err := row.Scan(&m.ID, &m.Name, &m.Password, &m.Role, &m.Status, &m.Avatar); err != nil {
+		return nil, err
+	}
+	return &m, nil
+}

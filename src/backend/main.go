@@ -104,4 +104,5 @@ func setupPageRoutes(r *gin.Engine) {
 func setupAPIRoutes(r *gin.Engine) {
 	api := r.Group("/api")
 	routes.RegisterWorkorderRoutes(api)
+	routes.RegisterUserRoutes(api)
 }
