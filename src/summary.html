@@ -356,14 +356,14 @@
             });
 
             // Sort
-            if (sortBy === 'newest') {
+            if (sortBy === 'Terbaru') {
                 filtered.reverse();
-            } else if (sortBy === 'oldest') {
+            } else if (sortBy === 'Tertua') {
                 // Keep original order
-            } else if (sortBy === 'priority-high') {
+            } else if (sortBy === 'Prioritas Tinggi') {
                 const priorityOrder = { high: 1, medium: 2, low: 3 };
                 filtered.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-            } else if (sortBy === 'priority-low') {
+            } else if (sortBy === 'Prioritas Rendah') {
                 const priorityOrder = { low: 1, medium: 2, high: 3 };
                 filtered.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
             }
