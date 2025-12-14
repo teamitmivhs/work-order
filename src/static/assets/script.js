@@ -785,57 +785,19 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Gabungkan lokasi
     const finalLocation = specificLocation ? `${location} - ${specificLocation}` : location;
 
-
-    // Generate a new, globally unique order ID
-    const existingIds = workOrders.map(order => order.id);
-    const newOrderId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
-
-
-    // Create new order object
-    const newOrder = {
-      id: newOrderId,
-      priority: priority,
-      time: currentTimeDisplay, // Use the correct variable
-      requester: requesterName, // Using the name directly instead of ID
-      location: finalLocation, // Use the combined location
-      device: device,
-      problem: problem,
-      executors: [], // No executors initially
-      workingHours: formatDuration(0), // Initial working hours display
-      accumulatedDuration: 0, // Initial accumulated duration in milliseconds
-      startTime: null, // Will be set when order status becomes 'progress'
-      status: 'pending',
-      safetyChecklist: []
-    };
-    // Add the new order to the work orders array
-    workOrders.push(newOrder);
-
-    // Refresh the work orders table
-    populateWorkOrdersTable();
-
-    // Update summary counts
-    updateSummaryCounts();
-
-    // Close the popup and reset the form
-    hideAnimatedPopup(createOrderPopup);
-    createOrderForm.reset();
-
-    // Hide specific location field when resetting form
-    specificLocationContainer.classList.add('hidden');
-
     // Data send to Go lang
     const payload = {
-      Priority: priority,
-      TimeDisplay: currentTimeDisplay,
-      TimeSort: currentTimeSort,
-      Requester: requesterName,
-      Location: finalLocation,
-      Device: device,
-      Problem: problem,
-      WorkingHours: '0 menit',
-      Status: 'pending',
-      Executors: [], // Array kosong saat membuat
-      SafetyChecklist: [] // Array kosong saat membuat
+      Priority: priority,
+      TimeDisplay: currentTimeDisplay,
+      TimeSort: currentTimeSort,
+      Requester: requesterName,
+      Location: finalLocation,
+      Device: device,
+      Problem: problem,
+      WorkingHours: '0 menit',
+      Status: 'pending',
+      Executors: [], // Array kosong saat membuat
+      SafetyChecklist: [] // Array kosong saat membuat
     };
 
     // Mengirim data ke API backend Go Lang
@@ -856,7 +818,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     .then(data => {
       // Setelah sukses
       const newOrderId = data.id; // Asumsi backend mengembalikan objek { id: X }
-        
+
       // Logika refresh, reset form, dan notifikasi
       hideAnimatedPopup(createOrderPopup);
       createOrderForm.reset();
@@ -868,8 +830,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       showPopup('Work Order Berhasil Dibuat!', `Work Order #${newOrderId} telah berhasil dibuat dan disimpan di database.`, 'success');
     })
     .catch(error => {
-      console.error('Error saat membuat order:', error);
-      showPopup('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+      console.error('Error saat membuat order:', error);
+      showPopup('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
     });
   });
 
@@ -1262,6 +1224,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   function addWorkerToOrder(memberId) {
     if (!currentOrder) return;
 
+    if (currentOrder.executors.length >= 4) {
+      showPopup('Peringatan', 'Satu order hanya dapat dikerjakan oleh maksimal 4 orang.', 'warning');
+      return;
+    }
+
     // Check if member is already assigned to this order
     if (currentOrder.executors.includes(memberId)) {
       showPopup('Peringatan', 'Worker ini sudah terdaftar untuk order ini!', 'warning');
@@ -1345,6 +1312,11 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       // 1. Ambil data yang dibutuhkan untuk dikirim ke Backend
       const allAssignedOperatorIds = [...new Set([currentUser.id, ...additionalOperators])];
+
+      if (allAssignedOperatorIds.length > 4) {
+        showPopup('Peringatan', 'Satu order hanya dapat dikerjakan oleh maksimal 4 orang.', 'warning');
+        return;
+      }
       
       // ... (Logika validasi allAssignedOperatorIds dan requiredCheckboxes tetap sama) ...
       // ...
