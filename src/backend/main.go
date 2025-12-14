@@ -89,13 +89,14 @@ func setupPageRoutes(r *gin.Engine) {
 
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
-		if path == "/techguide.html" {
+		switch path {
+		case "/techguide.html":
 			c.File("../techguide.html")
-		} else if path == "/summary.html" {
+		case "/summary.html":
 			c.File("../summary.html")
-		} else if path == "/kaizen.html" {
+		case "/kaizen.html":
 			c.File("../kaizen.html")
-		} else {
+		default:
 			c.File("../index.html")
 		}
 	})
