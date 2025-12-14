@@ -1,322 +1,389 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TechGuide - Work Instructions</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        * {
-            font-family: 'Roboto', sans-serif;
+      * {
+        font-family: 'Roboto', sans-serif;
+      }
+      .guide-content-item {
+        animation: fadeIn 0.3s ease-in;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
         }
-        .guide-content-item {
-            animation: fadeIn 0.3s ease-in;
+        to {
+          opacity: 1;
         }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
+      }
     </style>
-</head>
-<body class="bg-gray-50">
+  </head>
+  <body class="bg-gray-50">
     <!-- NAVIGATION BAR -->
     <nav class="bg-white shadow-md sticky top-0 z-40">
-        <div class="px-10 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="/" class="text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                    Kembali
-                </a>
-            </div>
-            <h1 class="text-2xl font-bold text-gray-800">TechGuide - Instruksi Kerja</h1>
-            <div class="w-20"></div>
+      <div class="px-10 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <a
+            href="/"
+            class="text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-2"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              ></path>
+            </svg>
+            Kembali
+          </a>
         </div>
+        <h1 class="text-2xl font-bold text-gray-800">
+          TechGuide - Instruksi Kerja
+        </h1>
+        <div class="w-20"></div>
+      </div>
     </nav>
 
     <!-- MAIN CONTENT -->
     <main class="px-10 py-8">
-        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
-            <!-- DEVICE SELECTOR -->
-            <div class="mb-8">
-                <label class="block text-lg font-semibold text-gray-800 mb-3" for="techGuideDeviceSelect">Pilih Perangkat</label>
-                <select id="techGuideDeviceSelect" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">
-                    <option value="Server cloud">Server cloud</option>
-                    <option value="Upgrading PC">Upgrading PC</option>
-                    <option value="Troubleshooting Windows">Troubleshooting Windows</option>
-                    <option value="Troubleshooting CCTV">Troubleshooting CCTV</option>
-                    <option value="Cleaning PC/Laptop">Cleaning PC/Laptop</option>
-                    <option value="Printer">Printer</option>
-                    <option value="Kabel LAN">Kabel LAN</option>    
-                </select>
-            </div>
-
-            <!-- GUIDE CONTENT -->
-            <div id="techGuideContent" class="bg-gray-50 p-6 rounded-lg border border-gray-200 min-h-[400px]">
-                <!-- Content will be injected here -->
-            </div>
+      <div class="bg-white rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
+        <!-- DEVICE SELECTOR -->
+        <div class="mb-8">
+          <label
+            class="block text-lg font-semibold text-gray-800 mb-3"
+            for="techGuideDeviceSelect"
+            >Pilih Perangkat</label
+          >
+          <select
+            id="techGuideDeviceSelect"
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+          >
+            <option value="Server cloud">Server cloud</option>
+            <option value="Upgrading PC">Upgrading PC</option>
+            <option value="Troubleshooting Windows">
+              Troubleshooting Windows
+            </option>
+            <option value="Troubleshooting CCTV">Troubleshooting CCTV</option>
+            <option value="Cleaning PC/Laptop">Cleaning PC/Laptop</option>
+            <option value="Printer">Printer</option>
+            <option value="Kabel LAN">Kabel LAN</option>
+          </select>
         </div>
+
+        <!-- GUIDE CONTENT -->
+        <div
+          id="techGuideContent"
+          class="bg-gray-50 p-6 rounded-lg border border-gray-200 min-h-[400px]"
+        >
+          <!-- Content will be injected here -->
+        </div>
+      </div>
     </main>
 
     <script>
-        // Tech Guide Content Database
-        const techGuides = {
-            "Server cloud": {
-                title: "Server cloud - Instruksi Kerja",
-                steps: [
-                    {
-                        step: 1,
-                        title: "Server Startup",
-                        content: "Pastikan server terhubung ke sumber daya listrik dan jaringan. Nyalakan server dengan menekan tombol power di casing server."
-                    },
-                    {
-                        step: 2,
-                        title: "Cek status sistem",
-                        content: "Masuk menggunakan kredensial admin. Ketik btop untuk memverifikasi penggunaan CPU normal (di bawah 80%) dan penggunaan RAM yang wajar."
-                    },
-                    {
-                        step: 3,
-                        title: "Network Connectivity",
-                        content: "Verifikasi konektivitas jaringan dengan cara ping ke gateway atau ke DNS google (8.8.8.8). Periksa bahwa semua interface jaringan aktif (ethernet, zerotier) dan menunjukkan status hijau di Network Manager."
-                    },
-                    {
-                        step: 4,
-                        title: "Service verification",
-                        content: "Restart semua critical service (SQL, Apache2, dll.) menggunakan systemctl. Verifikasi setiap layanan berhasil dijalankan dengan memeriksa statusnya."
-                    },
-                    {
-                        step: 5,
-                        title: "Backup Check",
-                        content: "Verifikasi backup terbaru yang telah selesai. Cek backup log untuk memastikan tidak ada error selama proses backup."
-                    }
-                ]
+      // Tech Guide Content Database
+      const techGuides = {
+        'Server cloud': {
+          title: 'Server cloud - Instruksi Kerja',
+          steps: [
+            {
+              step: 1,
+              title: 'Server Startup',
+              content:
+                'Pastikan server terhubung ke sumber daya listrik dan jaringan. Nyalakan server dengan menekan tombol power di casing server.',
             },
-            "Upgrading PC": {
-                title: "Upgrading PC - Instruksi Kerja",
-                steps: [
-                    {
-                        step: 1,
-                        title: "Persiapan Pre-Upgrade",
-                        content: "Backup semua data penting ke penyimpanan eksternal. Buat system restore point. Pastikan ruang disk yang cukup tersedia (minimal 20GB)."
-                    },
-                    {
-                        step: 2,
-                        title: "Check Hardware Compatibility",
-                        content: "Verifikasi semua komponen hardware kompatibel dengan versi OS baru. Periksa situs web produsen untuk ketersediaan driver."
-                    },
-                    {
-                        step: 3,
-                        title: "Disable Antivirus",
-                        content: "Nonaktifkan sementara software antivirus selama proses upgrade untuk mencegah konflik. Aktifkan kembali segera setelah upgrade selesai."
-                    },
-                    {
-                        step: 4,
-                        title: "Run Upgrade Process",
-                        content: "Download versi terbaru dari sumber resmi. Jalankan installer upgrade dan ikuti semua petunjuk. Jangan hentikan proses."
-                    },
-                    {
-                        step: 5,
-                        title: "Post-Upgrade Verification",
-                        content: "Verifikasi sistem booting dengan normal dan semua aplikasi critical berjalan."
-                    }
-                ]
+            {
+              step: 2,
+              title: 'Cek status sistem',
+              content:
+                'Masuk menggunakan kredensial admin. Ketik btop untuk memverifikasi penggunaan CPU normal (di bawah 80%) dan penggunaan RAM yang wajar.',
             },
-            "Troubleshooting Windows": {
-                title: "Troubleshooting Windows - Instruksi Kerja",
-                steps: [
-                    {
-                        step: 1,
-                        title: "System Diagnostics",
-                        content: "Jalankan Windows Disk Check (chkdsk) untuk mengidentifikasi kesalahan sistem file. Periksa Event Viewer untuk kesalahan dan peringatan kritis."
-                    },
-                    {
-                        step: 2,
-                        title: "Memory Test",
-                        content: "Jalankan Windows Memory Diagnostic untuk menguji integritas RAM. Restart sistem dan biarkan siklus pengujian selesai (biasanya memakan waktu lebih dari 30 menit)."
-                    },
-                    {
-                        step: 3,
-                        title: "Update & Drivers",
-                        content: "Install driver terbaru dari windows update atau situs web produsen. Pastikan semua update Windows telah diinstal."
-                    },
-                    {
-                        step: 4,
-                        title: "Malware Scan",
-                        content: "Jalankan full system scan dengan Windows Defender. Jika belum cukup, gunakan software tambahan seperti Malwarebytes dalam Safe Mode."
-                    },
-                    {
-                        step: 5,
-                        title: "System Cleanup",
-                        content: "Bersihkan temporary file menggunakan Disk Cleanup. Nonaktifkan startup program yang tidak perlu."
-                    }
-                ]
+            {
+              step: 3,
+              title: 'Network Connectivity',
+              content:
+                'Verifikasi konektivitas jaringan dengan cara ping ke gateway atau ke DNS google (8.8.8.8). Periksa bahwa semua interface jaringan aktif (ethernet, zerotier) dan menunjukkan status hijau di Network Manager.',
             },
-            "Troubleshooting CCTV": {
-                title: "Troubleshooting CCTV - Instruksi Kerja",
-                steps: [
-                    {
-                        step: 1,
-                        title: "Check Physical Connections",
-                        content: "Periksa semua kabel terhubung dengan kuat. Periksa kerusakan terlihat pada kabel dan konektor BNC."
-                    },
-                    {
-                        step: 2,
-                        title: "Camera Status",
-                        content: "Cek kamera dari monitor. akses IVMS menggunakan IP address. Verifikasi kamera menerima input video."
-                    },
-                    {
-                        step: 3,
-                        title: "Network Configuration",
-                        content: "Ping alamat IP kamera untuk memverifikasi konektivitas jaringan. Periksa server DHCP untuk IP kamera. Verifikasi port switch jaringan."
-                    },
-                    {
-                        step: 4,
-                        title: "DVR/NVR Check",
-                        content: "Restart sistem DVR/NVR. Verifikasi semua saluran kamera menunjukkan status 'Online'. Periksa pengaturan perekaman dan ruang penyimpanan."
-                    },
-                    {
-                        step: 5,
-                        title: "Firmware & Software",
-                        content: "Periksa pembaruan firmware yang tersedia untuk kamera dan DVR/NVR. Perbarui jika tersedia. Tinjau log sistem untuk pesan kesalahan."
-                    }
-                ]
+            {
+              step: 4,
+              title: 'Service verification',
+              content:
+                'Restart semua critical service (SQL, Apache2, dll.) menggunakan systemctl. Verifikasi setiap layanan berhasil dijalankan dengan memeriksa statusnya.',
             },
-            "Cleaning PC/Laptop": {
-                title: "Cleaning PC/Laptop - Instruksi Kerja",
-                steps: [
-                    {
-                        step: 1,
-                        title: "Power Down & Unplug",
-                        content: "Matikan PC/Laptop dan cabut semua kabel daya dan periferal. Biarkan perangkat dingin selama beberapa menit sebelum membersihkan."
-                    },
-                    {
-                        step: 2,
-                        title: "External Cleaning",
-                        content: "Gunakan kain microfiber yang sedikit dibasahi dengan air atau pembersih layar khusus untuk membersihkan layar. Bersihkan casing luar dengan kain lembab."
-                    },
-                    {
-                        step: 3,
-                        title: "Keyboard & Ports",
-                        content: "Gunakan kaleng udara bertekanan untuk meniup debu dari keyboard dan port. Gunakan cotton bud yang sedikit dibasahi alkohol isopropil untuk membersihkan sela-sela keyboard."
-                    },
-                    {
-                        step: 4,
-                        title: "Internal Cleaning",
-                        content: "Buka casing PC/Laptop sesuai petunjuk produsen. Gunakan contact cleaner untuk membersihkan debu dari komponen internal seperti kipas, heatsink, dan motherboard. Pastikan baterai tercabut agar mengurangi resiko terkena listrik statis."
-                    },
-                    {
-                        step: 5,
-                        title: "Reassemble & Test",
-                        content: "Pasang kembali casing dengan hati-hati. Sambungkan kembali semua kabel dan casing. Nyalakan perangkat dan pastikan semuanya berfungsi dengan baik."
-                    }
-                ]
+            {
+              step: 5,
+              title: 'Backup Check',
+              content:
+                'Verifikasi backup terbaru yang telah selesai. Cek backup log untuk memastikan tidak ada error selama proses backup.',
             },
-            "Printer": {
-                title: "Printer - Instruksi Kerja",
-                steps: [
-                    {
-                        step: 1,
-                        title: "Check Connections",
-                        content: "Pastikan printer terhubung ke sumber daya listrik dan komputer. Periksa kabel USB atau koneksi jaringan."
-                    },
-                    {
-                        step: 2,
-                        title: "Paper Jam",
-                        content: "Buka penutup printer dan periksa adanya kertas yang macet. Angkat kertas dengan hati-hati untuk menghindari kerusakan."
-                    },
-                    {
-                        step: 3,
-                        title: "Ink/Toner Levels",
-                        content: "Periksa level tinta atau toner. Ganti cartridge jika levelnya rendah atau habis."
-                    },
-                    {
-                        step: 4,
-                        title: "Print Test Page",
-                        content: "Cetak halaman uji untuk memverifikasi kualitas cetak. Periksa apakah ada garis atau noda pada hasil cetakan."
-                    },
-                    {
-                        step: 5,
-                        title: "Driver Update",
-                        content: "Perbarui driver printer dari situs web produsen. Pastikan kompatibilitas dengan sistem operasi yang digunakan."
-                    }
-                ]
+          ],
+        },
+        'Upgrading PC': {
+          title: 'Upgrading PC - Instruksi Kerja',
+          steps: [
+            {
+              step: 1,
+              title: 'Persiapan Pre-Upgrade',
+              content:
+                'Backup semua data penting ke penyimpanan eksternal. Buat system restore point. Pastikan ruang disk yang cukup tersedia (minimal 20GB).',
             },
-            "Kabel LAN": {
-                title: "Kabel LAN - Instruksi Kerja",
-                steps: [
-                    {
-                        step: 1,
-                        title: "Physical Inspection",
-                        content: "Periksa kabel LAN untuk kerusakan fisik seperti sobekan atau bengkok. Ganti kabel jika ditemukan kerusakan."
-                    },
-                    {
-                        step: 2,
-                        title: "Connection Check",
-                        content: "Pastikan kedua ujung kabel terhubung dengan baik ke perangkat (komputer, switch, router)."
-                    },
-                    {
-                        step: 3,
-                        title: "Network Test",
-                        content: "Gunakan LAN tester untuk memeriksa sambungan. Pastikan tidak ada gangguan pada kabel. Jika di "
-                    },
-                    {
-                        step: 4,
-                        title: "Replace if Necessary",
-                        content: "Jika kabel rusak atau tidak berfungsi, ganti dengan kabel baru yang sesuai spesifikasi (Cat5e, Cat6, dll.)."
-                    },
-                    {
-                        step: 5,
-                        title: "Verify Connectivity",
-                        content: "Setelah penggantian, verifikasi konektivitas jaringan dengan melakukan ping ke gateway atau server lokal."
-                    }
-                ]
-            }
-        };
+            {
+              step: 2,
+              title: 'Check Hardware Compatibility',
+              content:
+                'Verifikasi semua komponen hardware kompatibel dengan versi OS baru. Periksa situs web produsen untuk ketersediaan driver.',
+            },
+            {
+              step: 3,
+              title: 'Disable Antivirus',
+              content:
+                'Nonaktifkan sementara software antivirus selama proses upgrade untuk mencegah konflik. Aktifkan kembali segera setelah upgrade selesai.',
+            },
+            {
+              step: 4,
+              title: 'Run Upgrade Process',
+              content:
+                'Download versi terbaru dari sumber resmi. Jalankan installer upgrade dan ikuti semua petunjuk. Jangan hentikan proses.',
+            },
+            {
+              step: 5,
+              title: 'Post-Upgrade Verification',
+              content:
+                'Verifikasi sistem booting dengan normal dan semua aplikasi critical berjalan.',
+            },
+          ],
+        },
+        'Troubleshooting Windows': {
+          title: 'Troubleshooting Windows - Instruksi Kerja',
+          steps: [
+            {
+              step: 1,
+              title: 'System Diagnostics',
+              content:
+                'Jalankan Windows Disk Check (chkdsk) untuk mengidentifikasi kesalahan sistem file. Periksa Event Viewer untuk kesalahan dan peringatan kritis.',
+            },
+            {
+              step: 2,
+              title: 'Memory Test',
+              content:
+                'Jalankan Windows Memory Diagnostic untuk menguji integritas RAM. Restart sistem dan biarkan siklus pengujian selesai (biasanya memakan waktu lebih dari 30 menit).',
+            },
+            {
+              step: 3,
+              title: 'Update & Drivers',
+              content:
+                'Install driver terbaru dari windows update atau situs web produsen. Pastikan semua update Windows telah diinstal.',
+            },
+            {
+              step: 4,
+              title: 'Malware Scan',
+              content:
+                'Jalankan full system scan dengan Windows Defender. Jika belum cukup, gunakan software tambahan seperti Malwarebytes dalam Safe Mode.',
+            },
+            {
+              step: 5,
+              title: 'System Cleanup',
+              content:
+                'Bersihkan temporary file menggunakan Disk Cleanup. Nonaktifkan startup program yang tidak perlu.',
+            },
+          ],
+        },
+        'Troubleshooting CCTV': {
+          title: 'Troubleshooting CCTV - Instruksi Kerja',
+          steps: [
+            {
+              step: 1,
+              title: 'Check Physical Connections',
+              content:
+                'Periksa semua kabel terhubung dengan kuat. Periksa kerusakan terlihat pada kabel dan konektor BNC.',
+            },
+            {
+              step: 2,
+              title: 'Camera Status',
+              content:
+                'Cek kamera dari monitor. akses IVMS menggunakan IP address. Verifikasi kamera menerima input video.',
+            },
+            {
+              step: 3,
+              title: 'Network Configuration',
+              content:
+                'Ping alamat IP kamera untuk memverifikasi konektivitas jaringan. Periksa server DHCP untuk IP kamera. Verifikasi port switch jaringan.',
+            },
+            {
+              step: 4,
+              title: 'DVR/NVR Check',
+              content:
+                "Restart sistem DVR/NVR. Verifikasi semua saluran kamera menunjukkan status 'Online'. Periksa pengaturan perekaman dan ruang penyimpanan.",
+            },
+            {
+              step: 5,
+              title: 'Firmware & Software',
+              content:
+                'Periksa pembaruan firmware yang tersedia untuk kamera dan DVR/NVR. Perbarui jika tersedia. Tinjau log sistem untuk pesan kesalahan.',
+            },
+          ],
+        },
+        'Cleaning PC/Laptop': {
+          title: 'Cleaning PC/Laptop - Instruksi Kerja',
+          steps: [
+            {
+              step: 1,
+              title: 'Power Down & Unplug',
+              content:
+                'Matikan PC/Laptop dan cabut semua kabel daya dan periferal. Biarkan perangkat dingin selama beberapa menit sebelum membersihkan.',
+            },
+            {
+              step: 2,
+              title: 'External Cleaning',
+              content:
+                'Gunakan kain microfiber yang sedikit dibasahi dengan air atau pembersih layar khusus untuk membersihkan layar. Bersihkan casing luar dengan kain lembab.',
+            },
+            {
+              step: 3,
+              title: 'Keyboard & Ports',
+              content:
+                'Gunakan kaleng udara bertekanan untuk meniup debu dari keyboard dan port. Gunakan cotton bud yang sedikit dibasahi alkohol isopropil untuk membersihkan sela-sela keyboard.',
+            },
+            {
+              step: 4,
+              title: 'Internal Cleaning',
+              content:
+                'Buka casing PC/Laptop sesuai petunjuk produsen. Gunakan contact cleaner untuk membersihkan debu dari komponen internal seperti kipas, heatsink, dan motherboard. Pastikan baterai tercabut agar mengurangi resiko terkena listrik statis.',
+            },
+            {
+              step: 5,
+              title: 'Reassemble & Test',
+              content:
+                'Pasang kembali casing dengan hati-hati. Sambungkan kembali semua kabel dan casing. Nyalakan perangkat dan pastikan semuanya berfungsi dengan baik.',
+            },
+          ],
+        },
+        Printer: {
+          title: 'Printer - Instruksi Kerja',
+          steps: [
+            {
+              step: 1,
+              title: 'Check Connections',
+              content:
+                'Pastikan printer terhubung ke sumber daya listrik dan komputer. Periksa kabel USB atau koneksi jaringan.',
+            },
+            {
+              step: 2,
+              title: 'Paper Jam',
+              content:
+                'Buka penutup printer dan periksa adanya kertas yang macet. Angkat kertas dengan hati-hati untuk menghindari kerusakan.',
+            },
+            {
+              step: 3,
+              title: 'Ink/Toner Levels',
+              content:
+                'Periksa level tinta atau toner. Ganti cartridge jika levelnya rendah atau habis.',
+            },
+            {
+              step: 4,
+              title: 'Print Test Page',
+              content:
+                'Cetak halaman uji untuk memverifikasi kualitas cetak. Periksa apakah ada garis atau noda pada hasil cetakan.',
+            },
+            {
+              step: 5,
+              title: 'Driver Update',
+              content:
+                'Perbarui driver printer dari situs web produsen. Pastikan kompatibilitas dengan sistem operasi yang digunakan.',
+            },
+          ],
+        },
+        'Kabel LAN': {
+          title: 'Kabel LAN - Instruksi Kerja',
+          steps: [
+            {
+              step: 1,
+              title: 'Physical Inspection',
+              content:
+                'Periksa kabel LAN untuk kerusakan fisik seperti sobekan atau bengkok. Ganti kabel jika ditemukan kerusakan.',
+            },
+            {
+              step: 2,
+              title: 'Connection Check',
+              content:
+                'Pastikan kedua ujung kabel terhubung dengan baik ke perangkat (komputer, switch, router).',
+            },
+            {
+              step: 3,
+              title: 'Network Test',
+              content:
+                'Gunakan LAN tester untuk memeriksa sambungan. Pastikan tidak ada gangguan pada kabel. Jika di ',
+            },
+            {
+              step: 4,
+              title: 'Replace if Necessary',
+              content:
+                'Jika kabel rusak atau tidak berfungsi, ganti dengan kabel baru yang sesuai spesifikasi (Cat5e, Cat6, dll.).',
+            },
+            {
+              step: 5,
+              title: 'Verify Connectivity',
+              content:
+                'Setelah penggantian, verifikasi konektivitas jaringan dengan melakukan ping ke gateway atau server lokal.',
+            },
+          ],
+        },
+      }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const select = document.getElementById('techGuideDeviceSelect');
-            
-            // Load initial guide
-            renderTechGuide(select.value);
-            
-            // Handle device selection change
-            select.addEventListener('change', function() {
-                renderTechGuide(this.value);
-            });
-        });
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', function () {
+        const select = document.getElementById('techGuideDeviceSelect')
 
-        // Render guide content
-        function renderTechGuide(device) {
-            const guide = techGuides[device];
-            const contentDiv = document.getElementById('techGuideContent');
-            
-            if (!guide) {
-                contentDiv.innerHTML = '<p class="text-gray-500">No guide available for this device.</p>';
-                return;
-            }
+        // Load initial guide
+        renderTechGuide(select.value)
 
-            let html = `<h2 class="text-2xl font-bold text-gray-800 mb-6">${guide.title}</h2>`;
-            html += '<div class="space-y-4">';
-            
-            guide.steps.forEach(step => {
-                html += `
+        // Handle device selection change
+        select.addEventListener('change', function () {
+          renderTechGuide(this.value)
+        })
+      })
+
+      // Render guide content
+      function renderTechGuide(device) {
+        const guide = techGuides[device]
+        const contentDiv = document.getElementById('techGuideContent')
+
+        if (!guide) {
+          contentDiv.innerHTML =
+            '<p class="text-gray-500">No guide available for this device.</p>'
+          return
+        }
+
+        let html = `<h2 class="text-2xl font-bold text-gray-800 mb-6">${guide.title}</h2>`
+        html += '<div class="space-y-4">'
+
+        guide.steps.forEach((step) => {
+          html += `
                     <div class="guide-content-item bg-white p-5 rounded-lg border-l-4 border-blue-500 hover:shadow-md transition-shadow">
                         <h3 class="text-lg font-semibold text-blue-600 mb-2">Step ${step.step}: ${step.title}</h3>
                         <p class="text-gray-700 leading-relaxed">${step.content}</p>
                     </div>
-                `;
-            });
-            
-            html += '</div>';
-            contentDiv.innerHTML = html;
-        }
+                `
+        })
+
+        html += '</div>'
+        contentDiv.innerHTML = html
+      }
     </script>
-</body>
+  </body>
 </html>

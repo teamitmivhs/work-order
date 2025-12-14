@@ -1,227 +1,230 @@
 body {
-      font-family: 'Poppins', sans-serif;
-    }
+  font-family: 'Poppins', sans-serif;
+}
 
-    @keyframes blink {
-      0%, 100% {
-        background-color: #fee2e2;
-      }
-      50% {
-        background-color: #fca5a5;
-      }
-    }
+@keyframes blink {
+  0%,
+  100% {
+    background-color: #fee2e2;
+  }
+  50% {
+    background-color: #fca5a5;
+  }
+}
 
-    @keyframes fadeLeftYellow {
-      0%, 100% {
-        background-color: #fbbf24;
-      }
-      50% {
-        background-color: #ffffff;
-      }
-    }
+@keyframes fadeLeftYellow {
+  0%,
+  100% {
+    background-color: #fbbf24;
+  }
+  50% {
+    background-color: #ffffff;
+  }
+}
 
-    .table-container {
-      overflow-x: auto;
-    }
+.table-container {
+  overflow-x: auto;
+}
 
-    .table {
-      min-width: 100%;
-      width: max-content;
-    }
+.table {
+  min-width: 100%;
+  width: max-content;
+}
 
-    .member-avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid white;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
+.member-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
 
-    .member-avatar-small {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 1px solid white;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
+.member-avatar-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
 
-    .status-badge {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      text-align: center;
-    }
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+}
 
-    .status-pending {
-      background-color: rgba(251, 191, 36, 0.2);
-      color: #92400e;
-    }
+.status-pending {
+  background-color: rgba(251, 191, 36, 0.2);
+  color: #92400e;
+}
 
-    .status-progress {
-      background-color: rgba(59, 130, 246, 0.2);
-      color: #1e3a8a;
-    }
+.status-progress {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #1e3a8a;
+}
 
-    .priority-badge {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-align: center;
-    }
+.priority-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
 
-    .priority-high {
-      background-color: #fee2e2;
-      color: #991b1b;
-      animation: blink 1s infinite;
-    }
+.priority-high {
+  background-color: #fee2e2;
+  color: #991b1b;
+  animation: blink 1s infinite;
+}
 
-    .priority-medium {
-      background-color: rgba(245, 158, 11, 0.2);
-      color: #92400e;
-    }
+.priority-medium {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #92400e;
+}
 
+.priority-low {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #14532d;
+}
 
-    .priority-low {
-      background-color: rgba(34, 197, 94, 0.2);
-      color: #14532d;
-    }
+.status-completed {
+  border: 2px solid #22c55e;
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #14532d;
+  animation: blinkGreen 1s infinite;
+}
 
-    .status-completed {
-      border: 2px solid #22c55e;
-      background-color: rgba(34, 197, 94, 0.1);
-      color: #14532d;
-      animation: blinkGreen 1s infinite;
-    }
+@keyframes blinkGreen {
+  0%,
+  100% {
+    border-color: #22c55e;
+    background-color: rgba(34, 197, 94, 0.1);
+  }
+  50% {
+    border-color: #16a34a;
+    background-color: rgba(34, 197, 94, 0.2);
+  }
+}
 
-    @keyframes blinkGreen {
-      0%, 100% {
-        border-color: #22c55e;
-        background-color: rgba(34, 197, 94, 0.1);
-      }
-      50% {
-        border-color: #16a34a;
-        background-color: rgba(34, 197, 94, 0.2);
-      }
-    }
+.empty-executor-slot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  border: 1px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 
-    .empty-executor-slot {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background-color: #e5e7eb;
-      border: 1px solid #d1d5db;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+.empty-executor-slot:hover {
+  background-color: #d1d5db;
+}
 
-    .empty-executor-slot:hover {
-      background-color: #d1d5db;
-    }
+.delete-btn {
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 
-    .delete-btn {
-      color: #ef4444;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+.delete-btn:hover {
+  color: #dc2626;
+  transform: scale(1.1);
+}
 
-    .delete-btn:hover {
-      color: #dc2626;
-      transform: scale(1.1);
-    }
+.done-btn {
+  color: #22c55e;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 0.5rem;
+}
 
-    .done-btn {
-      color: #22c55e;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-right: 0.5rem;
-    }
+.done-btn:hover {
+  color: #16a34a;
+  transform: scale(1.1);
+}
 
-    .done-btn:hover {
-      color: #16a34a;
-      transform: scale(1.1);
-    }
+.custom-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 
-    .custom-checkbox {
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #d1d5db;
-      border-radius: 4px;
-      position: relative;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+.custom-checkbox:checked {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
 
-    .custom-checkbox:checked {
-      background-color: #3b82f6;
-      border-color: #3b82f6;
-    }
+.custom-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+}
 
-    .custom-checkbox:checked::after {
-      content: '✓';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      font-size: 14px;
-    }
-  
+.fade-slide {
+  opacity: 0;
+  transform: translateY(20px);
+}
 
-    .fade-slide {
-      opacity: 0;
-      transform: translateY(20px);
-    }
+.progress-fade {
+  animation: fadeLeftYellow 1.5s infinite !important;
+  background-color: #fbbf24 !important;
+}
 
-    .progress-fade {
-      animation: fadeLeftYellow 1.5s infinite !important;
-      background-color: #fbbf24 !important;
-    }
+.status-container {
+  transition: all 0.3s ease-in-out;
+}
 
-    .status-container {
-      transition: all 0.3s ease-in-out;
-    }
+.status-container:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
 
-    .status-container:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
 
-    @keyframes fadeOut {
-      from {
-        opacity: 1;
-        transform: scale(1);
-      }
-      to {
-        opacity: 0;
-        transform: scale(0.95);
-      }
-    }
+.popup-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
 
-    .popup-fade-in {
-      animation: fadeIn 0.3s ease-in-out;
-    }
-
-    .popup-fade-out {
-      animation: fadeOut 0.3s ease-in-out;
-    }
+.popup-fade-out {
+  animation: fadeOut 0.3s ease-in-out;
+}
