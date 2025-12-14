@@ -65,6 +65,10 @@ func InitDB() error {
 	return nil
 }
 
+func GetDB() *sql.DB {
+	return DB
+}
+
 func CloseDB() error {
 	if DB == nil {
 		return nil

@@ -1,5 +1,7 @@
 package models
 
+import "database/sql"
+
 type WorkOrder struct {
 	ID              int      `json:"id"`
 	Priority        string   `json:"priority"`
@@ -37,4 +39,36 @@ type TechGuide struct {
 	TotalArticles     int `json:"totalArticles"`
 	PublishedArticles int `json:"publishedArticles"`
 	DraftArticles     int `json:"draftArticles"`
+}
+type WorkOrderRequest struct {
+	ID          int    `json:"id"`
+	Priority    string `json:"priority"`
+	TimeDisplay string `json:"time_display"`
+	TimeSort    string `json:"time_sort"`
+	Requester   string `json:"requester"`
+	Location    string `json:"location"`
+	Device      string `json:"device"`
+	Problem     string `json:"problem"`
+
+	// Executors harus diisi dari tabel relasi task_executors
+	Executors []int `json:"executors"`
+
+	// WorkingHours bisa NULL di DB
+	WorkingHours sql.NullString `json:"workingHours"`
+	Status       string         `json:"status"`
+
+	// SafetyChecklist harus diisi dari tabel relasi task_safety_checklists
+	SafetyChecklist []string `json:"safetyChecklist"`
+
+	// CompletedAt bisa NULL di DB
+	CompletedAt sql.NullString `json:"completedAt"`
+}
+type TakeWorkOrder struct {
+	Executors            []int64  `json:"executors"`
+	SafetyChecklistItems []string `json:"safety_checklist_items"`
+	Status               string   `json:"status"`
+}
+type CompleteWorkOrder struct {
+	Status             string `json:"status"`
+	CompletedAtDisplay string `json:"completed_at_display"`
 }
