@@ -83,9 +83,42 @@ func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 			}
 		}
 
-		// Set default values untuk field yang tidak ada di DB tapi diperlukan frontend
-		wo.Executors = []int{}
-		wo.SafetyChecklist = []string{}
+		// Ambil data executors untuk setiap work order
+		executorsQuery := "SELECT ExecutorID FROM executors WHERE OrderID = ?"
+		execRows, err := r.db.Query(executorsQuery, wo.ID)
+		if err != nil {
+			return nil, fmt.Errorf("querying executors for order %d failed: %w", wo.ID, err)
+		}
+		defer execRows.Close()
+
+		var executors []int
+		for execRows.Next() {
+			var executorID int
+			if err := execRows.Scan(&executorID); err != nil {
+				return nil, fmt.Errorf("scanning executor for order %d failed: %w", wo.ID, err)
+			}
+			executors = append(executors, executorID)
+		}
+		wo.Executors = executors
+
+		// Ambil data safety checklist untuk setiap work order
+		checklistQuery := "SELECT Item FROM safetychecklist WHERE OrderID = ?"
+		checkRows, err := r.db.Query(checklistQuery, wo.ID)
+		if err != nil {
+			return nil, fmt.Errorf("querying safety checklist for order %d failed: %w", wo.ID, err)
+		}
+		defer checkRows.Close()
+
+		var checklist []string
+		for checkRows.Next() {
+			var item string
+			if err := checkRows.Scan(&item); err != nil {
+				return nil, fmt.Errorf("scanning safety checklist item for order %d failed: %w", wo.ID, err)
+			}
+			checklist = append(checklist, item)
+		}
+		wo.SafetyChecklist = checklist
+
 		workOrders = append(workOrders, wo)
 	}
 
@@ -132,6 +165,21 @@ func (r *workOrderRepository) CreateTask(task models.WorkOrderRequest) (int64, e
 
 // Implementasi TakeOrder - mengambil work order untuk diproses
 func (r *workOrderRepository) TakeOrder(orderID int64, req models.TakeWorkOrder) error {
+	// Cek status executor sebelum memulai transaksi
+	for _, executorID := range req.Executors {
+		var status string
+		err := r.db.QueryRow("SELECT Status FROM members WHERE ID = ?", executorID).Scan(&status)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return fmt.Errorf("executor with ID %d not found", executorID)
+			}
+			return fmt.Errorf("failed to query executor status: %w", err)
+		}
+		if status == "onjob" {
+			return fmt.Errorf("executor with ID %d is already on another job", executorID)
+		}
+	}
+
 	tx, err := r.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -144,21 +192,36 @@ func (r *workOrderRepository) TakeOrder(orderID int64, req models.TakeWorkOrder)
 		return fmt.Errorf("failed to update order status: %w", err)
 	}
 
-	// 2. Store executors in a JSON format in Problem field (since no separate table exists)
-	if len(req.Executors) > 0 {
-		executorsJSON := fmt.Sprintf("Executors: %v", req.Executors)
-		_, err = tx.Exec("UPDATE orders SET Problem = CONCAT(Problem, '\n', ?) WHERE ID = ?", executorsJSON, orderID)
+	// 2. Hapus executors lama sebelum insert yang baru
+	_, err = tx.Exec("DELETE FROM executors WHERE OrderID = ?", orderID)
+	if err != nil {
+		return fmt.Errorf("failed to delete old executors: %w", err)
+	}
+
+	// 3. Insert executors baru
+	for _, executorID := range req.Executors {
+		_, err = tx.Exec("INSERT INTO executors (OrderID, ExecutorID) VALUES (?, ?)", orderID, executorID)
 		if err != nil {
-			return fmt.Errorf("failed to store executors: %w", err)
+			return fmt.Errorf("failed to insert executor: %w", err)
+		}
+		// Update status member menjadi 'onjob'
+		_, err = tx.Exec("UPDATE members SET Status = 'onjob' WHERE ID = ?", executorID)
+		if err != nil {
+			return fmt.Errorf("failed to update member status: %w", err)
 		}
 	}
 
-	// 3. Store safety checklist items in Location field as notes
-	if len(req.SafetyChecklistItems) > 0 {
-		checklistJSON := fmt.Sprintf("Safety Checklist: %v", req.SafetyChecklistItems)
-		_, err = tx.Exec("UPDATE orders SET Location = CONCAT(Location, '\n', ?) WHERE ID = ?", checklistJSON, orderID)
+	// 4. Hapus safety checklist lama sebelum insert yang baru
+	_, err = tx.Exec("DELETE FROM safetychecklist WHERE OrderID = ?", orderID)
+	if err != nil {
+		return fmt.Errorf("failed to delete old safety checklist: %w", err)
+	}
+
+	// 5. Insert safety checklist baru
+	for _, item := range req.SafetyChecklistItems {
+		_, err = tx.Exec("INSERT INTO safetychecklist (OrderID, Item) VALUES (?, ?)", orderID, item)
 		if err != nil {
-			return fmt.Errorf("failed to store safety checklist: %w", err)
+			return fmt.Errorf("failed to insert safety checklist item: %w", err)
 		}
 	}
 
@@ -180,15 +243,51 @@ func (r *workOrderRepository) CompleteOrder(orderID int64, req models.CompleteWo
 		return fmt.Errorf("failed to update order completion: %w", err)
 	}
 
+	// 2. Ambil semua executor dari order ini
+	rows, err := tx.Query("SELECT ExecutorID FROM executors WHERE OrderID = ?", orderID)
+	if err != nil {
+		return fmt.Errorf("failed to query executors for order completion: %w", err)
+	}
+	defer rows.Close()
+
+	var executorIDs []int
+	for rows.Next() {
+		var executorID int
+		if err := rows.Scan(&executorID); err != nil {
+			return fmt.Errorf("failed to scan executor ID: %w", err)
+		}
+		executorIDs = append(executorIDs, executorID)
+	}
+
+	// 3. Update status semua executor menjadi 'standby'
+	for _, executorID := range executorIDs {
+		_, err := tx.Exec("UPDATE members SET Status = 'standby' WHERE ID = ?", executorID)
+		if err != nil {
+			return fmt.Errorf("failed to update member status to standby: %w", err)
+		}
+	}
+
 	return tx.Commit()
 }
 
 // Implementasi DeleteOrder - menghapus work order
 func (r *workOrderRepository) DeleteOrder(orderID int64) error {
-	// Simple delete from orders table since no separate tables exist
-	_, err := r.db.Exec("DELETE FROM orders WHERE ID = ?", orderID)
+	tx, err := r.db.Begin()
 	if err != nil {
-		return fmt.Errorf("failed to delete order: %w", err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	return nil
+	defer tx.Rollback()
+
+	// Hapus dari tabel child dulu untuk menghindari masalah foreign key
+	if _, err := tx.Exec("DELETE FROM executors WHERE OrderID = ?", orderID); err != nil {
+		return fmt.Errorf("failed to delete from executors: %w", err)
+	}
+	if _, err := tx.Exec("DELETE FROM safetychecklist WHERE OrderID = ?", orderID); err != nil {
+		return fmt.Errorf("failed to delete from safetychecklist: %w", err)
+	}
+	if _, err := tx.Exec("DELETE FROM orders WHERE ID = ?", orderID); err != nil {
+		return fmt.Errorf("failed to delete from orders: %w", err)
+	}
+
+	return tx.Commit()
 }
