@@ -26,8 +26,9 @@ func Register(c *gin.Context) {
 	// For now, let's assign a default role and status
 	member.Role = "Operator"
 	member.Status = "standby"
-	
-	if err := repository.CreateMember(&member); err != nil {
+
+	memberRepo := repository.NewMemberRepository()
+	if err := memberRepo.CreateMember(&member); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create member"})
 		return
 	}
@@ -36,7 +37,7 @@ func Register(c *gin.Context) {
 }
 
 type LoginRequest struct {
-	Name string `json:"name"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
@@ -47,7 +48,8 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	member, err := repository.GetMemberByName(req.Name)
+	memberRepo := repository.NewMemberRepository()
+	member, err := memberRepo.GetMemberByName(req.Name)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return

@@ -14,6 +14,7 @@ type WorkOrder struct {
 	WorkingHours    *int     `json:"workingHours,omitempty"`
 	Status          string   `json:"status"`
 	SafetyChecklist []string `json:"safetyChecklist"`
+	CompletedAt     string   `json:"completedAt,omitempty"`
 }
 
 type Member struct {
@@ -63,8 +64,9 @@ type WorkOrderRequest struct {
 	// CompletedAt bisa NULL di DB
 	CompletedAt sql.NullString `json:"completedAt"`
 }
+
 type TakeWorkOrder struct {
-	Executors            []int64  `json:"executors"`
+	Executors            []int    `json:"executors"`
 	SafetyChecklistItems []string `json:"safety_checklist_items"`
 	Status               string   `json:"status"`
 }

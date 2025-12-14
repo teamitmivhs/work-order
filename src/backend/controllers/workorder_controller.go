@@ -105,7 +105,10 @@ func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
 func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
-	// ... (Error handling untuk orderID) ...
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Order ID"})
+		return
+	}
 
 	var req models.CompleteWorkOrder
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -131,7 +134,10 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 func (ctrl *WorkOrderController) DeleteOrderHandler(c *gin.Context) {
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
-	// ... (Error handling untuk orderID) ...
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Order ID"})
+		return
+	}
 
 	err = ctrl.Repo.DeleteOrder(orderID)
 	if err != nil {
@@ -244,7 +250,8 @@ func GetSummary(c *gin.Context) {
 	completed := 0
 	executorMembersMap := make(map[int]models.Member) // To store unique executor members
 
-	allMembers, err := repository.GetAllMembers()
+	memberRepo := repository.NewMemberRepository()
+	allMembers, err := memberRepo.GetAllMembers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve members for summary"})
 		return
@@ -320,7 +327,8 @@ func GetKaizen(c *gin.Context) {
 }
 
 func GetMembersHandler(c *gin.Context) {
-	members, err := repository.GetAllMembers()
+	memberRepo := repository.NewMemberRepository()
+	members, err := memberRepo.GetAllMembers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve members"})
 		return
