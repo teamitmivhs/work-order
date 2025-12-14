@@ -1,0 +1,69 @@
+nohup: ignoring input
+🚀 Starting Work Order Server...
+2025/12/14 13:11:12 Database connected successfully
+Database connected successfully
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] GET    /src/static/*filepath     --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /src/static/*filepath     --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] GET    /                         --> main.setupPageRoutes.func1 (4 handlers)
+[GIN-debug] GET    /techguide                --> main.setupPageRoutes.func2 (4 handlers)
+[GIN-debug] GET    /src/techguide.html       --> main.setupPageRoutes.func3 (4 handlers)
+[GIN-debug] GET    /summary                  --> main.setupPageRoutes.func4 (4 handlers)
+[GIN-debug] GET    /src/summary.html         --> main.setupPageRoutes.func5 (4 handlers)
+[GIN-debug] GET    /kaizen                   --> main.setupPageRoutes.func6 (4 handlers)
+[GIN-debug] GET    /src/kaizen.html          --> main.setupPageRoutes.func7 (4 handlers)
+[GIN-debug] GET    /api/members              --> teamitmivhs/work-order-backend/controllers.GetMembersHandler (4 handlers)
+[GIN-debug] POST   /api/workorders           --> teamitmivhs/work-order-backend/controllers.(*WorkOrderController).CreateTaskHandler-fm (4 handlers)
+[GIN-debug] GET    /api/workorders           --> teamitmivhs/work-order-backend/controllers.(*WorkOrderController).GetTaskListHandler-fm (4 handlers)
+[GIN-debug] POST   /api/workorders/:id/take  --> teamitmivhs/work-order-backend/controllers.(*WorkOrderController).TakeOrderHandler-fm (4 handlers)
+[GIN-debug] PATCH  /api/workorders/:id/complete --> teamitmivhs/work-order-backend/controllers.(*WorkOrderController).CompleteOrderHandler-fm (4 handlers)
+[GIN-debug] DELETE /api/workorders/:id       --> teamitmivhs/work-order-backend/controllers.(*WorkOrderController).DeleteOrderHandler-fm (4 handlers)
+[GIN-debug] POST   /api/register             --> teamitmivhs/work-order-backend/controllers.Register (4 handlers)
+[GIN-debug] POST   /api/login                --> teamitmivhs/work-order-backend/controllers.Login (4 handlers)
+Server starting on port 8080
+Frontend available at: http://localhost:8080
+Summary page: http://localhost:8080/summary
+Kaizen page: http://localhost:8080/kaizen
+TechGuide page: http://localhost:8080/techguide
+
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN] 2025/12/14 - 13:11:20 | 304 |      56.829µs |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:11:20 | 304 |          49µs |             ::1 | GET      "/static/assets/script.js"
+[GIN] 2025/12/14 - 13:11:20 | 200 |     468.904µs |             ::1 | GET      "/api/members"
+[GIN] 2025/12/14 - 13:11:20 | 200 |     391.089µs |             ::1 | GET      "/api/workorders"
+[GIN] 2025/12/14 - 13:11:23 | 304 |      41.348µs |             ::1 | GET      "/summary.html"
+[GIN] 2025/12/14 - 13:11:23 | 200 |     491.462µs |             ::1 | GET      "/api/members"
+[GIN] 2025/12/14 - 13:11:27 | 304 |      38.178µs |             ::1 | GET      "/techguide.html"
+[GIN] 2025/12/14 - 13:11:29 | 304 |      29.196µs |             ::1 | GET      "/kaizen.html"
+[GIN] 2025/12/14 - 13:11:29 | 200 |     359.982µs |             ::1 | GET      "/api/members"
+[GIN] 2025/12/14 - 13:11:30 | 200 |     351.579µs |             ::1 | GET      "/api/workorders"
+[GIN] 2025/12/14 - 13:12:00 | 200 |     258.511µs |             ::1 | GET      "/api/workorders"
+[GIN] 2025/12/14 - 13:12:08 | 200 |       420.9µs |             ::1 | GET      "/api/members"
+[GIN] 2025/12/14 - 13:12:15 | 200 |    1.400471ms |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:12:40 | 304 |      40.792µs |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:12:40 | 304 |      34.426µs |             ::1 | GET      "/static/assets/script.js"
+[GIN] 2025/12/14 - 13:12:40 | 200 |     393.377µs |             ::1 | GET      "/api/members"
+[GIN] 2025/12/14 - 13:12:40 | 200 |     359.426µs |             ::1 | GET      "/api/workorders"
+[GIN] 2025/12/14 - 13:12:41 | 304 |      41.161µs |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:12:41 | 200 |     433.346µs |             ::1 | GET      "/api/members"
+[GIN] 2025/12/14 - 13:12:41 | 200 |     332.416µs |             ::1 | GET      "/api/workorders"
+[GIN] 2025/12/14 - 13:14:36 | 304 |      46.364µs |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:14:36 | 200 |     173.796µs |             ::1 | GET      "/static/assets/script.js"
+[GIN] 2025/12/14 - 13:16:23 | 200 |     457.911µs |             ::1 | GET      "/api/workorders"
+[GIN] 2025/12/14 - 13:17:13 | 304 |      39.522µs |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:17:13 | 200 |     176.362µs |             ::1 | GET      "/static/assets/script.js"
+[GIN] 2025/12/14 - 13:17:14 | 304 |      27.958µs |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:17:14 | 304 |      29.559µs |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:18:41 | 304 |     314.051µs |             ::1 | GET      "/static/assets/script.js"
+[GIN] 2025/12/14 - 13:18:42 | 304 |      39.178µs |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:18:43 | 304 |      36.023µs |             ::1 | GET      "/"
+[GIN] 2025/12/14 - 13:18:43 | 304 |      31.257µs |             ::1 | GET      "/"
