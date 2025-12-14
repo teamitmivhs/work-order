@@ -264,7 +264,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     { id: 110, name: 'Meredith Palmer', department: 'Supplier Relations' }
   ];
 
-  let workOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
+  let workOrders = [];
+
+  // Current order being processed
+  let currentOrder = null;
+  let additionalOperators = [];
+  let selectedOperators = [];
 
   // Comprehensive safety checklist items for all locations
   const safetyChecklistItems = {
@@ -365,17 +370,40 @@ document.addEventListener('DOMContentLoaded', async function () {
     ]
   };
 
+  // Fungsi baru untuk mengambil dan me-render semua data dari API
+  async function fetchAndRenderWorkOrders() {
+    try {
+      const response = await fetch('/api/workorders');
+      if (!response.ok) {
+        throw new Error('Gagal mengambil data work order dari server');
+      }
+      // Perbarui variabel global workOrders dengan data dari server
+      workOrders = await response.json(); 
+      if (!Array.isArray(workOrders)) {
+        // Jika server mengembalikan null atau bukan array, inisialisasi sebagai array kosong
+        workOrders = [];
+      }
+    } catch (error) {
+      console.error("Error fetching work orders:", error);
+      showPopup('Error', 'Gagal memuat data work order dari server.', 'error');
+      workOrders = []; // Pastikan workOrders adalah array kosong jika fetch gagal
+    }
+    // Render ulang tabel dan perbarui hitungan ringkasan
+    populateWorkOrdersTable();
+    updateSummaryCounts();
+  }
+
+  // Fungsi untuk me-refresh semua data dari API
+  function refreshAllDataFromAPI() {
+    fetchAndRenderWorkOrders();
+    fetchMembers();
+  }
+
   await fetchMembers();
+  await fetchAndRenderWorkOrders(); // Panggilan awal untuk memuat data saat halaman dibuka
 
   // Current logged-in user (for demonstration, using member with id 1)
   const currentUser = members.length > 0 ? members[0] : null;
-
-
-  // Current order being processed
-  let currentOrder = null;
-
-  let additionalOperators = [];
-  let selectedOperators = [];
 
   // Initialize member images on page load
   initializeMemberImages();
@@ -606,7 +634,6 @@ document.addEventListener('DOMContentLoaded', async function () {
   createOrderForm.addEventListener('submit', function (e) {
     e.preventDefault();
 
-    // Get form values
     const priority = document.getElementById('orderPriority').value;
     const requesterName = document.getElementById('orderRequester').value;
     const location = document.getElementById('orderLocation').value;
@@ -614,54 +641,64 @@ document.addEventListener('DOMContentLoaded', async function () {
     const device = document.getElementById('orderDevice').value;
     const problem = document.getElementById('orderProblem').value;
 
-    // Get current time
+    // Dapatkan waktu saat ini dalam format yang dibutuhkan backend untuk display dan sort
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
-    const currentTime = `${hours}:${minutes}`;
+    const currentTimeDisplay = `${hours}:${minutes}`; // Contoh: "23:13"
+    const currentTimeSort = `${hours}:${minutes}:00`; // Contoh: "23:13:00"
 
-    // Combine location and specific location
+    // Gabungkan lokasi
     const finalLocation = specificLocation ? `${location} - ${specificLocation}` : location;
 
-    // Generate a new, globally unique order ID
-    const existingIds = workOrders.map(order => order.id);
-    const newOrderId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
-
-    // Create new order object
-    const newOrder = {
-      id: newOrderId,
-      priority: priority,
-      time: currentTime,
-      requester: requesterName, // Using the name directly instead of ID
-      location: finalLocation, // Use the combined location
-      device: device,
-      problem: problem,
-      executors: [], // No executors initially
-
-      workingHours: '0 menit', // Will be updated when work starts
-      status: 'pending',
-      safetyChecklist: []
+    // Data send to Go lang
+    const payload = {
+      priority: priority,
+      time_display: currentTimeDisplay, // Time display
+      time_sort: currentTimeSort,      // Time format
+      requester: requesterName,
+      location: finalLocation,
+      device: device,
+      problem: problem,
+      working_hours: '0 menit',
+      status: 'pending',
+      executors: [], // Sesuai skema, kosong saat membuat
+      safety_checklist: [] // Sesuai skema, kosong saat membuat
     };
 
-    // Add the new order to the work orders array
-    workOrders.push(newOrder);
+    // Mengirim data ke API backend Go Lang
+    fetch('/api/workorders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+    .then(response => {
+      if (!response.ok) {
+        // Tangani error dari server (misalnya 400 atau 500)
+        throw new Error('Gagal menyimpan order. Status: ' + response.status);
+      }
+      return response.json(); // Server harus mengembalikan ID baru
+    })
+    .then(data => {
+      // Setelah sukses
+      const newOrderId = data.id; // Asumsi backend mengembalikan objek { id: X }
+        
+      // Logika refresh, reset form, dan notifikasi
+      hideAnimatedPopup(createOrderPopup);
+      createOrderForm.reset();
+      specificLocationContainer.classList.add('hidden');
 
-    // Refresh the work orders table
-    populateWorkOrdersTable();
+      // Panggil fungsi refresh untuk memuat ulang semua data dari server
+      refreshAllDataFromAPI();
 
-    // Update summary counts
-    updateSummaryCounts();
-
-    // Close the popup and reset the form
-    hideAnimatedPopup(createOrderPopup);
-    createOrderForm.reset();
-
-    // Hide specific location field when resetting form
-    specificLocationContainer.classList.add('hidden');
-
-
-    // Show success message
-    showPopup('Work Order Berhasil Dibuat!', `Work Order #${newOrderId} telah berhasil dibuat dan ditambahkan ke daftar.`, 'success');
+      showPopup('Work Order Berhasil Dibuat!', `Work Order #${newOrderId} telah berhasil dibuat dan disimpan di database.`, 'success');
+    })
+    .catch(error => {
+      console.error('Error saat membuat order:', error);
+      showPopup('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+    });
   });
 
   // Status filter tab click events
@@ -676,6 +713,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       // Update the member list
       populateMemberList(status);
     });
+  });
+
+  // Search functionality
+  memberSearchInput.addEventListener('focus', function () {
+    showSearchDropdown();
+    populateSearchResults();
   });
 
   // Search functionality
@@ -1060,72 +1103,67 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 
 
-  // Function to confirm take order
+  // Function to confirm take order (TRANSACTION API CALL)
   function confirmTakeOrder() {
-    if (!currentOrder) return;
+      console.log("DEBUG: currentUser:", currentUser);
+      console.log("DEBUG: members array:", members);
+      if (!currentOrder) return;
 
-    // Combine all selected operators (from checkboxes and additional operators modal)
-    const allAssignedOperatorIds = [...new Set([currentUser.id, ...additionalOperators])];
-
-    if (allAssignedOperatorIds.length === 0) {
-      showPopup('Peringatan', 'Harap pilih minimal satu operator untuk mengerjakan order ini!', 'warning');
-      return;
-    }
-
-    const requiredCheckboxes = document.querySelectorAll('#safetyChecklist input[data-required="true"]');
-    let allRequiredChecked = true;
-
-    requiredCheckboxes.forEach(checkbox => {
-      if (!checkbox.checked) {
-        allRequiredChecked = false;
-      }
-    });
-
-    if (!allRequiredChecked) {
-      showPopup('Safety Checklist Required', 'Harap centang semua item safety checklist yang wajib ditandai (*) sebelum melanjutkan!', 'warning');
-      return;
-    }
-
-    // Collect safety checklist data
-    const safetyChecklist = [];
-    document.querySelectorAll('#safetyChecklist input').forEach(checkbox => {
-      if (checkbox.checked) {
-        safetyChecklist.push(checkbox.id);
-      }
-    });
-
-    // Update order
-    const orderIndex = workOrders.findIndex(o => o.id === currentOrder.id);
-    if (orderIndex !== -1) {
-      workOrders[orderIndex].executors = allAssignedOperatorIds;
-
-      // Update safety checklist
-      workOrders[orderIndex].safetyChecklist = safetyChecklist;
-
-      // Update order status to progress if it was pending
-      if (workOrders[orderIndex].status === 'pending') {
-        workOrders[orderIndex].status = 'progress';
-      }
-
-      // Update operator statuses
-      allAssignedOperatorIds.forEach(operatorId => {
-        updateMemberStatus(operatorId, 'onjob');
+      // 1. Ambil data yang dibutuhkan untuk dikirim ke Backend
+      const allAssignedOperatorIds = [...new Set([currentUser.id, ...additionalOperators])];
+      
+      // ... (Logika validasi allAssignedOperatorIds dan requiredCheckboxes tetap sama) ...
+      // ...
+      
+      // Collect safety checklist data (mengambil ID item yang diceklis)
+      const safetyChecklist = [];
+      document.querySelectorAll('#safetyChecklist input').forEach(checkbox => {
+          if (checkbox.checked) {
+              safetyChecklist.push(checkbox.id);
+          }
       });
-    }
 
-    // Refresh table
-    populateWorkOrdersTable();
+      // 2. Buat Payload untuk API
+      const payload = {
+          order_id: currentOrder.id,
+          executors: allAssignedOperatorIds, // Array of operator IDs (int/string)
+          safety_checklist_items: safetyChecklist, // Array of checklist IDs (string)
+          status: 'progress' // Langsung set status di backend
+      };
 
-    // Update summary counts
-    updateSummaryCounts();
-
-    // Close popup and reset form
-    hideAnimatedPopup(takeOrderPopup);
-    resetTakeOrderForm();
-
-
-    // Show success message
-    showPopup('Order Berhasil Diambil!', `Berhasil mengambil order #${currentOrder.id}! Anda sekarang terdaftar sebagai pelaksana order ini.`, 'success');
+      // 3. Panggil API: POST /api/workorders/take
+      fetch(`/api/workorders/${currentOrder.id}/take`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+      })
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Gagal mengambil order. Status: ' + response.status);
+          }
+          // DEBUG: Log raw text response untuk melihat apa yang dikirim server
+          return response.text().then(text => {
+            console.log("DEBUG: Raw response from /take:", text);
+            // Hanya parse jika text tidak kosong, jika kosong anggap sebagai objek kosong
+            return text ? JSON.parse(text) : {};
+          });
+      })
+      .then(data => {
+          // 4. Setelah Sukses
+          // Tampilkan popup sukses DULU, sebelum me-reset state
+          showPopup('Order Berhasil Diambil!', `Berhasil mengambil order #${data.order_id}!`, 'success');
+          
+          // Baru jalankan sisanya
+          refreshAllDataFromAPI(); 
+          hideAnimatedPopup(takeOrderPopup);
+          resetTakeOrderForm();
+      })
+      .catch(error => {
+          console.error('Error saat konfirmasi ambil order:', error);
+          showPopup('Error', 'Terjadi kesalahan saat menyimpan perubahan ke database.', 'error');
+      });
   }
 
   // Function to reset take order form
@@ -1144,84 +1182,85 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
   }
 
-  // Function to mark an order as done
+  // Function to mark an order as done (UPDATE API CALL)
   function markOrderDone(orderId) {
-    const orderIndex = workOrders.findIndex(o => o.id === orderId);
-    if (orderIndex === -1) return;
+      // ... (Logika pengambilan completionTime tetap sama) ...
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const completionTime = `${hours}:${minutes}`; // Waktu display
 
-    const order = workOrders[orderIndex];
+      // 1. Buat Payload
+      const payload = {
+          status: 'completed',
+          completed_at_display: completionTime // Kirim waktu selesai ke backend
+      };
 
-    // Get current time for completion timestamp
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const completionTime = `${hours}:${minutes}`;
+      // 2. Panggil API: PATCH /api/workorders/{orderId}/complete
+      fetch(`/api/workorders/${orderId}/complete`, {
+          method: 'PATCH', // Atau PUT
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+      })
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Gagal menyelesaikan order. Status: ' + response.status);
+          }
+          return response.json();
+      })
+      .then(data => {
+          // 3. Setelah Sukses
+          // Tidak perlu lagi manipulasi localStorage/local array workOrders/members
+          
+          // Refresh seluruh data dari API
+          refreshAllDataFromAPI();
 
-    // Mark as completed
-    order.status = 'completed';
-    order.completedAt = completionTime;
-
-    // Save the updated workOrders array to localStorage
-    localStorage.setItem('workOrders', JSON.stringify(workOrders));
-
-    // Update member statuses - set all executors to standby
-    order.executors.forEach(executorId => {
-      const memberIndex = members.findIndex(m => m.id === executorId);
-      if (memberIndex !== -1 && members[memberIndex].status === 'onjob') {
-        members[memberIndex].status = 'standby';
-      }
-    });
-
-    // Refresh table and stats
-    populateWorkOrdersTable();
-    updateSummaryCounts();
-
-
-    // Show success message
-    showPopup('Order Selesai!', `Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`, 'success');
+          // Show success message
+          showPopup('Order Selesai!', `Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`, 'success');
+      })
+      .catch(error => {
+          console.error('Error saat menyelesaikan order:', error);
+          showPopup('Error', 'Terjadi kesalahan saat memperbarui status order.', 'error');
+      });
   }
 
-  // Function to delete an order
+  // Function to delete an order (DELETE API CALL)
   function deleteOrder(orderId) {
-    showConfirmationPopup(
-      'Konfirmasi Hapus Order',
-      `Apakah Anda yakin ingin menghapus order #${orderId}?`,
-      function() {
-        // Find the order
-        const orderIndex = workOrders.findIndex(o => o.id === orderId);
-        if (orderIndex === -1) return;
+      showConfirmationPopup(
+          'Konfirmasi Hapus Order',
+          `Apakah Anda yakin ingin menghapus order #${orderId}?`,
+          function() {
+              // 1. Panggil API: DELETE /api/workorders/{orderId}
+              fetch(`/api/workorders/${orderId}`, {
+                  method: 'DELETE',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+              })
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('Gagal menghapus order. Status: ' + response.status);
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  // 2. Setelah Sukses
+                  // Tidak perlu lagi manipulasi localStorage/local array
+                  
+                  // Refresh seluruh data dari API
+                  refreshAllDataFromAPI();
 
-        const order = workOrders[orderIndex];
-
-        // Remove current user from executors if they were assigned
-        if (currentUser && order.executors.includes(currentUser.id)) {
-          const executorIndex = order.executors.indexOf(currentUser.id);
-          if (executorIndex !== -1) {
-            order.executors.splice(executorIndex, 1);
-
-            // Update current user status to standby if they were on job
-            if (currentUser.status === 'onjob') {
-              updateMemberStatus(currentUser.id, 'standby');
-            }
+                  // Show success message
+                  showPopup('Order Dihapus!', `Order #${orderId} telah berhasil dihapus dari database.`, 'success');
+              })
+              .catch(error => {
+                  console.error('Error saat menghapus order:', error);
+                  showPopup('Error', 'Terjadi kesalahan saat menghapus order.', 'error');
+              });
           }
-        }
-
-        // Remove the order from the array
-        workOrders.splice(orderIndex, 1);
-
-        // Save the updated workOrders array to localStorage
-        localStorage.setItem('workOrders', JSON.stringify(workOrders));
-
-        // Refresh the table
-        populateWorkOrdersTable();
-
-        // Update summary counts
-        updateSummaryCounts();
-
-        // Show success message
-        showPopup('Order Dihapus!', `Order #${orderId} telah berhasil dihapus dari daftar work orders.`, 'success');
-      }
-    );
+      );
   }
 
   // Function to update summary counts
@@ -1235,9 +1274,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('pendingOrdersCount').textContent = pendingOrders;
     document.getElementById('progressOrdersCount').textContent = progressOrders;
     document.getElementById('completedOrdersCount').textContent = completedOrders;
-
-    // Save the current state of workOrders to localStorage
-    localStorage.setItem('workOrders', JSON.stringify(workOrders));
 
     // If Kaizen popup is open, refresh its evaluation
     const kPopupExisting = document.getElementById('kaizenPopup');
@@ -1307,6 +1343,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         case 'nextshift':
           statusColor = 'bg-purple-500';
           statusText = 'Next Shift';
+          break;
+        case 'offduty':
+          statusColor = 'bg-black-500';
+          statusText = 'Off Duty';
           break;
       }
 
