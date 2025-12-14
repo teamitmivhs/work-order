@@ -1,6 +1,3 @@
-
-
-
 // Global variables and constants
 let workOrders = [];
 let activeOrderTimers = {};
@@ -367,7 +364,6 @@ function updateQuickSummaryTitle() {
 document.addEventListener('DOMContentLoaded', async function () {
   
 
-
   
   // DOM elements for DOM
   const memberStatusPopup = document.getElementById('memberStatusPopup');
@@ -404,20 +400,6 @@ document.addEventListener('DOMContentLoaded', async function () {
   // Status filter tabs
   const statusFilterTabs = document.querySelectorAll('.status-filter-tab');
   let currentStatusFilter = 'all';
-
-  // Sample requester data
-  const requesters = [
-    { id: 101, name: 'Michael Scott', department: 'Management' },
-    { id: 102, name: 'Dwight Schrute', department: 'Sales' },
-    { id: 103, name: 'Jim Halpert', department: 'Sales' },
-    { id: 104, name: 'Pam Beesly', department: 'Reception' },
-    { id: 105, name: 'Oscar Martinez', department: 'Accounting' },
-    { id: 106, name: 'Angela Martin', department: 'Accounting' },
-    { id: 107, name: 'Kevin Malone', department: 'Accounting' },
-    { id: 108, name: 'Stanley Hudson', department: 'Sales' },
-    { id: 109, name: 'Phyllis Vance', department: 'Sales' },
-    { id: 110, name: 'Meredith Palmer', department: 'Supplier Relations' }
-  ];
 
 
 
@@ -542,16 +524,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Render ulang tabel dan perbarui hitungan ringkasan
     populateWorkOrdersTable();
     updateSummaryCounts();
-  }
-
-
-
-  // Update currentUser when members are loaded
-  function updateCurrentUser() {
-    if (members.length > 0) {
-      currentUser = members[0]; // For now, use first member as current user
-      console.log("Current user updated to:", currentUser);
-    }
   }
 
   // Fungsi untuk me-refresh semua data dari API
@@ -916,17 +888,6 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   // Search functionality
-  memberSearchInput.addEventListener('focus', function () {
-    showSearchDropdown();
-    populateSearchResults();
-  });
-
-  // Search functionality
-  memberSearchInput.addEventListener('focus', function () {
-    showSearchDropdown();
-    populateSearchResults();
-  });
-
   memberSearchInput.addEventListener('input', function () {
     const searchTerm = this.value.toLowerCase();
     populateSearchResults(searchTerm);
@@ -941,14 +902,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 
 
-
-  // Update currentUser when members are loaded
-  function updateCurrentUser() {
-    if (members.length > 0) {
-      currentUser = members[0]; // For now, use first member as current user
-      console.log("Current user updated to:", currentUser);
-    }
-  }
 
   // Function to initialize member images on page load
   function initializeMemberImages() {
@@ -973,182 +926,6 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   // Function to populate work orders table
-  function populateWorkOrdersTable() {
-    workOrdersTableBody.innerHTML = '';
-
-    // Sort work orders by priority (high first)
-    const sortedWorkOrders = [...workOrders].sort((a, b) => {
-      const priorityOrder = { high: 0, medium: 1, low: 2 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
-    });
-
-    sortedWorkOrders.forEach(order => {
-              const row = document.createElement('tr');
-              row.dataset.orderId = order.id; // Add data-order-id for easy lookup
-      // Add high priority class for blinking effect, only if not completed
-      if (order.priority === 'high' && order.status !== 'completed') {
-        row.classList.add('high-priority');
-      }
-
-      // Get priority badge HTML
-      let priorityBadge = '';
-      switch (order.priority) {
-        case 'high':
-          priorityBadge = '<span class="priority-badge priority-high">High Priority</span>';
-          break;
-        case 'medium':
-          priorityBadge = '<span class="priority-badge priority-medium">Medium</span>';
-          break;
-        case 'low':
-          priorityBadge = '<span class="priority-badge priority-low">Low</span>';
-          break;
-      }
-
-      // Get status badge HTML
-      let statusBadge = '';
-      switch (order.status) {
-        case 'pending':
-          statusBadge = '<span class="status-badge status-pending">Pending</span>';
-          break;
-        case 'progress':
-          statusBadge = '<span class="status-badge status-progress">On Progress</span>';
-          break;
-        case 'completed':
-          statusBadge = '<span class="status-badge status-completed">Completed</span>';
-          break;
-      }
-
-      // Get requester information - handle both ID and name cases
-      let requesterName = 'Unknown';
-      if (typeof order.requester === 'number') {
-        const requester = requesters.find(r => r.id === order.requester);
-        requesterName = requester ? requester.name : 'Unknown';
-      } else if (typeof order.requester === 'string') {
-        requesterName = order.requester;
-      }
-
-      // Get executors HTML - only show members with "onjob" status
-      // If order is completed, show all assigned executors (regardless of current status)
-      let executorsHtml = '<div class="flex -space-x-2">';
-      if (order.executors && order.executors.length > 0) {
-        order.executors.forEach(executorId => {
-          const member = members.find(m => m.id === executorId);
-          if (member) {
-            executorsHtml += `<img src="/static/public/${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small">`;
-          }
-        });
-      }
-      executorsHtml += '</div>';
-
-
-      // Action Buttons
-      let actionButtons = '<div class="flex items-center gap-2">';
-      if (order.status === 'pending') {
-        // Check if order already has workers assigned
-        if (order.executors && order.executors.length > 0) {
-          // Order has workers, show "Add Worker" button
-          actionButtons += `<button class="add-worker-btn bg-green-500 text-white rounded-full p-1 hover:bg-green-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Tambah worker">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-              </button>`;
-        } else {
-          // No workers assigned, show "Take Order" button
-          actionButtons += `<button class="take-order-btn bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Ambil order ini">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-              </button>`;
-        }
-      } else if (order.status === 'progress') {
-        actionButtons += `<button class="done-btn bg-green-500 text-white rounded-full p-1 hover:bg-green-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Tandai sebagai selesai">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-              </button>`;
-      }
-      // Always allow deletion, but place it consistently
-      actionButtons += `<button class="delete-btn bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Hapus order">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-          </button>`;
-      actionButtons += '</div>';
-
-
-      row.innerHTML = `
-          <td class="py-3 px-2 text-sm">${order.id}</td>
-          <td class="py-3 px-2 text-sm">${priorityBadge}</td>
-          <td class="py-3 px-2 text-sm">${order.time}</td>
-          <td class="py-3 px-2 text-sm">${requesterName}</td>
-          <td class="py-3 px-2 text-sm">${order.location}</td>
-          <td class="py-3 px-2 text-sm">${order.device}</td>
-          <td class="py-3 px-2 text-sm">${order.problem}</td>
-          <td class="py-3 px-2 text-sm">${executorsHtml}</td>
-          <td class="py-3 px-2 text-sm">${order.workingHours || formatDuration(0)}</td>
-          <td class="py-3 px-2 text-sm">${statusBadge}</td>
-          <td class="py-3 px-2 text-sm">${actionButtons}</td>
-        `;
-
-      workOrdersTableBody.appendChild(row);
-    });
-
-
-    // Add event listeners for take order buttons (empty executor slots become take order buttons)
-    document.querySelectorAll('.take-order-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const orderId = parseInt(this.dataset.orderId);
-        openTakeOrderPopup(orderId);
-      });
-    });
-
-    // Add event listeners for add worker buttons (for pending orders with existing workers)
-    document.querySelectorAll('.add-worker-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const orderId = parseInt(this.dataset.orderId);
-        openAddWorkerPopup(orderId);
-      });
-    });
-
-    // Add event listeners for delete buttons
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const orderId = parseInt(this.dataset.orderId);
-        deleteOrder(orderId);
-      });
-    });
-
-    // Add event listeners for done buttons
-    document.querySelectorAll('.done-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const orderId = parseInt(this.dataset.orderId);
-        markOrderDone(orderId);
-      });
-    });
-  }
-
-
-  // Function to update summary counts
-  function updateSummaryCounts() {
-    const totalOrders = workOrders.length;
-    const pendingOrders = workOrders.filter(o => o.status === 'pending').length;
-    const progressOrders = workOrders.filter(o => o.status === 'progress').length;
-    const completedOrders = workOrders.filter(o => o.status === 'completed').length; // Explicitly count completed
-
-    document.getElementById('totalOrdersCount').textContent = totalOrders;
-    document.getElementById('pendingOrdersCount').textContent = pendingOrders;
-    document.getElementById('progressOrdersCount').textContent = progressOrders;
-    document.getElementById('completedOrdersCount').textContent = completedOrders;
-
-    // If Kaizen popup is open, refresh its evaluation
-    const kPopupExisting = document.getElementById('kaizenPopup');
-    if (kPopupExisting && !kPopupExisting.classList.contains('hidden')) {
-      // renderKaizenEvaluation is declared later; call if available
-      if (typeof renderKaizenEvaluation === 'function') renderKaizenEvaluation();
-    }
-  }
-
-  // Function to update member display (show only 3 images and +N if more)
   function updateMemberDisplay(container) {
     const memberImages = container.querySelectorAll('.member-images img');
     const moreMembersDiv = container.querySelector('.more-members');
@@ -1357,7 +1134,6 @@ document.addEventListener('DOMContentLoaded', async function () {
       });
     });
   }
-
 
 
 
@@ -1896,28 +1672,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         memberImg.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
       }, 3000);
     }
-  }
-
-  // Function to initialize member images on page load
-  function initializeMemberImages() {
-    members.forEach(member => {
-      const statusContainer = document.getElementById(`status-${member.status}`);
-      if (statusContainer) {
-        const memberImagesContainer = statusContainer.querySelector('.member-images');
-        const memberImg = document.createElement('img');
-        let avatar = `/static/public/${member.avatar}`
-        memberImg.src = avatar;
-        memberImg.alt = member.name;
-        memberImg.className = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
-        memberImg.dataset.memberId = member.id;
-        memberImagesContainer.appendChild(memberImg);
-      }
-    });
-
-    // Update display for all status containers
-    statusContainers.forEach(container => {
-      updateMemberDisplay(container);
-    });
   }
 
   // Function to open member status popup
