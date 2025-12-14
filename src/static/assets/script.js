@@ -4,21 +4,141 @@
   pagination: { el: ".swiper-pagination", clickable: true },
 });
 
+// Helper function to format time duration
+function formatDuration(milliseconds) {
+  let totalSeconds = Math.floor(milliseconds / 1000);
+  let hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600;
+  let minutes = Math.floor(totalSeconds / 60);
+  let seconds = totalSeconds % 60;
+
+  return [hours, minutes, seconds]
+    .map(unit => String(unit).padStart(2, '0'))
+    .join(':');
+}
+
+
+  return [hours, minutes, seconds]
+    .map(unit => String(unit).padStart(2, '0'))
+    .join(':');
+}
+
+// Object to hold active timer intervals
+const activeOrderTimers = {};
+
+// Function to start a timer for a specific work order
+function startWorkOrderTimer(orderId) {
+  if (activeOrderTimers[orderId]) {
+    clearInterval(activeOrderTimers[orderId]); // Clear any existing timer
+  }
+
+  // Find the work order in the global workOrders array
+  const orderIndex = workOrders.findIndex(o => o.id === orderId);
+  if (orderIndex === -1) return;
+  let order = workOrders[orderIndex];
+
+  // Initialize startTime and accumulatedDuration if not set
+  if (!order.startTime) {
+    order.startTime = Date.now();
+    // If no accumulatedDuration, start from 0, otherwise resume
+    if (order.accumulatedDuration === undefined) {
+      order.accumulatedDuration = 0;
+    }
+  }
+
+  // Save updated order to localStorage immediately
+  localStorage.setItem('workOrders', JSON.stringify(workOrders));
+
+  // Start interval
+  activeOrderTimers[orderId] = setInterval(() => {
+    updateWorkOrderTimerDisplay(orderId);
+  }, 1000);
+  console.log(`Timer started for order #${orderId}`);
+}
+
+// Function to stop a timer for a specific work order
+function stopWorkOrderTimer(orderId) {
+  if (activeOrderTimers[orderId]) {
+    clearInterval(activeOrderTimers[orderId]);
+    delete activeOrderTimers[orderId];
+    console.log(`Timer stopped for order #${orderId}`);
+  }
+
+  // Update accumulated duration one last time to ensure accuracy
+  const orderIndex = workOrders.findIndex(o => o.id === orderId);
+  if (orderIndex !== -1) {
+    let order = workOrders[orderIndex];
+    if (order.startTime) {
+      order.accumulatedDuration = (order.accumulatedDuration || 0) + (Date.now() - order.startTime);
+      order.startTime = null; // Reset startTime
+      order.workingHours = formatDuration(order.accumulatedDuration); // Finalize workingHours string
+      localStorage.setItem('workOrders', JSON.stringify(workOrders));
+      updateWorkOrderTimerDisplay(orderId); // Update display one last time
+    }
+  }
+}
+
+// Function to update the timer display for a single work order
+function updateWorkOrderTimerDisplay(orderId) {
+  const orderIndex = workOrders.findIndex(o => o.id === orderId);
+  if (orderIndex === -1) return;
+  let order = workOrders[orderIndex];
+
+  let currentDuration = order.accumulatedDuration || 0;
+  if (order.startTime) {
+    currentDuration += (Date.now() - order.startTime);
+  }
+
+  order.workingHours = formatDuration(currentDuration);
+  
+  // Update the UI in the table directly if the row exists
+  const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+  if (row) {
+      const workingHoursCell = row.children[8]; // Assuming workingHours is the 9th column (index 8)
+      if (workingHoursCell) {
+          workingHoursCell.textContent = order.workingHours;
+      }
+  }
+
+  // Save to localStorage frequently to ensure persistence (less frequent might be better for performance in very large apps)
+  localStorage.setItem('workOrders', JSON.stringify(workOrders));
+}
+
+// Function to initialize/resume all active timers on page load
+function initializeWorkOrderTimers() {
+  workOrders.forEach(order => {
+    // Only process orders that are in progress and have a startTime
+    if (order.status === 'progress' && order.startTime) {
+      // Ensure accumulatedDuration is set for resuming
+      if (order.accumulatedDuration === undefined) {
+        order.accumulatedDuration = 0;
+      }
+      startWorkOrderTimer(order.id);
+    }
+  });
+}
+
+// Save current timer state before page unloads to prevent data loss
+window.addEventListener('beforeunload', () => {
+  workOrders.forEach(order => {
+    if (order.status === 'progress' && order.startTime && activeOrderTimers[order.id]) {
+      // Calculate current elapsed time and add to accumulated before saving
+      order.accumulatedDuration = (order.accumulatedDuration || 0) + (Date.now() - order.startTime);
+      order.startTime = Date.now(); // Update startTime to current time to accurately resume if page is reloaded quickly
+    }
+  });
+  localStorage.setItem('workOrders', JSON.stringify(workOrders));
+});
+
 
 const btn = document.getElementById("profileDropdownBtn");
 const menu = document.getElementById("profileDropdown");
 
-btn.addEventListener("click", () => {
-  menu.classList.toggle("hidden");
-});
-
-// Klik di luar dropdown untuk menutup
-document.addEventListener("click", (e) => {
-  if (!btn.contains(e.target) && !menu.contains(e.target)) {
-    menu.classList.add("hidden");
-  }
-});
-
+if (btn && menu) {
+  btn.addEventListener("click", () => {
+    menu.classList.toggle("hidden");
+  });
+}
 
 // GSAP Fade + Slide Animation
 window.addEventListener("load", () => {
@@ -383,11 +503,13 @@ document.addEventListener('DOMContentLoaded', async function () {
   // Populate work orders table
   populateWorkOrdersTable();
 
-  // Update summary counts
-  updateSummaryCounts();
-
-  // Open popup when any status button is clicked
-  statusContainers.forEach(container => {
+      // Update summary counts
+      updateSummaryCounts();
+  
+      // Initialize/resume timers for any ongoing work orders
+      initializeWorkOrderTimers();
+  
+      // Open popup when any status button is clicked  statusContainers.forEach(container => {
     container.addEventListener('click', function (e) {
       // Prevent opening popup if clicking on a member image
       if (!e.target.closest('.member-images') && !e.target.closest('.more-members')) {
@@ -638,11 +760,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       problem: problem,
       executors: [], // No executors initially
 
-      workingHours: '0 menit', // Will be updated when work starts
-      status: 'pending',
-      safetyChecklist: []
-    };
-
+              workingHours: formatDuration(0), // Initial working hours display
+              accumulatedDuration: 0, // Initial accumulated duration in milliseconds
+              startTime: null, // Will be set when order status becomes 'progress'
+              status: 'pending',
+              safetyChecklist: []
+            };
     // Add the new order to the work orders array
     workOrders.push(newOrder);
 
@@ -730,8 +853,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     sortedWorkOrders.forEach(order => {
-      const row = document.createElement('tr');
-
+              const row = document.createElement('tr');
+              row.dataset.orderId = order.id; // Add data-order-id for easy lookup
       // Add high priority class for blinking effect, only if not completed
       if (order.priority === 'high' && order.status !== 'completed') {
         row.classList.add('high-priority');
@@ -832,7 +955,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           <td class="py-3 px-2 text-sm">${order.device}</td>
           <td class="py-3 px-2 text-sm">${order.problem}</td>
           <td class="py-3 px-2 text-sm">${executorsHtml}</td>
-          <td class="py-3 px-2 text-sm">${order.workingHours || '-'}</td>
+          <td class="py-3 px-2 text-sm">${order.workingHours || formatDuration(0)}</td>
           <td class="py-3 px-2 text-sm">${statusBadge}</td>
           <td class="py-3 px-2 text-sm">${actionButtons}</td>
         `;
@@ -1102,11 +1225,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       // Update safety checklist
       workOrders[orderIndex].safetyChecklist = safetyChecklist;
 
-      // Update order status to progress if it was pending
-      if (workOrders[orderIndex].status === 'pending') {
-        workOrders[orderIndex].status = 'progress';
-      }
-
+              // Update order status to progress if it was pending
+              if (workOrders[orderIndex].status === 'pending') {
+                workOrders[orderIndex].status = 'progress';
+                // Start the timer when order goes to progress
+                startWorkOrderTimer(currentOrder.id);
+              }
       // Update operator statuses
       allAssignedOperatorIds.forEach(operatorId => {
         updateMemberStatus(operatorId, 'onjob');
@@ -1149,10 +1273,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     const orderIndex = workOrders.findIndex(o => o.id === orderId);
     if (orderIndex === -1) return;
 
-    const order = workOrders[orderIndex];
-
-    // Get current time for completion timestamp
-    const now = new Date();
+          const order = workOrders[orderIndex];
+    
+          // Stop the timer when order is completed
+          stopWorkOrderTimer(orderId);
+    
+          // Get current time for completion timestamp    const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const completionTime = `${hours}:${minutes}`;
@@ -1191,10 +1317,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         const orderIndex = workOrders.findIndex(o => o.id === orderId);
         if (orderIndex === -1) return;
 
-        const order = workOrders[orderIndex];
-
-        // Remove current user from executors if they were assigned
-        if (currentUser && order.executors.includes(currentUser.id)) {
+                  const order = workOrders[orderIndex];
+        
+                  // Stop timer if it's running for this order
+                  stopWorkOrderTimer(orderId);
+        
+                  // Remove current user from executors if they were assigned        if (currentUser && order.executors.includes(currentUser.id)) {
           const executorIndex = order.executors.indexOf(currentUser.id);
           if (executorIndex !== -1) {
             order.executors.splice(executorIndex, 1);
@@ -1473,11 +1601,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (executorIndex !== -1) {
         order.executors.splice(executorIndex, 1);
 
-        // If no executors left, change status to pending
-        if (order.executors.length === 0 && order.status === 'progress') {
-          order.status = 'pending';
-        }
-      }
+                  // If no executors left, change status to pending
+                  if (order.executors.length === 0 && order.status === 'progress') {
+                    order.status = 'pending';
+                    stopWorkOrderTimer(order.id); // Stop timer if no executors left and order becomes pending
+                  }      }
     });
 
     // Update summary counts
