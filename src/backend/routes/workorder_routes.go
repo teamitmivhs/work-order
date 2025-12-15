@@ -21,6 +21,8 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 
 	// Daftarkan endpoint untuk mengambil semua member
 	api.GET("/members", controllers.GetMembersHandler)
+	api.GET("/summary", controllers.GetSummary)
+	api.GET("/kaizen", controllers.GetKaizen)
 
 	workorders := api.Group("/workorders")
 	{

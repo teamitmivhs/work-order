@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"teamitmivhs/work-order-backend/config"
 	"teamitmivhs/work-order-backend/models"
 	"teamitmivhs/work-order-backend/repository"
 
@@ -229,53 +230,44 @@ func DeleteWorkOrder(c *gin.Context) {
 }
 
 func GetSummary(c *gin.Context) {
-	mu.Lock()
-	defer mu.Unlock()
-	total := len(workOrders)
-	pending := 0
-	progress := 0
-	for _, o := range workOrders {
-		if o.Status == "pending" {
-			pending++
-		} else if o.Status == "progress" {
-			progress++
-		}
+	// Initialize repository
+	db := config.GetDB()
+	if db == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection not available"})
+		return
 	}
-	completed := 0
-	executorMembersMap := make(map[int]models.Member) // To store unique executor members
+	repo := repository.NewWorkOrderRepository(db)
 
-	allMembers, err := repository.GetAllMembers()
+	// Fetch all tasks from the database
+	allTasks, err := repo.GetAllTasks()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve members for summary"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve tasks for summary"})
 		return
 	}
 
-	memberIDToMember := make(map[int]models.Member)
-	for _, member := range allMembers {
-		memberIDToMember[member.ID] = member
-	}
+	// Calculate summary counts
+	total := len(allTasks)
+	pending := 0
+	progress := 0
+	completed := 0
 
-	for _, o := range workOrders {
-		if o.Status == "pending" {
+	for _, task := range allTasks {
+		switch task.Status {
+		case "pending":
 			pending++
-		} else if o.Status == "progress" {
+		case "progress":
 			progress++
-		} else if o.Status == "completed" {
+		case "completed":
 			completed++
-			for _, executorID := range o.Executors {
-				if member, ok := memberIDToMember[executorID]; ok {
-					executorMembersMap[executorID] = member
-				}
-			}
 		}
 	}
 
-	var uniqueExecutorMembers []models.Member
-	for _, member := range executorMembersMap {
-		uniqueExecutorMembers = append(uniqueExecutorMembers, member)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"total": total, "pending": pending, "progress": progress, "completed": completed, "executors": uniqueExecutorMembers})
+	c.JSON(http.StatusOK, gin.H{
+		"total":     total,
+		"pending":   pending,
+		"progress":  progress,
+		"completed": completed,
+	})
 }
 
 func GetKaizen(c *gin.Context) {
