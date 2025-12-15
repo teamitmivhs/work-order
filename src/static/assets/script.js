@@ -648,7 +648,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const currentTimeDisplay = `${hours}:${minutes}`; // Contoh: "23:13"
     const currentTimeSort = `${hours}:${minutes}:00`; // Contoh: "23:13:00"
 
-    // Gabungkan lokasi
+    // lokasi
     const finalLocation = specificLocation ? `${location} - ${specificLocation}` : location;
 
     // Data send to Go lang
