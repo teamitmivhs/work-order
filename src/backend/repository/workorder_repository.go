@@ -84,7 +84,7 @@ func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 		}
 
 		// Ambil data executors untuk setiap work order
-		executorsQuery := "SELECT ExecutorID FROM executors WHERE OrderID = ?"
+		executorsQuery := "SELECT Executors FROM executors WHERE ID = ?"
 		execRows, err := r.db.Query(executorsQuery, wo.ID)
 		if err != nil {
 			return nil, fmt.Errorf("querying executors for order %d failed: %w", wo.ID, err)
@@ -102,7 +102,7 @@ func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 		wo.Executors = executors
 
 		// Ambil data safety checklist untuk setiap work order
-		checklistQuery := "SELECT Item FROM safetychecklist WHERE OrderID = ?"
+		checklistQuery := "SELECT SafetyChecklist FROM safetychecklist WHERE ID = ?"
 		checkRows, err := r.db.Query(checklistQuery, wo.ID)
 		if err != nil {
 			return nil, fmt.Errorf("querying safety checklist for order %d failed: %w", wo.ID, err)
@@ -193,14 +193,14 @@ func (r *workOrderRepository) TakeOrder(orderID int64, req models.TakeWorkOrder)
 	}
 
 	// 2. Hapus executors lama sebelum insert yang baru
-	_, err = tx.Exec("DELETE FROM executors WHERE OrderID = ?", orderID)
+	_, err = tx.Exec("DELETE FROM executors WHERE ID = ?", orderID)
 	if err != nil {
 		return fmt.Errorf("failed to delete old executors: %w", err)
 	}
 
 	// 3. Insert executors baru
 	for _, executorID := range req.Executors {
-		_, err = tx.Exec("INSERT INTO executors (OrderID, ExecutorID) VALUES (?, ?)", orderID, executorID)
+		_, err = tx.Exec("INSERT INTO executors (ID, Executors) VALUES (?, ?)", orderID, executorID)
 		if err != nil {
 			return fmt.Errorf("failed to insert executor: %w", err)
 		}
@@ -212,14 +212,14 @@ func (r *workOrderRepository) TakeOrder(orderID int64, req models.TakeWorkOrder)
 	}
 
 	// 4. Hapus safety checklist lama sebelum insert yang baru
-	_, err = tx.Exec("DELETE FROM safetychecklist WHERE OrderID = ?", orderID)
+	_, err = tx.Exec("DELETE FROM safetychecklist WHERE ID = ?", orderID)
 	if err != nil {
 		return fmt.Errorf("failed to delete old safety checklist: %w", err)
 	}
 
 	// 5. Insert safety checklist baru
 	for _, item := range req.SafetyChecklistItems {
-		_, err = tx.Exec("INSERT INTO safetychecklist (OrderID, Item) VALUES (?, ?)", orderID, item)
+		_, err = tx.Exec("INSERT INTO safetychecklist (ID, SafetyChecklist) VALUES (?, ?)", orderID, item)
 		if err != nil {
 			return fmt.Errorf("failed to insert safety checklist item: %w", err)
 		}
@@ -244,7 +244,7 @@ func (r *workOrderRepository) CompleteOrder(orderID int64, req models.CompleteWo
 	}
 
 	// 2. Ambil semua executor dari order ini
-	rows, err := tx.Query("SELECT ExecutorID FROM executors WHERE OrderID = ?", orderID)
+	rows, err := tx.Query("SELECT Executors FROM executors WHERE ID = ?", orderID)
 	if err != nil {
 		return fmt.Errorf("failed to query executors for order completion: %w", err)
 	}
@@ -279,10 +279,10 @@ func (r *workOrderRepository) DeleteOrder(orderID int64) error {
 	defer tx.Rollback()
 
 	// Hapus dari tabel child dulu untuk menghindari masalah foreign key
-	if _, err := tx.Exec("DELETE FROM executors WHERE OrderID = ?", orderID); err != nil {
+	if _, err := tx.Exec("DELETE FROM executors WHERE ID = ?", orderID); err != nil {
 		return fmt.Errorf("failed to delete from executors: %w", err)
 	}
-	if _, err := tx.Exec("DELETE FROM safetychecklist WHERE OrderID = ?", orderID); err != nil {
+	if _, err := tx.Exec("DELETE FROM safetychecklist WHERE ID = ?", orderID); err != nil {
 		return fmt.Errorf("failed to delete from safetychecklist: %w", err)
 	}
 	if _, err := tx.Exec("DELETE FROM orders WHERE ID = ?", orderID); err != nil {

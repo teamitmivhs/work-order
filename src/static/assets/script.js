@@ -493,8 +493,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       { id: 'ry4', text: 'Gunakan Sarung Tangan', required: false },
       { id: 'ry5', text: 'Pastikan area kerja aman', required: true }
     ],
-
-    // Default safety checklist for any location not explicitly defined
+    // Default safety checklist 
     'default': [
       { id: 'def1', text: 'Gunakan pelindung mata (goggles)', required: false },
       { id: 'def2', text: 'Gunakan Sarung Tangan', required: false },
@@ -534,6 +533,22 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   await fetchMembers();
   await fetchAndRenderWorkOrders(); // Panggilan awal untuk memuat data saat halaman dibuka
+
+ // Biar aldi ga kepanggil terus wkwkw
+  let currentUser = null;
+  async function fetchCurrentUser() {
+    try {
+      const response = await fetch('/api/currentuser');
+      if (!response.ok) {
+        throw new Error('Gagal mengambil data user saat ini dari server');
+      }
+      currentUser = await response.json();
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+      showPopup('Error', 'Gagal memuat data user saat ini dari server.', 'error');
+      currentUser = null; // Pastikan currentUser null jika fetch gagal
+    }
+  }
 
   // Initialize member images on page load
   initializeMemberImages();
@@ -786,7 +801,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const currentTimeDisplay = `${hours}:${minutes}`; // Contoh: "23:13"
 
-    // Gabungkan lokasi
+    // lokasi
     const finalLocation = specificLocation ? `${location} - ${specificLocation}` : location;
 
     // Data send to Go lang
