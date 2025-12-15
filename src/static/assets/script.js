@@ -377,13 +377,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (!response.ok) {
         throw new Error('Gagal mengambil data work order dari server');
       }
-      // Perbarui variabel global workOrders dengan data dari server
-      workOrders = await response.json(); 
-      if (!Array.isArray(workOrders)) {
-        // Jika server mengembalikan null atau bukan array, inisialisasi sebagai array kosong
-        workOrders = [];
+      let fetchedWorkOrders = await response.json();
+      if (!Array.isArray(fetchedWorkOrders)) {
+        fetchedWorkOrders = [];
       }
-    } catch (error) {
+      // Filter out completed orders
+      workOrders = fetchedWorkOrders.filter(order => order.status !== 'completed');    } catch (error) {
       console.error("Error fetching work orders:", error);
       showPopup('Error', 'Gagal memuat data work order dari server.', 'error');
       workOrders = []; // Pastikan workOrders adalah array kosong jika fetch gagal
@@ -1264,7 +1263,12 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   // Function to update summary counts
-  function updateSummaryCounts() {
+  async function updateSummaryCounts() {
+    const response = await fetch('/api/workorders');
+    if (!response.ok) {
+        throw new Error('Gagal mengambil data work order dari server');
+      }
+    workOrders = await response.json();
     const totalOrders = workOrders.length;
     const pendingOrders = workOrders.filter(o => o.status === 'pending').length;
     const progressOrders = workOrders.filter(o => o.status === 'progress').length;

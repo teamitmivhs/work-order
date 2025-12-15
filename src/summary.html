@@ -34,7 +34,7 @@
                 Back
             </a>
         </div>
-        <h1 class="text-white text-2xl font-bold">Work Order Summary - Completed</h1>
+        <h1 class="text-white text-2xl font-bold">Work Order Summary</h1>
         <div class="w-20"></div>
     </nav>
 
@@ -72,20 +72,20 @@
         <!-- SUMMARY STATS -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="bg-white rounded-2xl shadow-xl p-6">
-                <p class="text-sm text-gray-600">Total Completed</p>
-                <p class="text-4xl font-bold text-green-600" id="totalCompleted">0</p>
+                <p class="text-sm text-gray-600">Total Orders</p>
+                <p class="text-4xl font-bold text-blue-600" id="totalOrders">0</p>
             </div>
             <div class="bg-white rounded-2xl shadow-xl p-6">
-                <p class="text-sm text-gray-600">High Priority</p>
-                <p class="text-4xl font-bold text-red-600" id="highPriority">0</p>
+                <p class="text-sm text-gray-600">Pending</p>
+                <p class="text-4xl font-bold text-yellow-600" id="pendingOrders">0</p>
             </div>
             <div class="bg-white rounded-2xl shadow-xl p-6">
-                <p class="text-sm text-gray-600">Medium Priority</p>
-                <p class="text-4xl font-bold text-yellow-600" id="mediumPriority">0</p>
+                <p class="text-sm text-gray-600">On Progress</p>
+                <p class="text-4xl font-bold text-indigo-600" id="progressOrders">0</p>
             </div>
             <div class="bg-white rounded-2xl shadow-xl p-6">
-                <p class="text-sm text-gray-600">Low Priority</p>
-                <p class="text-4xl font-bold text-blue-600" id="lowPriority">0</p>
+                <p class="text-sm text-gray-600">Completed</p>
+                <p class="text-4xl font-bold text-green-600" id="completedOrders">0</p>
             </div>
         </div>
 
@@ -233,43 +233,54 @@
 
 
     <script>
+        let allWorkOrders = [];
+        let completedOrders = [];
+        let members = [];
+        let summaryData = {};
 
+        async function fetchSummary() {
+            try {
+                const response = await fetch('/api/summary');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok for summary');
+                }
+                summaryData = await response.json();
+            } catch (error) {
+                console.error("Error fetching summary:", error);
+                summaryData = { total: 0, pending: 0, progress: 0, completed: 0 };
+            }
+        }
 
-        // All work orders (pending, in progress, completed) stored in localStorage
-        let allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
-        let completedOrders = allWorkOrders.filter(order => order.status === 'completed'); // Filter for completed orders
-        let members = []; // Member data for displaying executor photos
+        async function fetchWorkOrders() {
+            try {
+                const response = await fetch('/api/workorders');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok for work orders');
+                }
+                allWorkOrders = await response.json() || [];
+                completedOrders = allWorkOrders.filter(order => order.status === 'completed');
+            } catch (error) {
+                console.error("Error fetching work orders:", error);
+                allWorkOrders = [];
+                completedOrders = [];
+            }
+        }
 
-        // Function to fetch member data from Go API
         async function fetchMembers() {
             try {
-                const response = await fetch('http://localhost:8080/api/members');
+                const response = await fetch('/api/members');
                 if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
+                    throw new Error('Network response was not ok for members');
                 }
-                members = await response.json();
-                console.log("Data members berhasil di-fetch dari Go API:", members);
+                members = await response.json() || [];
             } catch (error) {
                 console.error("Error fetching members:", error);
-                // Fallback to empty array if API fails
                 members = [];
             }
         }
 
-
-        // Function to reload all work orders from localStorage and filter for completed ones
-        function reloadWorkOrdersAndFilterCompleted() {
-            allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
-            completedOrders = allWorkOrders.filter(order => order.status === 'completed');
-        }
-
-
-        // Function to get executor HTML with photos
         function getExecutorHtml(executors) {
-            if (!executors || executors.length === 0) {
-                return '<span class="text-gray-400">-</span>';
-            }
-
+            if (!executors || executors.length === 0) return '<span class="text-gray-400">-</span>';
             let executorsHtml = '<div class="flex -space-x-1">';
             executors.forEach(executorId => {
                 const member = members.find(m => m.id === executorId);
@@ -281,72 +292,35 @@
             return executorsHtml;
         }
 
-
-        // Function to convert working hours to smart time format
         function convertToMinutes(hoursString) {
-            if (!hoursString || hoursString === '-') {
-                return '-';
-            }
-            
-            // Extract number from string (handle both "2 jam" and "2" formats)
+            if (!hoursString || hoursString === '-') return '-';
             const hours = parseFloat(hoursString.toString().replace(/[^0-9.]/g, '')) || 0;
             const totalMinutes = Math.round(hours * 60);
-            
-            // Smart formatting: if less than 60 minutes, show in minutes
-            if (totalMinutes < 60) {
-                return totalMinutes + ' minutes';
-            }
-            
-            // If 60 minutes or more, convert back to hours format
+            if (totalMinutes < 60) return totalMinutes + ' minutes';
             const totalHours = totalMinutes / 60;
-            
-            // If it's a whole number of hours
-            if (totalHours % 1 === 0) {
-                return totalHours + ' hours';
-            }
-            
-            // If it's more than 1 hour with decimal
+            if (totalHours % 1 === 0) return totalHours + ' hours';
             if (totalHours >= 1) {
                 const wholeHours = Math.floor(totalHours);
                 const remainingMinutes = totalMinutes % 60;
-                
-                if (remainingMinutes === 0) {
-                    return totalHours + ' hours';
-                } else {
-                    return `${wholeHours}h ${remainingMinutes}m`;
-                }
+                if (remainingMinutes === 0) return totalHours + ' hours';
+                return `${wholeHours}h ${remainingMinutes}m`;
             }
-            
-            // Fallback for very small values
             return totalMinutes + ' minutes';
         }
 
-
-        // Display stats
         function updateStats() {
-            // Always reload latest data from localStorage
-            reloadWorkOrdersAndFilterCompleted();
-            
-            const total = completedOrders.length;
-            const high = completedOrders.filter(o => o.priority === 'high').length;
-            const medium = completedOrders.filter(o => o.priority === 'medium').length;
-            const low = completedOrders.filter(o => o.priority === 'low').length;
-
-            document.getElementById('totalCompleted').textContent = total;
-            document.getElementById('highPriority').textContent = high;
-            document.getElementById('mediumPriority').textContent = medium;
-            document.getElementById('lowPriority').textContent = low;
+            document.getElementById('totalOrders').textContent = summaryData.total || 0;
+            document.getElementById('pendingOrders').textContent = summaryData.pending || 0;
+            document.getElementById('progressOrders').textContent = summaryData.progress || 0;
+            document.getElementById('completedOrders').textContent = summaryData.completed || 0;
         }
 
-        // Display table
         function renderTable(orders = completedOrders) {
             const tbody = document.getElementById('completedTableBody');
-            
             if (orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-500">Tidak ada work order yang selesai</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Tidak ada work order yang selesai</td></tr>';
                 return;
             }
-
             tbody.innerHTML = orders.map((order, index) => `
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="py-3 px-4 text-sm">${index + 1}</td>
@@ -358,13 +332,8 @@
                     <td class="py-3 px-4 text-sm">${order.location}</td>
                     <td class="py-3 px-4 text-sm">${order.device}</td>
                     <td class="py-3 px-4 text-sm">${order.problem}</td>
-
-                    <td class="py-3 px-4 text-sm">
-                        ${getExecutorHtml(order.executors)}
-                    </td>
-
+                    <td class="py-3 px-4 text-sm">${getExecutorHtml(order.executors)}</td>
                     <td class="py-3 px-4 text-sm">${convertToMinutes(order.workingHours)}</td>
-
                     <td class="py-3 px-4 text-sm text-green-600">${order.completedAt || 'N/A'}</td>
                     <td class="py-3 px-4 text-sm">
                         <span class="inline-block max-w-xs truncate" title="${order.notes || '-'}">${order.notes ? order.notes.substring(0, 20) + '...' : '-'}</span>
@@ -380,31 +349,19 @@
             `).join('');
         }
 
-        // Filter & Search
-        document.getElementById('searchRequester').addEventListener('input', filterTable);
-        document.getElementById('searchDevice').addEventListener('input', filterTable);
-        document.getElementById('sortBy').addEventListener('change', filterTable);
-
-
-
         function filterTable() {
-            // Always reload latest data from localStorage
-            reloadWorkOrdersAndFilterCompleted();
             const requesterFilter = document.getElementById('searchRequester').value.toLowerCase();
             const deviceFilter = document.getElementById('searchDevice').value.toLowerCase();
             const sortBy = document.getElementById('sortBy').value;
-
             let filtered = completedOrders.filter(order => {
                 const requester = typeof order.requester === 'object' ? order.requester.name : order.requester;
                 return requester.toLowerCase().includes(requesterFilter) && 
                        order.device.toLowerCase().includes(deviceFilter);
             });
-
-            // Sort
             if (sortBy === 'newest') {
-                filtered.reverse();
+                filtered.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
             } else if (sortBy === 'oldest') {
-                // Keep original order
+                filtered.sort((a, b) => new Date(a.completedAt) - new Date(b.completedAt));
             } else if (sortBy === 'priority-high') {
                 const priorityOrder = { high: 1, medium: 2, low: 3 };
                 filtered.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
@@ -412,10 +369,12 @@
                 const priorityOrder = { low: 1, medium: 2, high: 3 };
                 filtered.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
             }
-
             renderTable(filtered);
         }
 
+        document.getElementById('searchRequester').addEventListener('input', filterTable);
+        document.getElementById('searchDevice').addEventListener('input', filterTable);
+        document.getElementById('sortBy').addEventListener('change', filterTable);
         document.getElementById('clearFilters').addEventListener('click', function() {
             document.getElementById('searchRequester').value = '';
             document.getElementById('searchDevice').value = '';
@@ -423,155 +382,71 @@
             renderTable();
         });
 
-
-
-
-
-
-
-        // Reset modal to completely clean state
         function resetNoteModal() {
-            // Force clear all modal fields
             document.getElementById('noteOrderId').textContent = '-';
             document.getElementById('noteOrderDevice').textContent = '-';
             document.getElementById('noteOrderRequester').textContent = '-';
-            
-            // Simply clear the textarea value
             const noteTextArea = document.getElementById('noteText');
             noteTextArea.value = '';
-            noteTextArea.setAttribute('value', '');
-            
-            // Remove dataset
             delete document.getElementById('noteModal').dataset.orderId;
         }
 
-        // Edit Notes functionality
         function openNoteModal(orderId) {
-            // Immediately reset the modal to a clean state
             resetNoteModal();
-
-            // Reload the latest data to ensure we have the most recent version
-            reloadWorkOrdersAndFilterCompleted();
             const order = allWorkOrders.find(o => o.id === orderId);
-
-            // If the order isn't found, show an error and stop
             if (!order) {
                 showErrorModal('Work order tidak ditemukan!');
                 return;
             }
-
             const modal = document.getElementById('noteModal');
-            
-            // Populate the modal with the correct order details
             document.getElementById('noteOrderId').textContent = order.id;
             document.getElementById('noteOrderDevice').textContent = order.device;
             document.getElementById('noteOrderRequester').textContent = typeof order.requester === 'object' ? order.requester.name : order.requester;
-            
-            // Set the notes value from the order data
-            const noteTextArea = document.getElementById('noteText');
-            noteTextArea.value = order.notes || '';
-            
-            // Store the correct order ID in the modal's dataset
+            document.getElementById('noteText').value = order.notes || '';
             modal.dataset.orderId = orderId;
-            
-            // Show the modal
             modal.classList.remove('hidden');
         }
 
         function closeNoteModal() {
             const modal = document.getElementById('noteModal');
             modal.classList.add('hidden');
-            // Reset the modal's state when it's closed
             resetNoteModal();
         }
-
-
-
-
-
 
         function saveNote() {
             const orderId = parseInt(document.getElementById('noteModal').dataset.orderId);
             const notes = document.getElementById('noteText').value.trim();
-
-            // Always get fresh data from localStorage (all work orders)
-            let currentAllWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
-            
-            // Find the specific order within all work orders
-            const orderIndex = currentAllWorkOrders.findIndex(o => o.id === orderId);
+            const orderIndex = allWorkOrders.findIndex(o => o.id === orderId);
             if (orderIndex !== -1) {
-                // Safe update: preserve the entire object and only modify notes property
-                const existingOrder = currentAllWorkOrders[orderIndex];
-                existingOrder.notes = notes;
-                
-                // Save back the entire workOrders array to localStorage
-                localStorage.setItem('workOrders', JSON.stringify(currentAllWorkOrders));
-                
-                // Update local state by reloading and filtering
-                reloadWorkOrdersAndFilterCompleted(); // Use the new reload function
-                
+                allWorkOrders[orderIndex].notes = notes;
+                // This is a temporary solution. Ideally, you would send this to the server.
+                // For now, we update the view.
+                completedOrders = allWorkOrders.filter(order => order.status === 'completed');
                 renderTable();
                 closeNoteModal();
-                
-                // Show success modal
                 showSuccessModal();
             } else {
-                // Show error modal instead of alert
                 showErrorModal('Work order tidak ditemukan!');
             }
         }
 
-
-        // Show success modal
-        function showSuccessModal() {
-            document.getElementById('successModal').classList.remove('hidden');
-        }
-
-        // Close success modal
-        function closeSuccessModal() {
-            document.getElementById('successModal').classList.add('hidden');
-        }
-
-        // Show error modal
+        function showSuccessModal() { document.getElementById('successModal').classList.remove('hidden'); }
+        function closeSuccessModal() { document.getElementById('successModal').classList.add('hidden'); }
         function showErrorModal(message) {
             document.getElementById('errorMessage').textContent = message;
             document.getElementById('errorModal').classList.remove('hidden');
         }
-
-        // Close error modal
-        function closeErrorModal() {
-            document.getElementById('errorModal').classList.add('hidden');
-        }
-
+        function closeErrorModal() { document.getElementById('errorModal').classList.add('hidden'); }
 
         document.getElementById('closeNoteModal').addEventListener('click', closeNoteModal);
         document.getElementById('cancelNoteBtn').addEventListener('click', closeNoteModal);
         document.getElementById('saveNoteBtn').addEventListener('click', saveNote);
-
-
-        // Success modal event listeners
         document.getElementById('closeSuccessModal').addEventListener('click', closeSuccessModal);
         document.getElementById('closeSuccessModalBtn').addEventListener('click', closeSuccessModal);
-        
-        // Close modal when clicking outside
-        document.getElementById('successModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeSuccessModal();
-            }
-        });
-
-        // Error modal event listeners
+        document.getElementById('errorModal').addEventListener('click', function(e) { if (e.target === this) { closeErrorModal(); } });
         document.getElementById('closeErrorModal').addEventListener('click', closeErrorModal);
         document.getElementById('closeErrorModalBtn').addEventListener('click', closeErrorModal);
-        
-        // Close modal when clicking outside
-        document.getElementById('errorModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeErrorModal();
-            }
-        });
 
-        // Event listener for edit note buttons
         document.addEventListener('click', function(e) {
             if (e.target.closest('.edit-note-btn')) {
                 const orderId = parseInt(e.target.closest('.edit-note-btn').dataset.orderId);
@@ -579,23 +454,13 @@
             }
         });
 
-
-        document.getElementById('clearFilters').addEventListener('click', function() {
-            document.getElementById('searchRequester').value = '';
-            document.getElementById('searchDevice').value = '';
-            document.getElementById('sortBy').value = 'newest';
-            renderTable();
-        });
-
-
-        // Load page
         async function loadPage() {
-            await fetchMembers();
+            await Promise.all([fetchSummary(), fetchWorkOrders(), fetchMembers()]);
             updateStats();
             renderTable();
+            filterTable();
         }
         
-        // Initialize page
         loadPage();
     </script>
 </body>
