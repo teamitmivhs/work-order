@@ -86,6 +86,7 @@ func setupPageRoutes(r *gin.Engine) {
 	r.GET("/src/kaizen.html", func(c *gin.Context) {
 		c.File("../kaizen.html")
 	})
+	// Handle other routes to serve index.html (for SPA support)
 
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
