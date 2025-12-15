@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       { id: 'ry4', text: 'Gunakan Sarung Tangan', required: false },
       { id: 'ry5', text: 'Pastikan area kerja aman', required: true }
     ],
-    // Default safety checklist for any location not explicitly defined
+    // Default safety checklist 
     'default': [
       { id: 'def1', text: 'Gunakan pelindung mata (goggles)', required: false },
       { id: 'def2', text: 'Gunakan Sarung Tangan', required: false },
