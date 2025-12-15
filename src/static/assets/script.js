@@ -402,8 +402,21 @@ document.addEventListener('DOMContentLoaded', async function () {
   await fetchMembers();
   await fetchAndRenderWorkOrders(); // Panggilan awal untuk memuat data saat halaman dibuka
 
-  // Current logged-in user (for demonstration, using member with id 1)
-  const currentUser = members.length > 0 ? members[0] : null;
+ // Biar aldi ga kepanggil terus wkwkw
+  let currentUser = null;
+  async function fetchCurrentUser() {
+    try {
+      const response = await fetch('/api/currentuser');
+      if (!response.ok) {
+        throw new Error('Gagal mengambil data user saat ini dari server');
+      }
+      currentUser = await response.json();
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+      showPopup('Error', 'Gagal memuat data user saat ini dari server.', 'error');
+      currentUser = null; // Pastikan currentUser null jika fetch gagal
+    }
+  }
 
   // Initialize member images on page load
   initializeMemberImages();
