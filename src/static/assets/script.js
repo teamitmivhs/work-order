@@ -1,173 +1,24 @@
-// Global variables and constants
-let workOrders = [];
-let activeOrderTimers = {};
-let members = [];
-let currentUser = null;
-let currentOrder = null;
-let additionalOperators = [];
-let selectedOperators = [];
-
-// Sample requester data
-const requesters = [
-  { id: 101, name: 'Michael Scott', department: 'Management' },
-  { id: 102, name: 'Dwight Schrute', department: 'Sales' },
-  { id: 103, name: 'Jim Halpert', department: 'Sales' },
-  { id: 104, name: 'Pam Beesly', department: 'Reception' },
-  { id: 105, name: 'Oscar Martinez', department: 'Accounting' },
-  { id: 106, name: 'Angela Martin', department: 'Accounting' },
-  { id: 107, name: 'Kevin Malone', department: 'Accounting' },
-  { id: 108, name: 'Stanley Hudson', department: 'Sales' },
-  { id: 109, name: 'Phyllis Vance', department: 'Sales' },
-  { id: 110, name: 'Meredith Palmer', department: 'Supplier Relations' }
-];
-
-// Update currentUser when members are loaded
-function updateCurrentUser() {
-  if (members.length > 0) {
-    currentUser = members[0]; // For now, use first member as current user
-    console.log("Current user updated to:", currentUser);
-  }
-}
-
-
-// Function to initialize/resume all active timers on page load
-function initializeWorkOrderTimers() {
-  if (workOrders && Array.isArray(workOrders)) {
-    workOrders.forEach(order => {
-      // Only process orders that are in progress and have a startTime
-      if (order.status === 'progress' && order.startTime) {
-        // Ensure accumulatedDuration is set for resuming
-        if (order.accumulatedDuration === undefined) {
-          order.accumulatedDuration = 0;
-        }
-        startWorkOrderTimer(order.id);
-      }
-    });
-  }
-}
-
-// Swiper initialization
-new Swiper(".mySwiper", {
+ new Swiper(".mySwiper", {
   loop: true,
   autoplay: { delay: 2400 },
   pagination: { el: ".swiper-pagination", clickable: true },
-});
-
-// Helper function to format time duration
-function formatDuration(milliseconds) {
-  let totalSeconds = Math.floor(milliseconds / 1000);
-  let hours = Math.floor(totalSeconds / 3600);
-  totalSeconds %= 3600;
-  let minutes = Math.floor(totalSeconds / 60);
-  let seconds = totalSeconds % 60;
-
-  return [hours, minutes, seconds]
-    .map(unit => String(unit).padStart(2, '0'))
-    .join(':');
-}
-
-// Function to start a timer for a specific work order
-function startWorkOrderTimer(orderId) {
-  if (activeOrderTimers[orderId]) {
-    clearInterval(activeOrderTimers[orderId]); // Clear any existing timer
-  }
-
-  // Find the work order in the global workOrders array
-  const orderIndex = workOrders.findIndex(o => o.id === orderId);
-  if (orderIndex === -1) return;
-  let order = workOrders[orderIndex];
-
-  // Initialize startTime and accumulatedDuration if not set
-  if (!order.startTime) {
-    order.startTime = Date.now();
-    // If no accumulatedDuration, start from 0, otherwise resume
-    if (order.accumulatedDuration === undefined) {
-      order.accumulatedDuration = 0;
-    }
-  }
-
-  // Save updated order to localStorage immediately
-  localStorage.setItem('workOrders', JSON.stringify(workOrders));
-
-  // Start interval
-  activeOrderTimers[orderId] = setInterval(() => {
-    updateWorkOrderTimerDisplay(orderId);
-  }, 1000);
-  console.log(`Timer started for order #${orderId}`);
-}
-
-// Function to stop a timer for a specific work order
-function stopWorkOrderTimer(orderId) {
-  if (activeOrderTimers[orderId]) {
-    clearInterval(activeOrderTimers[orderId]);
-    delete activeOrderTimers[orderId];
-    console.log(`Timer stopped for order #${orderId}`);
-  }
-
-  // Update accumulated duration one last time to ensure accuracy
-  const orderIndex = workOrders.findIndex(o => o.id === orderId);
-  if (orderIndex !== -1) {
-    let order = workOrders[orderIndex];
-    if (order.startTime) {
-      order.accumulatedDuration = (order.accumulatedDuration || 0) + (Date.now() - order.startTime);
-      order.startTime = null; // Reset startTime
-      order.workingHours = formatDuration(order.accumulatedDuration); // Finalize workingHours string
-      localStorage.setItem('workOrders', JSON.stringify(workOrders));
-      updateWorkOrderTimerDisplay(orderId); // Update display one last time
-    }
-  }
-}
-
-// Function to update the timer display for a single work order
-function updateWorkOrderTimerDisplay(orderId) {
-  const orderIndex = workOrders.findIndex(o => o.id === orderId);
-  if (orderIndex === -1) return;
-  let order = workOrders[orderIndex];
-
-  let currentDuration = order.accumulatedDuration || 0;
-  if (order.startTime) {
-    currentDuration += (Date.now() - order.startTime);
-  }
-
-  order.workingHours = formatDuration(currentDuration);
-  
-  // Update the UI in the table directly if the row exists
-  const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
-  if (row) {
-      const workingHoursCell = row.children[8]; // Assuming workingHours is the 9th column (index 8)
-      if (workingHoursCell) {
-          workingHoursCell.textContent = order.workingHours;
-      }
-  }
-
-  // Save to localStorage frequently to ensure persistence (less frequent might be better for performance in very large apps)
-  localStorage.setItem('workOrders', JSON.stringify(workOrders));
-}
-
-
-
-
-// Save current timer state before page unloads to prevent data loss
-window.addEventListener('beforeunload', () => {
-  workOrders.forEach(order => {
-    if (order.status === 'progress' && order.startTime && activeOrderTimers[order.id]) {
-      // Calculate current elapsed time and add to accumulated before saving
-      order.accumulatedDuration = (order.accumulatedDuration || 0) + (Date.now() - order.startTime);
-      order.startTime = Date.now(); // Update startTime to current time to accurately resume if page is reloaded quickly
-    }
-  });
-  localStorage.setItem('workOrders', JSON.stringify(workOrders));
 });
 
 
 const btn = document.getElementById("profileDropdownBtn");
 const menu = document.getElementById("profileDropdown");
 
-if (btn && menu) {
-  btn.addEventListener("click", () => {
-    menu.classList.toggle("hidden");
-  });
-}
+btn.addEventListener("click", () => {
+  menu.classList.toggle("hidden");
+});
+
+// Klik di luar dropdown untuk menutup
+document.addEventListener("click", (e) => {
+  if (!btn.contains(e.target) && !menu.contains(e.target)) {
+    menu.classList.add("hidden");
+  }
+});
+
 
 // GSAP Fade + Slide Animation
 window.addEventListener("load", () => {
@@ -277,7 +128,6 @@ function showPopup(title, message, type = 'info') {
   }
 }
 
-
 // Custom Confirmation Popup System
 function showConfirmationPopup(title, message, onConfirm) {
   // Remove existing popup if any
@@ -359,11 +209,10 @@ function updateQuickSummaryTitle() {
   }
 }
 
-
 // Member Status Management
 document.addEventListener('DOMContentLoaded', async function () {
   
-
+  let members = [];
   
   // DOM elements for DOM
   const memberStatusPopup = document.getElementById('memberStatusPopup');
@@ -401,7 +250,26 @@ document.addEventListener('DOMContentLoaded', async function () {
   const statusFilterTabs = document.querySelectorAll('.status-filter-tab');
   let currentStatusFilter = 'all';
 
+  // Sample requester data
+  const requesters = [
+    { id: 101, name: 'Michael Scott', department: 'Management' },
+    { id: 102, name: 'Dwight Schrute', department: 'Sales' },
+    { id: 103, name: 'Jim Halpert', department: 'Sales' },
+    { id: 104, name: 'Pam Beesly', department: 'Reception' },
+    { id: 105, name: 'Oscar Martinez', department: 'Accounting' },
+    { id: 106, name: 'Angela Martin', department: 'Accounting' },
+    { id: 107, name: 'Kevin Malone', department: 'Accounting' },
+    { id: 108, name: 'Stanley Hudson', department: 'Sales' },
+    { id: 109, name: 'Phyllis Vance', department: 'Sales' },
+    { id: 110, name: 'Meredith Palmer', department: 'Supplier Relations' }
+  ];
 
+  let workOrders = [];
+
+  // Current order being processed
+  let currentOrder = null;
+  let additionalOperators = [];
+  let selectedOperators = [];
 
   // Comprehensive safety checklist items for all locations
   const safetyChecklistItems = {
@@ -558,10 +426,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // Update summary counts
   updateSummaryCounts();
-  
-  // Initialize/resume timers for any ongoing work orders
-  initializeWorkOrderTimers();
-  
 
   // Open popup when any status button is clicked
   statusContainers.forEach(container => {
@@ -790,28 +654,29 @@ document.addEventListener('DOMContentLoaded', async function () {
     const device = document.getElementById('orderDevice').value;
     const problem = document.getElementById('orderProblem').value;
 
-    if (!priority || !requesterName || !location || !device || !problem) {
-      showPopup('Peringatan', 'Harap isi semua bidang yang diperlukan.', 'warning');
-      return;
-    }
-
     // Dapatkan waktu saat ini dalam format yang dibutuhkan backend untuk display dan sort
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const currentTimeDisplay = `${hours}:${minutes}`; // Contoh: "23:13"
+    const currentTimeSort = `${hours}:${minutes}:00`; // Contoh: "23:13:00"
 
     // lokasi
     const finalLocation = specificLocation ? `${location} - ${specificLocation}` : location;
 
     // Data send to Go lang
     const payload = {
-      Priority: priority,
-      TimeDisplay: currentTimeDisplay,
-      Requester: requesterName,
-      Location: finalLocation,
-      Device: device,
-      Problem: problem,
+      priority: priority,
+      time_display: currentTimeDisplay, // Time display
+      time_sort: currentTimeSort,      // Time format
+      requester: requesterName,
+      location: finalLocation,
+      device: device,
+      problem: problem,
+      working_hours: '0 menit',
+      status: 'pending',
+      executors: [], // Sesuai skema, kosong saat membuat
+      safety_checklist: [] // Sesuai skema, kosong saat membuat
     };
 
     // Mengirim data ke API backend Go Lang
@@ -830,9 +695,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       return response.json(); // Server harus mengembalikan ID baru
     })
     .then(data => {
-      // Setelah sukses
-      const newOrderId = data.id; // Asumsi backend mengembalikan objek { id: X }
-
+      // Setelah sukses
+      const newOrderId = data.id; // Asumsi backend mengembalikan objek { id: X }
+        
       // Logika refresh, reset form, dan notifikasi
       hideAnimatedPopup(createOrderPopup);
       createOrderForm.reset();
@@ -844,8 +709,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       showPopup('Work Order Berhasil Dibuat!', `Work Order #${newOrderId} telah berhasil dibuat dan disimpan di database.`, 'success');
     })
     .catch(error => {
-      console.error('Error saat membuat order:', error);
-      showPopup('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+      console.error('Error saat membuat order:', error);
+      showPopup('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
     });
   });
 
@@ -864,6 +729,17 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   // Search functionality
+  memberSearchInput.addEventListener('focus', function () {
+    showSearchDropdown();
+    populateSearchResults();
+  });
+
+  // Search functionality
+  memberSearchInput.addEventListener('focus', function () {
+    showSearchDropdown();
+    populateSearchResults();
+  });
+
   memberSearchInput.addEventListener('input', function () {
     const searchTerm = this.value.toLowerCase();
     populateSearchResults(searchTerm);
@@ -876,62 +752,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   });
 
-
-
-
-  // Function to initialize member images on page load
-  function initializeMemberImages() {
-    members.forEach(member => {
-      const statusContainer = document.getElementById(`status-${member.status}`);
-      if (statusContainer) {
-        const memberImagesContainer = statusContainer.querySelector('.member-images');
-        const memberImg = document.createElement('img');
-        let avatar = `/static/public/${member.avatar}`
-        memberImg.src = avatar;
-        memberImg.alt = member.name;
-        memberImg.className = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
-        memberImg.dataset.memberId = member.id;
-        memberImagesContainer.appendChild(memberImg);
-      }
-    });
-
-    // Update display for all status containers
-    statusContainers.forEach(container => {
-      updateMemberDisplay(container);
-    });
-  }
-
-  // Function to populate work orders table
-  function updateMemberDisplay(container) {
-    const memberImages = container.querySelectorAll('.member-images img');
-    const moreMembersDiv = container.querySelector('.more-members');
-
-    // If there are more than 3 members, show only the first 3 and +N
-    if (memberImages.length > 3) {
-      // Hide all images beyond the first 3
-      for (let i = 3; i < memberImages.length; i++) {
-        memberImages[i].style.display = 'none';
-      }
-
-      // Show the +N indicator
-      moreMembersDiv.classList.remove('hidden');
-      moreMembersDiv.textContent = `+${memberImages.length - 3}`;
-    } else {
-      // Show all images
-      memberImages.forEach(img => {
-        img.style.display = 'block';
-      });
-
-      // Hide the +N indicator
-      moreMembersDiv.classList.add('hidden');
-    }
-  }
-
   // Fungsi asinkron untuk mengambil data dari Go API
   async function fetchMembers() {
     try {
-      // Panggil endpoint API Go yang benar
-      const response = await fetch('/api/members');
+      // Panggil endpoint API Go Anda (sesuaikan URL jika perlu)
+      const response = await fetch('http://localhost:8080/api/members');
 
       if (!response.ok) {
         throw new Error('Network response was not ok: ' + response.statusText);
@@ -940,12 +765,6 @@ document.addEventListener('DOMContentLoaded', async function () {
       // Konversi respons JSON menjadi array objek JS
       members = await response.json();
       console.log("Data members berhasil di-fetch dari Go API:", members);
-
-      // Update currentUser setelah members dimuat
-      updateCurrentUser();
-
-      // Re-initialize member images
-      initializeMemberImages();
 
     } catch (error) {
       console.error("Error fetching members:", error);
@@ -967,8 +786,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     sortedWorkOrders.forEach(order => {
-              const row = document.createElement('tr');
-              row.dataset.orderId = order.id; // Add data-order-id for easy lookup
+      const row = document.createElement('tr');
+
       // Add high priority class for blinking effect, only if not completed
       if (order.priority === 'high' && order.status !== 'completed') {
         row.classList.add('high-priority');
@@ -1069,7 +888,7 @@ document.addEventListener('DOMContentLoaded', async function () {
           <td class="py-3 px-2 text-sm">${order.device}</td>
           <td class="py-3 px-2 text-sm">${order.problem}</td>
           <td class="py-3 px-2 text-sm">${executorsHtml}</td>
-          <td class="py-3 px-2 text-sm">${order.workingHours || formatDuration(0)}</td>
+          <td class="py-3 px-2 text-sm">${order.workingHours || '-'}</td>
           <td class="py-3 px-2 text-sm">${statusBadge}</td>
           <td class="py-3 px-2 text-sm">${actionButtons}</td>
         `;
@@ -1115,31 +934,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 
   function openTakeOrderPopup(orderId) {
-    console.log("DEBUG: openTakeOrderPopup called with orderId:", orderId);
-    console.log("DEBUG: currentUser:", currentUser);
-    console.log("DEBUG: members array:", members);
-    
     const order = workOrders.find(o => o.id === orderId);
-    if (!order) {
-      console.error("DEBUG: Order not found for ID:", orderId);
-      showPopup('Error', 'Order tidak ditemukan!', 'error');
+    if (!order) return;
+
+    if (!currentUser) {
+      showPopup('Error', 'Tidak dapat mengambil order, data pengguna tidak ditemukan.', 'error');
       return;
     }
 
-    // Check if current user is available
-    if (!currentUser || !currentUser.id) {
-      console.error("DEBUG: currentUser is null or invalid:", currentUser);
-      // Try to update current user from members array
-      updateCurrentUser();
-      
-      if (!currentUser || !currentUser.id) {
-        showPopup('Error', 'Tidak dapat mengambil order, data pengguna tidak ditemukan. Silakan refresh halaman.', 'error');
-        return;
-      }
-    }
-
     // Check if current user is already assigned to this order
-    if (order.executors && order.executors.includes(currentUser.id)) {
+    if (order.executors.includes(currentUser.id)) {
       showPopup('Peringatan', 'Anda sudah terdaftar sebagai pelaksana untuk order ini!', 'warning');
       return;
     }
@@ -1161,7 +965,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     populateSafetyChecklist(order.location);
 
     // Show popup
-    console.log("DEBUG: Showing take order popup");
     showAnimatedPopup(takeOrderPopup);
   }
 
@@ -1237,11 +1040,6 @@ document.addEventListener('DOMContentLoaded', async function () {
   // Function to add worker to order
   function addWorkerToOrder(memberId) {
     if (!currentOrder) return;
-
-    if (currentOrder.executors.length >= 4) {
-      showPopup('Peringatan', 'Satu order hanya dapat dikerjakan oleh maksimal 4 orang.', 'warning');
-      return;
-    }
 
     // Check if member is already assigned to this order
     if (currentOrder.executors.includes(memberId)) {
@@ -1326,11 +1124,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       // 1. Ambil data yang dibutuhkan untuk dikirim ke Backend
       const allAssignedOperatorIds = [...new Set([currentUser.id, ...additionalOperators])];
-
-      if (allAssignedOperatorIds.length > 4) {
-        showPopup('Peringatan', 'Satu order hanya dapat dikerjakan oleh maksimal 4 orang.', 'warning');
-        return;
-      }
       
       // ... (Logika validasi allAssignedOperatorIds dan requiredCheckboxes tetap sama) ...
       // ...
@@ -1343,39 +1136,6 @@ document.addEventListener('DOMContentLoaded', async function () {
           }
       });
 
-    // Update order
-    const orderIndex = workOrders.findIndex(o => o.id === currentOrder.id);
-    if (orderIndex !== -1) {
-      workOrders[orderIndex].executors = allAssignedOperatorIds;
-
-      // Update safety checklist
-      workOrders[orderIndex].safetyChecklist = safetyChecklist;
-
-              // Update order status to progress if it was pending
-              if (workOrders[orderIndex].status === 'pending') {
-                workOrders[orderIndex].status = 'progress';
-                // Start the timer when order goes to progress
-                startWorkOrderTimer(currentOrder.id);
-              }
-      // Update operator statuses
-      allAssignedOperatorIds.forEach(operatorId => {
-        updateMemberStatus(operatorId, 'onjob');
-      });
-    }
-
-    // Refresh table
-    populateWorkOrdersTable();
-
-    // Update summary counts
-    updateSummaryCounts();
-
-    // Close popup and reset form
-    hideAnimatedPopup(takeOrderPopup);
-    resetTakeOrderForm();
-
-
-    // Show success message
-    showPopup('Order Berhasil Diambil!', `Berhasil mengambil order #${currentOrder.id}! Anda sekarang terdaftar sebagai pelaksana order ini.`, 'success');
       // 2. Buat Payload untuk API
       const payload = {
           order_id: currentOrder.id,
@@ -1435,95 +1195,85 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
   }
 
-
   // Function to mark an order as done (UPDATE API CALL)
   function markOrderDone(orderId) {
-    const orderIndex = workOrders.findIndex(o => o.id === orderId);
-    if (orderIndex === -1) return;
+      // ... (Logika pengambilan completionTime tetap sama) ...
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const completionTime = `${hours}:${minutes}`; // Waktu display
 
-    const order = workOrders[orderIndex];
-    
-    // Stop the timer when order is completed
-    stopWorkOrderTimer(orderId);
-    
-    // Get current time for completion timestamp
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const completionTime = `${hours}:${minutes}`; // Waktu display
+      // 1. Buat Payload
+      const payload = {
+          status: 'completed',
+          completed_at_display: completionTime // Kirim waktu selesai ke backend
+      };
 
-    // 1. Buat Payload
-    const payload = {
-        status: 'completed',
-        completed_at_display: completionTime // Kirim waktu selesai ke backend
-    };
+      // 2. Panggil API: PATCH /api/workorders/{orderId}/complete
+      fetch(`/api/workorders/${orderId}/complete`, {
+          method: 'PATCH', // Atau PUT
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+      })
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Gagal menyelesaikan order. Status: ' + response.status);
+          }
+          return response.json();
+      })
+      .then(data => {
+          // 3. Setelah Sukses
+          // Tidak perlu lagi manipulasi localStorage/local array workOrders/members
+          
+          // Refresh seluruh data dari API
+          refreshAllDataFromAPI();
 
-    // 2. Panggil API: PATCH /api/workorders/{orderId}/complete
-    fetch(`/api/workorders/${orderId}/complete`, {
-        method: 'PATCH', // Atau PUT
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Gagal menyelesaikan order. Status: ' + response.status);
-        }
-        return response.json();
-    })
-    .then(data => {
-        // 3. Setelah Sukses
-        // Tidak perlu lagi manipulasi localStorage/local array workOrders/members
-        
-        // Refresh seluruh data dari API
-        refreshAllDataFromAPI();
-
-        // Show success message
-        showPopup('Order Selesai!', `Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`, 'success');
-    })
-    .catch(error => {
-        console.error('Error saat menyelesaikan order:', error);
-        showPopup('Error', 'Terjadi kesalahan saat memperbarui status order.', 'error');
-    });
+          // Show success message
+          showPopup('Order Selesai!', `Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`, 'success');
+      })
+      .catch(error => {
+          console.error('Error saat menyelesaikan order:', error);
+          showPopup('Error', 'Terjadi kesalahan saat memperbarui status order.', 'error');
+      });
   }
-
 
   // Function to delete an order (DELETE API CALL)
   function deleteOrder(orderId) {
-    showConfirmationPopup(
-      'Konfirmasi Hapus Order',
-      `Apakah Anda yakin ingin menghapus order #${orderId}?`,
-      function() {
-        // 1. Panggil API: DELETE /api/workorders/{orderId}
-        fetch(`/api/workorders/${orderId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Gagal menghapus order. Status: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            // 2. Setelah Sukses
-            // Tidak perlu lagi manipulasi localStorage/local array
-            
-            // Refresh seluruh data dari API
-            refreshAllDataFromAPI();
+      showConfirmationPopup(
+          'Konfirmasi Hapus Order',
+          `Apakah Anda yakin ingin menghapus order #${orderId}?`,
+          function() {
+              // 1. Panggil API: DELETE /api/workorders/{orderId}
+              fetch(`/api/workorders/${orderId}`, {
+                  method: 'DELETE',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+              })
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('Gagal menghapus order. Status: ' + response.status);
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  // 2. Setelah Sukses
+                  // Tidak perlu lagi manipulasi localStorage/local array
+                  
+                  // Refresh seluruh data dari API
+                  refreshAllDataFromAPI();
 
-            // Show success message
-            showPopup('Order Dihapus!', `Order #${orderId} telah berhasil dihapus dari database.`, 'success');
-        })
-        .catch(error => {
-            console.error('Error saat menghapus order:', error);
-            showPopup('Error', 'Terjadi kesalahan saat menghapus order.', 'error');
-        });
-      }
-    );
+                  // Show success message
+                  showPopup('Order Dihapus!', `Order #${orderId} telah berhasil dihapus dari database.`, 'success');
+              })
+              .catch(error => {
+                  console.error('Error saat menghapus order:', error);
+                  showPopup('Error', 'Terjadi kesalahan saat menghapus order.', 'error');
+              });
+          }
+      );
   }
 
   // Function to update summary counts
@@ -1660,6 +1410,28 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   }
 
+  // Function to initialize member images on page load
+  function initializeMemberImages() {
+    members.forEach(member => {
+      const statusContainer = document.getElementById(`status-${member.status}`);
+      if (statusContainer) {
+        const memberImagesContainer = statusContainer.querySelector('.member-images');
+        const memberImg = document.createElement('img');
+        let avatar = `/static/public/${member.avatar}`
+        memberImg.src = avatar;
+        memberImg.alt = member.name;
+        memberImg.className = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
+        memberImg.dataset.memberId = member.id;
+        memberImagesContainer.appendChild(memberImg);
+      }
+    });
+
+    // Update display for all status containers
+    statusContainers.forEach(container => {
+      updateMemberDisplay(container);
+    });
+  }
+
   // Function to open member status popup
   async function openMemberStatusPopup(statusFilter = 'all') {
     // Pastikan data sudah di-fetch sebelum mengisi list
@@ -1754,11 +1526,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (executorIndex !== -1) {
         order.executors.splice(executorIndex, 1);
 
-                  // If no executors left, change status to pending
-                  if (order.executors.length === 0 && order.status === 'progress') {
-                    order.status = 'pending';
-                    stopWorkOrderTimer(order.id); // Stop timer if no executors left and order becomes pending
-                  }      }
+        // If no executors left, change status to pending
+        if (order.executors.length === 0 && order.status === 'progress') {
+          order.status = 'pending';
+        }
+      }
     });
 
     // Update summary counts
@@ -1795,7 +1567,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   }
 
-
   // Function to update member display (show only 3 images and +N if more)
   function updateMemberDisplay(container) {
     const memberImages = container.querySelectorAll('.member-images img');
@@ -1821,9 +1592,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       moreMembersDiv.classList.add('hidden');
     }
   }
+
 });
 
-// Separate DOMContentLoaded listener for login/register functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Modal functionality
     const modal = document.getElementById("myModal");
