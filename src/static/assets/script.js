@@ -192,7 +192,6 @@ function hideAnimatedPopup(popupElement) {
   }, 300);
 }
 
-
 // Function to update the Quick Summary title based on the current date
 function updateQuickSummaryTitle() {
   const quickSummaryTitleElement = document.getElementById('quickSummaryTitle');
