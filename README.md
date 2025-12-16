@@ -3,6 +3,27 @@
 This is a project of an IT MIVHS Work Order and Helpdesk system designed for the **TEAM IT MIVHS**.  
 The goal is to provide a simple, fast, and user‑friendly interface for requests, helps, and any other thing related to devices on SMK MITRA INDUSTRI MM2100
 
+
+## 👥 About the Project
+
+This system was created for internal use by the **Web developer of IT MIVHS Team**.  
+It's a complete **full-stack work order management system** with:
+
+- ✅ Frontend UI (HTML, TailwindCSS, Vanilla JS)
+- ✅ Backend API (Go + Gin Framework)
+- ✅ Real-time status tracking
+- ✅ Team member management
+- ✅ Safety checklist system
+- ✅ Performance evaluation (Kaizen)
+- ✅ Audit trail & history tracking
+- ✅ Responsive design
+
+Future enhancements may include:
+- Email / Telegram notifications  
+- Advanced reporting & analytics
+- Mobile app
+
+
 ## 🚀 Getting Started
 
 To get the project up and running, follow these steps:
@@ -145,21 +166,3 @@ Rating based on completion rate:
 
 ---
 
-## 👥 About the Project
-
-This system was created for internal use by the **Web developer of IT MIVHS Team**.  
-It's a complete **full-stack work order management system** with:
-
-- ✅ Frontend UI (HTML, TailwindCSS, Vanilla JS)
-- ✅ Backend API (Go + Gin Framework)
-- ✅ Real-time status tracking
-- ✅ Team member management
-- ✅ Safety checklist system
-- ✅ Performance evaluation (Kaizen)
-- ✅ Audit trail & history tracking
-- ✅ Responsive design
-
-Future enhancements may include:
-- Email / Telegram notifications  
-- Advanced reporting & analytics
-- Mobile app
