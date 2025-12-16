@@ -42,7 +42,7 @@ This document outlines the current tasks and future improvements for the IT Work
 
 ## Future Enhancements
 
--   [ ] **Email/Telegram Notifications:**
+-   [ ] **Email/Whatsapp Notifications:**
     -   Integrate a notification service to send alerts for new work orders or status changes.
 
 -   [ ] **Advanced Reporting & Analytics:**
