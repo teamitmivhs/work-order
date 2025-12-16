@@ -1,6 +1,20 @@
-version: '3.8'
-
 services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dbwoit
+      MYSQL_USER: adminit2025
+      MYSQL_PASSWORD: databaseit2045
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - workorder-net
+
   backend:
     build:
       context: ./backend
@@ -8,6 +22,14 @@ services:
     restart: unless-stopped
     expose:
       - "8080"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: adminit2025
+      DB_PASSWORD: databaseit2045
+      DB_NAME: dbwoit
     networks:
       - workorder-net
 
@@ -18,9 +40,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      # Mount the custom nginx configuration
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      # Mount all frontend files
       - ./index.html:/usr/share/nginx/html/index.html
       - ./login.html:/usr/share/nginx/html/login.html
       - ./summary.html:/usr/share/nginx/html/summary.html
@@ -31,6 +51,9 @@ services:
       - backend
     networks:
       - workorder-net
+
+volumes:
+  db_data:
 
 networks:
   workorder-net:
