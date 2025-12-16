@@ -16,7 +16,7 @@ This document outlines the current tasks and future improvements for the IT Work
 
 ## Backend and Infrastructure
 
--   [ ] **Integrate PostgreSQL in Docker Compose:**
+-   [ ] **Integrate MySQL in Docker Compose:**
     -   Add a PostgreSQL service to `src/docker-compose.yml`.
     -   Ensure the Go backend connects to the PostgreSQL container.
     -   Provide a `init.sql` script to create the necessary tables. The existing SQL files (`dbwoit_executors.sql`, `dbwoit_members.sql`, `dbwoit_orders.sql`, `dbwoit_safetychecklist.sql`) should be reviewed and used.
