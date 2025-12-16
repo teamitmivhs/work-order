@@ -664,6 +664,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     // lokasi
     const finalLocation = specificLocation ? `${location} - ${specificLocation}` : location;
 
+
+
     // Data send to Go lang
     const payload = {
       priority: priority,
@@ -1136,6 +1138,8 @@ document.addEventListener('DOMContentLoaded', async function () {
           }
       });
 
+
+
       // 2. Buat Payload untuk API
       const payload = {
           order_id: currentOrder.id,
@@ -1202,6 +1206,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const completionTime = `${hours}:${minutes}`; // Waktu display
+
+
 
       // 1. Buat Payload
       const payload = {

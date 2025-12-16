@@ -55,8 +55,8 @@ type WorkOrderRequest struct {
 	Executors []int `json:"executors"`
 
 	// WorkingHours bisa NULL di DB
-	WorkingHours sql.NullString `json:"workingHours"`
-	Status       string         `json:"status"`
+	WorkingHours string `json:"workingHours"`
+	Status       string `json:"status"`
 
 	// SafetyChecklist harus diisi dari tabel relasi task_safety_checklists
 	SafetyChecklist []string `json:"safetyChecklist"`
