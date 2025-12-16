@@ -49,5 +49,11 @@ This document outlines the current tasks and future improvements for the IT Work
 -   [ ] **Advanced Reporting & Analytics:**
     -   Expand the Kaizen page with more detailed analytics and reporting features.
 
--   [ ] **Mobile-Friendly UI:**
+-   [ ] **UI for mobile website:**
     -   Further improve the responsiveness of the UI for mobile devices.
+    -   Design the UI for website on mobile
+
+-   [ ] **Future mobile apps:**
+    -   Improving the User Experiences by adding the mobile apps.
+    -   Make the order requests easier and faster to handle for the IT team.
+
