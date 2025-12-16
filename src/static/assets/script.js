@@ -33,9 +33,6 @@ window.addEventListener("load", () => {
   });
 });
 
-
-
-
 // Custom Popup System
 function showPopup(title, message, type = 'info') {
   // Remove existing popup if any
