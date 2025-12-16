@@ -40,7 +40,7 @@ To get the project up and running, follow these steps:
    ```
    This will start the following services:
    - `workorder-backend`: The Go backend API.
-   - `db`: The PostgreSQL database.
+   - `db`: The MySQL database.
    - `nginx`: The Nginx web server.
 
 3. **Access the application:**
@@ -61,7 +61,7 @@ To get the project up and running, follow these steps:
 - **JavaScript** (vanilla)
 - **Go** (Backend API)
 - **Gin Framework** (Go web framework)
-- **PostgreSQL** (Database)
+- **MySQL** (Database)
 - **Docker** (Containerization)
 - **Nginx** (Web Server)
 
