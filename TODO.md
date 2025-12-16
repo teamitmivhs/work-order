@@ -9,6 +9,7 @@ This document outlines the current tasks and future improvements for the IT Work
     -   Resolve `ReferenceError: workOrders is not defined`.
     -   Fix `Uncaught ReferenceError: workOrders is not defined at initializeWorkOrderTimers`.
     -   Review and refactor `src/static/assets/script.js` to fix scoping issues and improve code quality.
+    -   Fix the 'POST' 500 Error when creating orders.
 
 -   [ ] **Production-Ready Frontend:**
     -   Replace Tailwind CSS CDN with a proper build process (e.g., PostCSS or Tailwind CLI) to remove development warnings and optimize for production.
