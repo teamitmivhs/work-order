@@ -98,7 +98,7 @@ Technician
   - Click "Confirm"
   ↓
   Status changes: "Pending" → "On Progress"
-  Technician status: "Stand By" → "On Job"
+  IT Team status: "Stand By" → "On Job"
 ```
 
 ### **3. Work in Progress (Executing Job)**
@@ -132,7 +132,7 @@ Technician
 
 ### **5. Review Summary (View History)**
 ```
-Teacher/Admin
+IT Teacher/Admin
   ↓
   Click "Summary" hyperlink in navbar
   ↓
