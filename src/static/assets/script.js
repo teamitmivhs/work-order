@@ -19,6 +19,26 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// Mobile menu functionality
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const navMenu = document.getElementById('navMenu');
+const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+
+if (mobileMenuBtn && navMenu) {
+  mobileMenuBtn.addEventListener('click', () => {
+    navMenu.classList.toggle('hidden');
+    navMenu.classList.toggle('mobile-menu-active');
+  });
+
+  // Close mobile menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!mobileMenuBtn.contains(e.target) && !navMenu.contains(e.target)) {
+      navMenu.classList.add('hidden');
+      navMenu.classList.remove('mobile-menu-active');
+    }
+  });
+}
+
 
 // GSAP Fade + Slide Animation
 window.addEventListener("load", () => {
@@ -398,21 +418,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   await fetchMembers();
   await fetchAndRenderWorkOrders(); // Panggilan awal untuk memuat data saat halaman dibuka
 
+
  // Biar aldi ga kepanggil terus wkwkw
-  let currentUser = null;
-  async function fetchCurrentUser() {
-    try {
-      const response = await fetch('/api/currentuser');
-      if (!response.ok) {
-        throw new Error('Gagal mengambil data user saat ini dari server');
-      }
-      currentUser = await response.json();
-    } catch (error) {
-      console.error("Error fetching current user:", error);
-      showPopup('Error', 'Gagal memuat data user saat ini dari server.', 'error');
-      currentUser = null; // Pastikan currentUser null jika fetch gagal
-    }
-  }
+  // Removed fetchCurrentUser since the endpoint doesn't exist and no auth system is implemented
 
   // Initialize member images on page load
   initializeMemberImages();
@@ -750,11 +758,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   });
 
+
   // Fungsi asinkron untuk mengambil data dari Go API
   async function fetchMembers() {
     try {
-      // Panggil endpoint API Go Anda (sesuaikan URL jika perlu)
-      const response = await fetch('http://localhost:8080/api/members');
+      // Panggil endpoint API melalui nginx proxy
+      const response = await fetch('/api/members');
 
       if (!response.ok) {
         throw new Error('Network response was not ok: ' + response.statusText);
@@ -931,18 +940,21 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 
 
+
   function openTakeOrderPopup(orderId) {
     const order = workOrders.find(o => o.id === orderId);
     if (!order) return;
 
-    if (!currentUser) {
-      showPopup('Error', 'Tidak dapat mengambil order, data pengguna tidak ditemukan.', 'error');
-      return;
-    }
+    // Remove currentUser checks since no authentication system is implemented
+    // if (!currentUser) {
+    //   showPopup('Error', 'Tidak dapat mengambil order, data pengguna tidak ditemukan.', 'error');
+    //   return;
+    // }
 
-    // Check if current user is already assigned to this order
-    if (order.executors.includes(currentUser.id)) {
-      showPopup('Peringatan', 'Anda sudah terdaftar sebagai pelaksana untuk order ini!', 'warning');
+    // Check if any standby operators are available
+    const standbyMembers = members.filter(m => m.status === 'standby');
+    if (standbyMembers.length === 0) {
+      showPopup('Peringatan', 'Tidak ada operator standby yang tersedia untuk mengambil order ini.', 'warning');
       return;
     }
 
@@ -1114,17 +1126,21 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 
 
+
   // Function to confirm take order (TRANSACTION API CALL)
   function confirmTakeOrder() {
-      console.log("DEBUG: currentUser:", currentUser);
       console.log("DEBUG: members array:", members);
       if (!currentOrder) return;
 
       // 1. Ambil data yang dibutuhkan untuk dikirim ke Backend
-      const allAssignedOperatorIds = [...new Set([currentUser.id, ...additionalOperators])];
+      // Since there's no current user, just use the additional operators
+      const allAssignedOperatorIds = [...additionalOperators];
       
-      // ... (Logika validasi allAssignedOperatorIds dan requiredCheckboxes tetap sama) ...
-      // ...
+      // Validate that at least one operator is selected
+      if (allAssignedOperatorIds.length === 0) {
+        showPopup('Peringatan', 'Pilih minimal satu operator untuk mengambil order ini.', 'warning');
+        return;
+      }
       
       // Collect safety checklist data (mengambil ID item yang diceklis)
       const safetyChecklist = [];
@@ -1166,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       .then(data => {
           // 4. Setelah Sukses
           // Tampilkan popup sukses DULU, sebelum me-reset state
-          showPopup('Order Berhasil Diambil!', `Berhasil mengambil order #${data.order_id}!`, 'success');
+          showPopup('Order Berhasil Diambil!', `Berhasil mengambil order #${currentOrder.id}!`, 'success');
           
           // Baru jalankan sisanya
           refreshAllDataFromAPI(); 

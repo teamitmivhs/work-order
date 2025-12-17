@@ -47,22 +47,34 @@ func InitDB() error {
 	)
 
 	var err error
-	DB, err = sql.Open("mysql", dsn)
-	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+	maxRetries := 30
+	retryDelay := 2 * time.Second
+
+	for i := 0; i < maxRetries; i++ {
+		DB, err = sql.Open("mysql", dsn)
+		if err != nil {
+			log.Printf("Attempt %d: Failed to open database: %v", i+1, err)
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		DB.SetMaxOpenConns(100)
+		DB.SetMaxIdleConns(10)
+		DB.SetConnMaxLifetime(time.Hour)
+
+		err = DB.Ping()
+		if err != nil {
+			log.Printf("Attempt %d: Failed to connect to database: %v", i+1, err)
+			DB.Close()
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		log.Println("Database connected successfully")
+		return nil
 	}
 
-	DB.SetMaxOpenConns(100)
-	DB.SetMaxIdleConns(10)
-	DB.SetConnMaxLifetime(time.Hour)
-
-	err = DB.Ping()
-	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	log.Println("Database connected successfully")
-	return nil
+	return fmt.Errorf("failed to connect to database after %d attempts: %w", maxRetries, err)
 }
 
 func GetDB() *sql.DB {

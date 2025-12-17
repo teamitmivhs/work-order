@@ -23,7 +23,13 @@ DROP TABLE IF EXISTS `orders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `orders` (
-  `ID` int NOT NULL,
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `CreatedAt` DATETIME NULL,
+  `UpdatedAt` DATETIME NULL,
+  `DeletedAt` DATETIME NULL,
+  `OrderNumber` varchar(50) DEFAULT NULL,
+  `CreatedBy` varchar(100) DEFAULT NULL,
+  `AssignedTo` varchar(100) DEFAULT NULL,
   `Priority` varchar(10) DEFAULT NULL,
   `TimeDisplay` varchar(20) DEFAULT NULL,
   `TimeSort` time DEFAULT NULL,
@@ -33,7 +39,7 @@ CREATE TABLE `orders` (
   `Problem` text,
   `WorkingHours` varchar(50) DEFAULT NULL,
   `Status` varchar(50) DEFAULT NULL,
-  `CompletedAt` varchar(45) DEFAULT '0',
+  `CompletedAt` DATETIME NULL,
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -49,7 +49,12 @@ This document outlines the current tasks and future improvements for the IT Work
 -   [ ] **Advanced Reporting & Analytics:**
     -   Expand the Kaizen page with more detailed analytics and reporting features.
 
--   [ ] **UI for mobile website:**
+-   [x] **UI for mobile website:**
+    -   [x] Added collapsible navbar with hamburger menu for mobile
+    -   [x] Made work orders table responsive with horizontal scroll
+    -   [x] Made login and register pages responsive
+    -   [x] Added mobile-specific CSS styles
+    -   [x] Ensured popups and modals are mobile-friendly
     -   Further improve the responsiveness of the UI for mobile devices.
     -   Design the UI for website on mobile
 
