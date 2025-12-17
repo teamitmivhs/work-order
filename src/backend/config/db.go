@@ -25,7 +25,7 @@ func InitDB() error {
 
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
-		dbHost = "localhost"
+		dbHost = "127.0.0.1"
 	}
 
 	dbPort := os.Getenv("DB_PORT")
