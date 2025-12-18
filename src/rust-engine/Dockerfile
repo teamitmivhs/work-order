@@ -1,46 +1,32 @@
-# =========================
-# 1️⃣ Build stage
-# =========================
-FROM rust:1.75-alpine AS builder
-
-# Install dependency buat static build
-RUN apk add --no-cache musl-dev openssl-dev
+# ===== Build stage =====
+FROM rust:1.78-slim AS builder
 
 WORKDIR /app
 
-# Copy manifest dulu biar layer cache kepake
+# Copy manifest dulu biar dependency ke-cache
 COPY Cargo.toml Cargo.lock ./
 
-# Dummy build biar dependency ke-cache
+# Dummy src biar cargo build jalan
 RUN mkdir src && echo "fn main() {}" > src/main.rs
 RUN cargo build --release
 RUN rm -rf src
 
-# Copy source code asli
+# Copy source asli
 COPY src ./src
 
-# Build final binary
+# Build binary final
 RUN cargo build --release
 
-
-# =========================
-# 2️⃣ Runtime stage
-# =========================
-FROM alpine:3.19
-
-# Security: bikin user non-root
-RUN addgroup -S app && adduser -S app -G app
+# ===== Runtime stage =====
+FROM debian:bookworm-slim
 
 WORKDIR /app
 
-# Copy binary dari builder
-COPY --from=builder /app/target/release/rust_engine /app/rust_engine
+# Install CA cert (penting kalau nanti HTTP keluar)
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Expose port time-tracker
+COPY --from=builder /app/target/release/rust-engine /usr/local/bin/time-tracker
+
 EXPOSE 9000
 
-# Drop privilege
-USER app
-
-# Run service
-CMD ["./rust_engine"]
+CMD ["time-tracker"]
