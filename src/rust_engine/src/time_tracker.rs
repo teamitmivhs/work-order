@@ -1,25 +1,13 @@
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use crate::state::{AppState, RunningTimer};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[derive(Debug, Clone)]
-pub struct Timer {
-    pub work_order_id: u64,
-    pub executor_id: u64,
-    pub started_at: i64,
-    pub stopped_at: Option<i64>,
-}
-
-#[derive(Clone)]
 pub struct TimeTracker {
-    timers: Arc<Mutex<HashMap<u64, Timer>>>,
+    pub state: AppState,
 }
 
 impl TimeTracker {
-    pub fn new() -> Self {
-        Self {
-            timers: Arc::new(Mutex::new(HashMap::new())),
-        }
+    pub fn new(state: AppState) -> Self {
+        Self { state }
     }
 
     fn now() -> i64 {
@@ -29,52 +17,51 @@ impl TimeTracker {
             .as_secs() as i64
     }
 
-    /// Start timer (di call pas TAKE work order)
+    /// Start timer (dipanggil saat TAKE work order)
     pub fn start(
         &self,
-        work_order_id: u64,
+        workorder_id: u64,
         executor_id: u64,
     ) -> Result<i64, String> {
-        let mut timers = self.timers.lock().unwrap();
+        let mut timers = self.state.timers.lock().unwrap();
 
-        if timers.contains_key(&work_order_id) {
+        if timers.contains_key(&workorder_id) {
             return Err("timer already running".into());
         }
 
         let started_at = Self::now();
 
         timers.insert(
-            work_order_id,
-            Timer {
-                work_order_id,
+            workorder_id,
+            RunningTimer {
+                workorder_id,
                 executor_id,
                 started_at,
-                stopped_at: None,
             },
         );
 
         Ok(started_at)
     }
 
-    /// Stop timer (di call pas COMPLETE)
-    pub fn stop(&self, work_order_id: u64) -> Result<(i64, i64), String> {
-        let mut timers = self.timers.lock().unwrap();
+    /// Stop timer (dipanggil saat COMPLETE)
+    pub fn stop(&self, workorder_id: u64) -> Result<(i64, i64), String> {
+        let mut timers = self.state.timers.lock().unwrap();
 
         let timer = timers
-            .remove(&work_order_id)
+            .remove(&workorder_id)
             .ok_or("timer not found")?;
 
         let stopped_at = Self::now();
-        let elapsed = stopped_at - timer.started_at;
+        let duration = stopped_at - timer.started_at;
 
-        Ok((timer.started_at, elapsed))
+        Ok((timer.started_at, duration))
     }
 
     /// Status timer (polling frontend)
-    pub fn status(&self, work_order_id: u64) -> Option<(i64, i64)> {
-        let timers = self.timers.lock().unwrap();
+    pub fn status(&self, workorder_id: u64) -> Option<(i64, i64)> {
+        let timers = self.state.timers.lock().unwrap();
 
-        timers.get(&work_order_id).map(|timer| {
+        timers.get(&workorder_id).map(|timer| {
             let elapsed = Self::now() - timer.started_at;
             (timer.started_at, elapsed)
         })
