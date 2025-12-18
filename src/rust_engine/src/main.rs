@@ -2,37 +2,33 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use std::sync::Arc;
 use std::net::SocketAddr;
-use tracing::{info};
-use tracing_subscriber;
 
-mod web_api;
-mod time_tracker;
+mod state;
 mod models;
+mod web_api;
+
+use state::TimeTracker;
+use web_api::{start_timer, stop_timer, timer_status};
 
 #[tokio::main]
 async fn main() {
-    //Logger
-    tracing_subscriber::fmt()
-        .with_target(false)
-        .compact()
-        .init();
+    // Shared state (in-memory)
+    let tracker = Arc::new(TimeTracker::new());
 
-    info!("Starting Rust Time tracker engine...");
-
-
+    // Router
     let app = Router::new()
-        .route("/health", get(web_api::health_check))
-        .route("/api/time/start", post(time_tracker::start_time))
-        .route("/api/time/stop", post(time_tracker::stop_time))
-        .route("/api/time/status", get(time_tracker::get_timer_status));
-    
-    let addr = SocketAddr::from(([0, 0, 0, 0], 9000));
+        .route("/timer/start", post(start_timer))
+        .route("/timer/stop", post(stop_timer))
+        .route("/timer/:workorder_id", get(timer_status))
+        .with_state(tracker);
 
-    info!("Time engine listening on {}", addr);
+    let addr = SocketAddr::from(([0, 0, 0, 0], 9000));
+    println!("⏱ Time Tracker running on {}", addr);
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
-        .expect("Failed to start server");
+        .unwrap();
 }
