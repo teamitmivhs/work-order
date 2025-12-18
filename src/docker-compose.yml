@@ -21,7 +21,7 @@ services:
 
   time-tracker:
     build:
-      context: ./rust_engine
+      context: ./rust-engine
       dockerfile: Dockerfile
     container_name: work-order-time-tracker
     restart: unless-stopped
