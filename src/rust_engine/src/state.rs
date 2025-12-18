@@ -14,9 +14,9 @@ pub async fn start_timer(
     State(tracker): State<Arc<TimeTracker>>,
     Json(req): Json<StartTimeRequest>,
 ) -> Result<Json<StartTimeResponse>, (StatusCode, Json<ErrorResponse>)> {
-    match tracker.start(req.workorder_id, req.executor_id) {
+    match tracker.start(req.work_order_id, req.executor_id) {
         Ok(started_at) => Ok(Json(StartTimeResponse {
-            workorder_id: req.workorder_id,
+            work_order_id: req.work_order_id,
             started_at,
         })),
         Err(e) => Err((
@@ -30,9 +30,9 @@ pub async fn stop_timer(
     State(tracker): State<Arc<TimeTracker>>,
     Json(req): Json<StopTimeRequest>,
 ) -> Result<Json<StopTimeResponse>, (StatusCode, Json<ErrorResponse>)> {
-    match tracker.stop(req.workorder_id) {
+    match tracker.stop(req.work_order_id) {
         Ok(result) => Ok(Json(StopTimeResponse {
-            workorder_id: req.workorder_id,
+            work_order_id: req.work_order_id,
             started_at: result.started_at,
             stopped_at: result.stopped_at,
             duration_seconds: result.duration_seconds,
@@ -46,7 +46,7 @@ pub async fn stop_timer(
 
 pub async fn timer_status(
     State(tracker): State<Arc<TimeTracker>>,
-    workorder_id: u64,
+    work_order_id: u64,
 ) -> Json<TimerStatusResponse> {
-    Json(tracker.status(workorder_id))
+    Json(tracker.status(work_order_id))
 }

@@ -21,7 +21,7 @@ async fn main() {
     let app = Router::new()
         .route("/timer/start", post(start_timer))
         .route("/timer/stop", post(stop_timer))
-        .route("/timer/:workorder_id", get(timer_status))
+        .route("/timer/:work_order_id", get(timer_status))
         .with_state(tracker);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 9000));
