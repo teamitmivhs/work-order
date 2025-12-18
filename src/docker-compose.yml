@@ -34,6 +34,7 @@ services:
       DB_USER: adminit2025
       DB_PASSWORD: databaseit2045
       DB_NAME: dbwoit
+      TIME_TRACKER_URL: "http://time-tracker:9000"
     expose:
       - "8080"
     networks:
