@@ -11,6 +11,8 @@ type MemberRepository interface {
 	GetAllMembers() ([]models.Member, error)
 	CreateMember(member *models.Member) error
 	GetMemberByName(name string) (*models.Member, error)
+	GetMemberByID(id int) (*models.Member, error)
+	IsMemberAssigned(orderID int64, memberID int) (bool, error)
 }
 
 type memberRepository struct {
@@ -48,8 +50,18 @@ func (r *memberRepository) GetAllMembers() ([]models.Member, error) {
 }
 
 func (r *memberRepository) CreateMember(member *models.Member) error {
-	_, err := config.DB.Exec("INSERT INTO members (Name, Password, Role, Status, Avatar) VALUES (?, ?, ?, ?, ?)", member.Name, member.Password, member.Role, member.Status, member.Avatar)
-	return err
+	result, err := config.DB.Exec("INSERT INTO members (Name, Password, Role, Status, Avatar) VALUES (?, ?, ?, ?, ?)", member.Name, member.Password, member.Role, member.Status, member.Avatar)
+	if err != nil {
+		return err
+	}
+	
+	// Get inserted ID
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	member.ID = int(id)
+	return nil
 }
 
 func (r *memberRepository) GetMemberByName(name string) (*models.Member, error) {
@@ -60,4 +72,25 @@ func (r *memberRepository) GetMemberByName(name string) (*models.Member, error) 
 		return nil, err
 	}
 	return &m, nil
+}
+
+func (r *memberRepository) GetMemberByID(id int) (*models.Member, error) {
+	row := config.DB.QueryRow("SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE ID = ?", id)
+
+	var m models.Member
+	if err := row.Scan(&m.ID, &m.Name, &m.Password, &m.Role, &m.Status, &m.Avatar); err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+// IsMemberAssigned checks if member is assigned to an order
+func (r *memberRepository) IsMemberAssigned(orderID int64, memberID int) (bool, error) {
+	row := config.DB.QueryRow("SELECT COUNT(*) FROM executors WHERE ID = ? AND Executors = ?", orderID, memberID)
+	
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
