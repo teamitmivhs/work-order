@@ -54,7 +54,7 @@ func (r *memberRepository) CreateMember(member *models.Member) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Get inserted ID
 	id, err := result.LastInsertId()
 	if err != nil {
@@ -87,7 +87,7 @@ func (r *memberRepository) GetMemberByID(id int) (*models.Member, error) {
 // IsMemberAssigned checks if member is assigned to an order
 func (r *memberRepository) IsMemberAssigned(orderID int64, memberID int) (bool, error) {
 	row := config.DB.QueryRow("SELECT COUNT(*) FROM executors WHERE ID = ? AND Executors = ?", orderID, memberID)
-	
+
 	var count int
 	if err := row.Scan(&count); err != nil {
 		return false, err

@@ -3,6 +3,7 @@ package routes
 import (
 	"teamitmivhs/work-order-backend/config"
 	"teamitmivhs/work-order-backend/controllers"
+	"teamitmivhs/work-order-backend/middleware"
 	"teamitmivhs/work-order-backend/repository"
 
 	"github.com/gin-gonic/gin"
@@ -19,20 +20,32 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 	workOrderRepo := repository.NewWorkOrderRepository(db)
 	workOrderCtrl := controllers.NewWorkOrderController(workOrderRepo)
 
-	// Daftarkan endpoint untuk mengambil semua member
+	// Public endpoint (no auth required)
 	api.GET("/members", controllers.GetMembersHandler)
 
-	workorders := api.Group("/workorders")
+	// Protected endpoints (auth required)
+	protected := api.Group("")
+	protected.Use(middleware.AuthMiddleware())
 	{
-		// CREATE
-		workorders.POST("", workOrderCtrl.CreateTaskHandler)
+		// Kaizen metrics - accessible to all authenticated users
+		protected.GET("/kaizen", workOrderCtrl.GetKaizenHandler)
 
-		// READ
-		workorders.GET("", workOrderCtrl.GetTaskListHandler) // Ambil semua order
+		workorders := protected.Group("/workorders")
+		{
+			// Create work order
+			workorders.POST("", workOrderCtrl.CreateTaskHandler)
 
-		// OPERASI KRUSIAL
-		workorders.POST("/:id/take", workOrderCtrl.TakeOrderHandler)          // Ambil Order (Start Progress)
-		workorders.PATCH("/:id/complete", workOrderCtrl.CompleteOrderHandler) // Tandai Selesai
-		workorders.DELETE("/:id", workOrderCtrl.DeleteOrderHandler)           // Hapus Order
+			// Get work orders (filtered by role)
+			workorders.GET("", workOrderCtrl.GetTaskListHandler)
+
+			// Work order operations
+			workorders.POST("/:id/take", workOrderCtrl.TakeOrderHandler)
+			workorders.PATCH("/:id/complete", workOrderCtrl.CompleteOrderHandler)
+			workorders.DELETE("/:id", middleware.AdminMiddleware(), workOrderCtrl.DeleteOrderHandler)
+
+			// Safety checklist endpoints
+			workorders.GET("/:id/checklist", workOrderCtrl.GetSafetyChecklistHandler)
+			workorders.PUT("/:id/checklist", workOrderCtrl.UpdateSafetyChecklistHandler)
+		}
 	}
 }

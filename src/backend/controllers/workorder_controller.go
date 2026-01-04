@@ -4,16 +4,18 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
-	"time"
 
+	"teamitmivhs/work-order-backend/middleware"
 	"teamitmivhs/work-order-backend/models"
 	"teamitmivhs/work-order-backend/repository"
+	"teamitmivhs/work-order-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 type WorkOrderController struct {
-	Repo repository.WorkOrderRepository
+	Repo       repository.WorkOrderRepository
+	MemberRepo repository.MemberRepository
 }
 
 var (
@@ -23,316 +25,306 @@ var (
 )
 
 func NewWorkOrderController(repo repository.WorkOrderRepository) *WorkOrderController {
-	return &WorkOrderController{Repo: repo}
+	return &WorkOrderController{
+		Repo:       repo,
+		MemberRepo: repository.NewMemberRepository(),
+	}
 }
 
 // GetTaskListHandler menangani request GET /api/workorders
+// Filter berdasarkan role user
 func (ctrl *WorkOrderController) GetTaskListHandler(c *gin.Context) {
-	tasks, err := ctrl.Repo.GetAllTasks()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve tasks from database", "details": err.Error()})
+	userID := middleware.GetUserIDFromContext(c)
+	userRole := middleware.GetUserRoleFromContext(c)
+
+	var tasks []models.WorkOrder
+	var err error
+
+	// Filter berdasarkan role
+	switch userRole {
+	case "Admin":
+		// Admin melihat semua orders
+		tasks, err = ctrl.Repo.GetAllTasks()
+	case "Operator":
+		// Operator hanya melihat orders yang mereka assigned
+		tasks, err = ctrl.Repo.GetTasksByExecutor(userID)
+	default:
+		utils.Forbidden(c, "Invalid role")
 		return
 	}
 
-	c.JSON(http.StatusOK, tasks)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to retrieve tasks", err)
+		return
+	}
+
+	utils.RespondSuccess(c, http.StatusOK, tasks)
 }
 
 // CreateTaskHandler menangani request POST /api/workorders
 func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 	var req models.WorkOrderRequest
 
-	// 1. Baca dan Bind Payload dari JSON
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload", "details": err.Error()})
+		utils.BadRequest(c, "Invalid request payload", err.Error())
 		return
 	}
 
-	// 2. Validasi sederhana
-	if req.Priority == "" || req.Requester == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Priority and Requester are required"})
+	// Validasi input
+	if req.Priority == "" {
+		utils.BadRequest(c, "Priority is required")
+		return
+	}
+	if req.Requester == "" {
+		utils.BadRequest(c, "Requester is required")
+		return
+	}
+	if req.Location == "" {
+		utils.BadRequest(c, "Location is required")
+		return
+	}
+	if req.Device == "" {
+		utils.BadRequest(c, "Device is required")
+		return
+	}
+	if req.Problem == "" {
+		utils.BadRequest(c, "Problem description is required")
 		return
 	}
 
-	// Pastikan Status di set ke pending jika tidak ada atau salah
+	// Validasi priority
+	validPriorities := []string{"low", "medium", "high", "urgent"}
+	isValidPriority := false
+	for _, p := range validPriorities {
+		if req.Priority == p {
+			isValidPriority = true
+			break
+		}
+	}
+	if !isValidPriority {
+		utils.BadRequest(c, "Invalid priority. Must be: low, medium, high, or urgent")
+		return
+	}
+
+	// Set default status
 	if req.Status == "" {
 		req.Status = "pending"
 	}
 
-	// 3. Panggil Repository untuk menyimpan data
 	newID, err := ctrl.Repo.CreateTask(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save task to database"})
+		utils.InternalServerError(c, "Failed to save task", err)
 		return
 	}
 
-	// 4. Kirim Respon Sukses
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Work Order created successfully",
-		"id":      newID, // Mengembalikan ID yang baru dibuat
-	})
+	utils.RespondWithMessage(c, http.StatusCreated, "Work order created successfully", gin.H{"id": newID})
 }
 
 // TakeOrderHandler: POST /api/workorders/{id}/take
+// Hanya member yang di-assign yang bisa take order
 func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Order ID"})
+		utils.BadRequest(c, "Invalid Order ID")
 		return
 	}
 
+	userID := middleware.GetUserIDFromContext(c)
+
 	var req models.TakeWorkOrder
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		utils.BadRequest(c, "Invalid request payload", err.Error())
 		return
 	}
 
 	if req.Status != "progress" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Status must be 'progress' to take order"})
+		utils.BadRequest(c, "Status must be 'progress' to take order")
+		return
+	}
+
+	// Check if member is assigned to this order
+	isAssigned, err := ctrl.MemberRepo.IsMemberAssigned(orderID, userID)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to check assignment", err)
+		return
+	}
+
+	if !isAssigned {
+		utils.Forbidden(c, "You are not assigned to this work order")
 		return
 	}
 
 	err = ctrl.Repo.TakeOrder(orderID, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to take order"})
+		utils.InternalServerError(c, "Failed to take order", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Order taken successfully", "order_id": orderID})
+	utils.RespondWithMessage(c, http.StatusOK, "Order taken successfully", gin.H{"id": orderID})
 }
 
 // CompleteOrderHandler: PATCH /api/workorders/{id}/complete
+// Validasi: hanya assigned member, safety checklist fulfilled
 func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Order ID"})
+		utils.BadRequest(c, "Invalid Order ID")
 		return
 	}
 
+	userID := middleware.GetUserIDFromContext(c)
+
 	var req models.CompleteWorkOrder
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		utils.BadRequest(c, "Invalid request payload", err.Error())
 		return
 	}
 
 	if req.Status != "completed" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Status must be 'completed'"})
+		utils.BadRequest(c, "Status must be 'completed'")
+		return
+	}
+
+	// Check if member is assigned to this order
+	isAssigned, err := ctrl.MemberRepo.IsMemberAssigned(orderID, userID)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to check assignment", err)
+		return
+	}
+
+	if !isAssigned {
+		utils.Forbidden(c, "You are not assigned to this work order")
+		return
+	}
+
+	// Validasi safety checklist
+	checklistFulfilled, err := ctrl.Repo.IsSafetyChecklistFulfilled(orderID)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to check safety checklist", err)
+		return
+	}
+
+	if !checklistFulfilled {
+		utils.BadRequest(c, "Safety checklist must be completed before finishing the work order")
 		return
 	}
 
 	err = ctrl.Repo.CompleteOrder(orderID, req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to complete order"})
+		utils.InternalServerError(c, "Failed to complete order", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Order completed successfully", "order_id": orderID})
+	utils.RespondWithMessage(c, http.StatusOK, "Order completed successfully", gin.H{"id": orderID})
 }
 
 // DeleteOrderHandler: DELETE /api/workorders/{id}
+// Hanya admin yang bisa delete
 func (ctrl *WorkOrderController) DeleteOrderHandler(c *gin.Context) {
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Order ID"})
+		utils.BadRequest(c, "Invalid Order ID")
 		return
 	}
 
 	err = ctrl.Repo.DeleteOrder(orderID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete order"})
+		utils.InternalServerError(c, "Failed to delete order", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Order deleted successfully", "order_id": orderID})
+	utils.RespondWithMessage(c, http.StatusOK, "Order deleted successfully", gin.H{"id": orderID})
 }
 
-func GetWorkOrders(c *gin.Context) {
-	mu.Lock()
-	defer mu.Unlock()
-	c.JSON(http.StatusOK, workOrders)
-}
-
-func CreateWorkOrder(c *gin.Context) {
-	var w models.WorkOrder
-	if err := c.ShouldBindJSON(&w); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	mu.Lock()
-	w.ID = nextID
-	nextID++
-	if w.Status == "" {
-		w.Status = "pending"
-	}
-	if w.Time == "" {
-		w.Time = time.Now().Format("15:04")
-	}
-	workOrders = append(workOrders, w)
-	mu.Unlock()
-
-	c.JSON(http.StatusCreated, w)
-}
-
-func UpdateWorkOrder(c *gin.Context) {
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
+// GetSafetyChecklistHandler: GET /api/workorders/{id}/checklist
+func (ctrl *WorkOrderController) GetSafetyChecklistHandler(c *gin.Context) {
+	orderIDStr := c.Param("id")
+	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		utils.BadRequest(c, "Invalid Order ID")
 		return
 	}
 
-	var payload models.WorkOrder
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-	for i := range workOrders {
-		if workOrders[i].ID == id {
-			if payload.Executors != nil {
-				workOrders[i].Executors = payload.Executors
-			}
-			if payload.Status != "" {
-				workOrders[i].Status = payload.Status
-			}
-			if payload.SafetyChecklist != nil {
-				workOrders[i].SafetyChecklist = payload.SafetyChecklist
-			}
-			if payload.WorkingHours != nil {
-				workOrders[i].WorkingHours = payload.WorkingHours
-			}
-			c.JSON(http.StatusOK, workOrders[i])
-			return
-		}
-	}
-
-	c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
-}
-
-func DeleteWorkOrder(c *gin.Context) {
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
+	checklist, err := ctrl.Repo.GetSafetyChecklist(orderID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		utils.InternalServerError(c, "Failed to retrieve safety checklist", err)
 		return
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
-	for i := range workOrders {
-		if workOrders[i].ID == id {
-			workOrders = append(workOrders[:i], workOrders[i+1:]...)
-			c.JSON(http.StatusOK, gin.H{"deleted": id})
-			return
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+	utils.RespondSuccess(c, http.StatusOK, gin.H{"checklist": checklist})
 }
 
-func GetSummary(c *gin.Context) {
-	mu.Lock()
-	defer mu.Unlock()
-	total := len(workOrders)
-	pending := 0
-	progress := 0
-	for _, o := range workOrders {
-		if o.Status == "pending" {
-			pending++
-		} else if o.Status == "progress" {
-			progress++
-		}
-	}
-	completed := 0
-	executorMembersMap := make(map[int]models.Member) // To store unique executor members
-
-	memberRepo := repository.NewMemberRepository()
-	allMembers, err := memberRepo.GetAllMembers()
+// UpdateSafetyChecklistHandler: PUT /api/workorders/{id}/checklist
+func (ctrl *WorkOrderController) UpdateSafetyChecklistHandler(c *gin.Context) {
+	orderIDStr := c.Param("id")
+	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve members for summary"})
+		utils.BadRequest(c, "Invalid Order ID")
 		return
 	}
 
-	memberIDToMember := make(map[int]models.Member)
-	for _, member := range allMembers {
-		memberIDToMember[member.ID] = member
+	var req struct {
+		ChecklistItems []string `json:"checklist_items" binding:"required"`
 	}
 
-	for _, o := range workOrders {
-		if o.Status == "pending" {
-			pending++
-		} else if o.Status == "progress" {
-			progress++
-		} else if o.Status == "completed" {
-			completed++
-			for _, executorID := range o.Executors {
-				if member, ok := memberIDToMember[executorID]; ok {
-					executorMembersMap[executorID] = member
-				}
-			}
-		}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
 	}
 
-	var uniqueExecutorMembers []models.Member
-	for _, member := range executorMembersMap {
-		uniqueExecutorMembers = append(uniqueExecutorMembers, member)
+	if len(req.ChecklistItems) == 0 {
+		utils.BadRequest(c, "Checklist items cannot be empty")
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"total": total, "pending": pending, "progress": progress, "completed": completed, "executors": uniqueExecutorMembers})
+	err = ctrl.Repo.UpdateSafetyChecklist(orderID, req.ChecklistItems)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to update safety checklist", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Safety checklist updated successfully", nil)
 }
 
-func GetKaizen(c *gin.Context) {
-	mu.Lock()
-	defer mu.Unlock()
-	total := len(workOrders)
-	pending := 0
-	progress := 0
-	for _, o := range workOrders {
-		if o.Status == "pending" {
-			pending++
-		} else if o.Status == "progress" {
-			progress++
-		}
+// GetKaizenHandler: GET /api/kaizen
+// Return kaizen/performance metrics
+func (ctrl *WorkOrderController) GetKaizenHandler(c *gin.Context) {
+	metrics, err := ctrl.Repo.GetKaizenMetrics()
+	if err != nil {
+		utils.InternalServerError(c, "Failed to retrieve kaizen metrics", err)
+		return
 	}
-	completed := total - pending - progress
-	completionRate := 0
-	if total > 0 {
-		completionRate = (completed * 100) / total
-	}
-	rating := "Perlu perbaikan"
-	suggestion := "Investigasi hambatan kerja."
-	if completionRate >= 80 {
-		rating = "Sempurna"
-		suggestion = "Pertahankan kinerja tim."
-	} else if completionRate >= 60 {
-		rating = "Baik"
-		suggestion = "Performa baik, namun masih ada ruang untuk peningkatan."
-	} else if completionRate >= 40 {
-		rating = "Cukup"
-		suggestion = "Perbaikan perlu dipertimbangkan."
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"total":          total,
-		"pending":        pending,
-		"progress":       progress,
-		"completed":      completed,
-		"completionRate": completionRate,
-		"rating":         rating,
-		"suggestion":     suggestion,
-	})
+
+	utils.RespondSuccess(c, http.StatusOK, metrics)
 }
 
+// GetMembersHandler: GET /api/members
 func GetMembersHandler(c *gin.Context) {
 	memberRepo := repository.NewMemberRepository()
 	members, err := memberRepo.GetAllMembers()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve members"})
+		utils.InternalServerError(c, "Failed to retrieve members", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, members)
+	// Don't send passwords
+	for i := range members {
+		members[i].Password = ""
+	}
+
+	utils.RespondSuccess(c, http.StatusOK, members)
 }
+
+// OLD IN-MEMORY FUNCTIONS - DEPRECATED (KEEPING FOR REFERENCE BUT NOT USED)
+// These have been replaced with database-driven implementations above
+
+/*
+func CreateWorkOrder(c *gin.Context) { ... }
+func UpdateWorkOrder(c *gin.Context) { ... }
+func DeleteWorkOrder(c *gin.Context) { ... }
+func GetSummary(c *gin.Context) { ... }
+func GetKaizen(c *gin.Context) { ... }
+*/

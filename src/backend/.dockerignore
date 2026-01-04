@@ -8,3 +8,17 @@ workorder-server
 
 # Docker files
 Dockerfile
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+Makefile 
+.DS_Store
+node_modules/
+dist/
+
+.md 

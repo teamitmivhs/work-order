@@ -1,0 +1,65 @@
+services:
+  time-tracker:
+    build:
+      context: ./rust-engine
+      dockerfile: Dockerfile
+    container_name: work-order-time-tracker
+    restart: unless-stopped
+    expose:
+      - "9000"
+    networks:
+      - workorder-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: work-order-backend
+    restart: unless-stopped
+    depends_on:
+      - time-tracker
+    environment:
+      # Point ke MySQL external di server
+      DB_HOST: ${DB_HOST:-localhost}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USER: ${DB_USER:-adminit2025}
+      DB_PASSWORD: ${DB_PASSWORD:-databaseit2045}
+      DB_NAME: ${DB_NAME:-dbwoit}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      TIME_TRACKER_URL: "http://time-tracker:9000"
+    expose:
+      - "8080"
+    networks:
+      - workorder-net
+    # Retry logic untuk menunggu database siap
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: work-order-nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./index.html:/usr/share/nginx/html/index.html
+      - ./login.html:/usr/share/nginx/html/login.html
+      - ./register.html:/usr/share/nginx/html/register.html
+      - ./summary.html:/usr/share/nginx/html/summary.html
+      - ./kaizen.html:/usr/share/nginx/html/kaizen.html
+      - ./techguide.html:/usr/share/nginx/html/techguide.html
+      - ./static:/usr/share/nginx/html/static
+    networks:
+      - workorder-net
+
+networks:
+  workorder-net:
+    driver: bridge

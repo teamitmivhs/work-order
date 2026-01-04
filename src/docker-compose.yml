@@ -10,25 +10,18 @@ services:
       MYSQL_PASSWORD: databaseit2045
     
     volumes:
-      - db_data:/var/lib/mysql
+      # Use named volume for persistent storage
+      - work-order-mysql-data:/var/lib/mysql
+      # Initialize database on first run
       - ./db:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
     networks:
       - workorder-net
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "adminit2025", "-pdatabaseit2045"]
       timeout: 20s
       retries: 10
-
-  time-tracker:
-    build:
-      context: ./rust-engine
-      dockerfile: Dockerfile
-    container_name: work-order-time-tracker
-    restart: unless-stopped
-    expose:
-      - "9000"
-    networks:
-      - workorder-net
 
   backend:
     build:
@@ -39,17 +32,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      time-tracker:
-        condition: service_started
     environment:
       DB_HOST: db
       DB_PORT: 3306
       DB_USER: adminit2025
       DB_PASSWORD: databaseit2045
       DB_NAME: dbwoit
-      TIME_TRACKER_URL: "http://time-tracker:9000"
-    expose:
-      - "8080"
+      JWT_SECRET: "your-secret-key-change-in-production-12345"
+    ports:
+      - "8080:8080"
     networks:
       - workorder-net
 
@@ -73,7 +64,7 @@ services:
       - workorder-net
 
 volumes:
-  db_data:
+  work-order-mysql-data:
 
 networks:
   workorder-net:
