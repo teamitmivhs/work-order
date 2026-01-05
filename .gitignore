@@ -1,0 +1,61 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+/build/
+/dist/
+/out/
+
+# Go
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.a
+go.sum
+work-order-backend
+work-order-backend.exe
+workorder
+workorder-server
+*.log
+server.log
+
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+.rust_backtrace
+
+# Node (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+.mysql_history
+
+# Temporary files
+*.tmp
+*.bak
+
+# Makefile - should not be in repo
+Makefile
