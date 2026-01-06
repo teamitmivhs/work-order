@@ -4,6 +4,7 @@ use axum::{
 };
 use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
+use tracing_subscriber;
 
 mod models;
 mod state;
@@ -16,6 +17,9 @@ use web_api::{start_timer, stop_timer, timer_status};
 
 #[tokio::main]
 async fn main() {
+    // Initialize logging/tracing
+    tracing_subscriber::fmt::init();
+
     let state = AppState::new();
     let tracker = Arc::new(TimeTracker::new(state));
 
@@ -26,9 +30,19 @@ async fn main() {
         .with_state(tracker);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 9000));
-    let listener = TcpListener::bind(addr).await.unwrap();
-
-    println!("⏱ Time Tracker running on {}", addr);
-
-    axum::serve(listener, app).await.unwrap();
+    
+    match TcpListener::bind(addr).await {
+        Ok(listener) => {
+            println!("⏱ Time Tracker running on {}", addr);
+            
+            if let Err(e) = axum::serve(listener, app).await {
+                eprintln!("Server error: {}", e);
+                std::process::exit(1);
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to bind to {}: {}", addr, e);
+            std::process::exit(1);
+        }
+    }
 }
