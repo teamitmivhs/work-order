@@ -1,16 +1,31 @@
- new Swiper(".mySwiper", {
-  loop: true,
-  autoplay: { delay: 2400 },
-  pagination: { el: ".swiper-pagination", clickable: true },
-});
+// ===== WELCOME BANNER ANIMATION =====
+// Slide up animation menggunakan CSS keyframes - NO DEPENDENCIES
 
+// CSS animation sudah ditangani di index.html
+// Tidak perlu JavaScript animation untuk welcome banner
 
 const btn = document.getElementById("profileDropdownBtn");
 const menu = document.getElementById("profileDropdown");
 
+
 btn.addEventListener("click", () => {
   menu.classList.toggle("hidden");
 });
+
+// Logout button handler
+const logoutBtn = menu.querySelector('button');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', function() {
+    // Clear all session data
+    localStorage.removeItem('isGuestUser');
+    localStorage.removeItem('guestLoginTime');
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('userToken');
+    
+    // Redirect to login page
+    window.location.href = 'login.html';
+  });
+}
 
 // Klik di luar dropdown untuk menutup
 document.addEventListener("click", (e) => {
@@ -228,7 +243,33 @@ function updateQuickSummaryTitle() {
 // Member Status Management
 document.addEventListener('DOMContentLoaded', async function () {
   
+  // ===== WELCOME BANNER ANIMATION (CSS-based) =====
+  // Animation sudah ditangani oleh CSS keyframes di index.html
+  // Tidak perlu inisialisasi JavaScript
+
   let members = [];
+  
+  // ===== GUEST USER DETECTION =====
+  const isGuestUser = localStorage.getItem('isGuestUser') === 'true';
+  
+  // If guest user, show create order popup immediately and disable other interactions
+  if (isGuestUser) {
+    setTimeout(() => {
+      const createOrderPopup = document.getElementById('createOrderPopup');
+      if (createOrderPopup) {
+        createOrderPopup.classList.remove('hidden');
+      }
+    }, 500);
+  }
+  
+  // Function to restrict guest user actions
+  function checkGuestRestriction(action = 'action') {
+    if (isGuestUser) {
+      showPopup('Access Denied', `Guests can only create work orders. ${action} is not allowed.`, 'warning');
+      return true;
+    }
+    return false;
+  }
   
   // DOM elements for DOM
   const memberStatusPopup = document.getElementById('memberStatusPopup');
@@ -248,9 +289,15 @@ document.addEventListener('DOMContentLoaded', async function () {
   const createOrderPopup = document.getElementById('createOrderPopup');
   const closeCreateOrderPopupBtn = document.getElementById('closeCreateOrderPopup');
   const cancelCreateOrderBtn = document.getElementById('cancelCreateOrderBtn');
+  const exitGuestBtn = document.getElementById('exitGuestBtn');
   const createOrderForm = document.getElementById('createOrderForm');
   const createOrderBtn = document.getElementById('createOrderBtn');
   const orderRequesterInput = document.getElementById('orderRequester');
+
+  // Show exit guest button if user is guest
+  if (isGuestUser && exitGuestBtn) {
+    exitGuestBtn.classList.remove('hidden');
+  }
 
   // New elements for specific location
   const orderLocationSelect = document.getElementById('orderLocation');
@@ -436,6 +483,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     container.addEventListener('click', function (e) {
       // Prevent opening popup if clicking on a member image
       if (!e.target.closest('.member-images') && !e.target.closest('.more-members')) {
+        if (checkGuestRestriction('Viewing/managing member status')) return;
+        
         // Set filter to clicked status
         const status = this.dataset.status;
         currentStatusFilter = status;
@@ -598,6 +647,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   closeCreateOrderPopupBtn.addEventListener('click', function () {
+    if (isGuestUser) {
+      showPopup('Guest Restriction', 'You must create at least one work order before closing.', 'warning');
+      return;
+    }
     hideAnimatedPopup(createOrderPopup);
     createOrderForm.reset();
     // Hide specific location field when closing
@@ -605,12 +658,47 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   cancelCreateOrderBtn.addEventListener('click', function () {
+    if (isGuestUser) {
+      showPopup('Guest Restriction', 'You must create at least one work order before closing.', 'warning');
+      return;
+    }
     hideAnimatedPopup(createOrderPopup);
     createOrderForm.reset();
     // Hide specific location field when canceling
     specificLocationContainer.classList.add('hidden');
   });
 
+  // Exit guest button handler
+  if (exitGuestBtn) {
+    exitGuestBtn.addEventListener('click', function () {
+      // Clear guest session and redirect to login
+      localStorage.removeItem('isGuestUser');
+      localStorage.removeItem('guestLoginTime');
+      showPopup('Guest Session Ended', 'You have exited guest mode. Returning to login page...', 'info');
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 1500);
+    });
+  }
+
+  // Exit guest mode - allow guest to exit without creating order
+  if (exitGuestBtn) {
+    exitGuestBtn.addEventListener('click', function () {
+      // Clear guest session
+      localStorage.removeItem('isGuestUser');
+      localStorage.removeItem('guestLoginTime');
+      
+      // Hide popup
+      hideAnimatedPopup(createOrderPopup);
+      createOrderForm.reset();
+      specificLocationContainer.classList.add('hidden');
+      
+      // Hide exit button again
+      exitGuestBtn.classList.add('hidden');
+      
+      showPopup('Guest Mode Ended', 'You have exited guest mode. You can now view the dashboard.', 'success');
+    });
+  }
 
 
 
@@ -907,6 +995,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Add event listeners for take order buttons (empty executor slots become take order buttons)
     document.querySelectorAll('.take-order-btn').forEach(btn => {
       btn.addEventListener('click', function () {
+        if (checkGuestRestriction('Taking orders')) return;
         const orderId = parseInt(this.dataset.orderId);
         openTakeOrderPopup(orderId);
       });
@@ -915,6 +1004,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Add event listeners for add worker buttons (for pending orders with existing workers)
     document.querySelectorAll('.add-worker-btn').forEach(btn => {
       btn.addEventListener('click', function () {
+        if (checkGuestRestriction('Adding workers')) return;
         const orderId = parseInt(this.dataset.orderId);
         openAddWorkerPopup(orderId);
       });
@@ -923,6 +1013,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Add event listeners for delete buttons
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', function () {
+        if (checkGuestRestriction('Deleting orders')) return;
         const orderId = parseInt(this.dataset.orderId);
         deleteOrder(orderId);
       });
@@ -931,6 +1022,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Add event listeners for done buttons
     document.querySelectorAll('.done-btn').forEach(btn => {
       btn.addEventListener('click', function () {
+        if (checkGuestRestriction('Completing orders')) return;
         const orderId = parseInt(this.dataset.orderId);
         markOrderDone(orderId);
       });
@@ -1640,6 +1732,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // ===== GUEST LOGIN HANDLER =====
+    const guestLoginBtn = document.getElementById('guestLoginBtn');
+    if (guestLoginBtn) {
+        guestLoginBtn.addEventListener('click', function() {
+            // Set guest session in localStorage
+            localStorage.setItem('isGuestUser', 'true');
+            localStorage.setItem('guestLoginTime', new Date().toISOString());
+            
+            showModal('Welcome Guest! You can only create work orders.');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        });
+    }
+
     // Login form submission
     const loginForm = document.querySelector('.login-form');
     if (loginForm) {
@@ -1658,6 +1765,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.message) {
+                    // Clear guest status if logging in as admin
+                    localStorage.removeItem('isGuestUser');
+                    localStorage.removeItem('guestLoginTime');
+                    localStorage.setItem('isAdmin', 'true');
+                    
                     showModal('Login successful!');
                     setTimeout(() => {
                         window.location.href = 'index.html';

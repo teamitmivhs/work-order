@@ -14,14 +14,28 @@ services:
       - work-order-mysql-data:/var/lib/mysql
       # Initialize database on first run
       - ./db:/docker-entrypoint-initdb.d
-    ports:
-      - "3306:3306"
     networks:
       - workorder-net
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "adminit2025", "-pdatabaseit2045"]
       timeout: 20s
       retries: 10
+
+  time-tracker:
+    build:
+      context: ./rust-engine
+      dockerfile: Dockerfile
+    container_name: work-order-time-tracker
+    restart: unless-stopped
+    expose:
+      - "9000"
+    networks:
+      - workorder-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/timer/1 || exit 1"]
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
   backend:
     build:
@@ -32,6 +46,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      time-tracker:
+        condition: service_started
     environment:
       DB_HOST: db
       DB_PORT: 3306
@@ -39,8 +55,9 @@ services:
       DB_PASSWORD: databaseit2045
       DB_NAME: dbwoit
       JWT_SECRET: "your-secret-key-change-in-production-12345"
-    ports:
-      - "8080:8080"
+      TIME_TRACKER_URL: "http://time-tracker:9000"
+    expose:
+      - "8080"
     networks:
       - workorder-net
 
@@ -56,6 +73,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       - ./index.html:/usr/share/nginx/html/index.html
       - ./login.html:/usr/share/nginx/html/login.html
+      - ./register.html:/usr/share/nginx/html/register.html
       - ./summary.html:/usr/share/nginx/html/summary.html
       - ./kaizen.html:/usr/share/nginx/html/kaizen.html
       - ./techguide.html:/usr/share/nginx/html/techguide.html
