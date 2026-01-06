@@ -62,34 +62,67 @@ func setupStaticRoutes(r *gin.Engine) {
 }
 
 func setupPageRoutes(r *gin.Engine) {
+	// Auth pages
+	r.GET("/login.html", func(c *gin.Context) {
+		c.File("../login.html")
+	})
+	r.GET("/login", func(c *gin.Context) {
+		c.File("../login.html")
+	})
+
+	r.GET("/register.html", func(c *gin.Context) {
+		c.File("../register.html")
+	})
+	r.GET("/register", func(c *gin.Context) {
+		c.File("../register.html")
+	})
+
+	// Dashboard
 	r.GET("/", func(c *gin.Context) {
 		c.File("../index.html")
 	})
 
+	// TechGuide page
 	r.GET("/techguide", func(c *gin.Context) {
 		c.File("../techguide.html")
 	})
 	r.GET("/src/techguide.html", func(c *gin.Context) {
 		c.File("../techguide.html")
 	})
+	r.GET("/techguide.html", func(c *gin.Context) {
+		c.File("../techguide.html")
+	})
 
+	// Summary page
 	r.GET("/summary", func(c *gin.Context) {
 		c.File("../summary.html")
 	})
 	r.GET("/src/summary.html", func(c *gin.Context) {
 		c.File("../summary.html")
 	})
+	r.GET("/summary.html", func(c *gin.Context) {
+		c.File("../summary.html")
+	})
 
+	// Kaizen page
 	r.GET("/kaizen", func(c *gin.Context) {
 		c.File("../kaizen.html")
 	})
 	r.GET("/src/kaizen.html", func(c *gin.Context) {
 		c.File("../kaizen.html")
 	})
+	r.GET("/kaizen.html", func(c *gin.Context) {
+		c.File("../kaizen.html")
+	})
 
+	// Fallback: serve index.html for any unmatched route (SPA behavior)
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
 		switch path {
+		case "/login.html":
+			c.File("../login.html")
+		case "/register.html":
+			c.File("../register.html")
 		case "/techguide.html":
 			c.File("../techguide.html")
 		case "/summary.html":
