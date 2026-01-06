@@ -1,52 +1,8 @@
-// ===== VANILLA JS SPLIT TEXT ANIMATION (100% PURE) =====
-// Animasi split text untuk dashboard - NO DEPENDENCIES
+// ===== WELCOME BANNER ANIMATION =====
+// Slide up animation menggunakan CSS keyframes - NO DEPENDENCIES
 
-/**
- * Vanilla JS Split Text Animation - Pure CSS + JavaScript
- * @param {HTMLElement} element - Element yang akan dianimasikan
- * @param {Object} options - Opsi animasi (charDelay, duration)
- */
-function initSplitTextAnimation(element, options = {}) {
-  if (!element || !element.textContent) return;
-
-  const config = {
-    charDelay: 50, // Delay antar character (ms)
-    duration: 0.6, // Duration per character (s)
-    ...options
-  };
-
-  document.fonts.ready.then(() => {
-    const text = element.textContent;
-    const words = text.split(' ');
-    
-    // Clear dan recreate dengan split characters
-    element.innerHTML = '';
-    let charIndex = 0;
-    
-    words.forEach((word, wordIndex) => {
-      const wordSpan = document.createElement('span');
-      wordSpan.className = 'split-word';
-      
-      for (let i = 0; i < word.length; i++) {
-        const charSpan = document.createElement('span');
-        charSpan.className = 'split-char';
-        charSpan.textContent = word[i];
-        charSpan.style.animationDelay = `${charIndex * config.charDelay}ms`;
-        wordSpan.appendChild(charSpan);
-        charIndex++;
-      }
-      
-      element.appendChild(wordSpan);
-      
-      // Add space between words
-      if (wordIndex < words.length - 1) {
-        const space = document.createElement('span');
-        space.textContent = ' ';
-        element.appendChild(space);
-      }
-    });
-  });
-}
+// CSS animation sudah ditangani di index.html
+// Tidak perlu JavaScript animation untuk welcome banner
 
 const btn = document.getElementById("profileDropdownBtn");
 const menu = document.getElementById("profileDropdown");
@@ -287,29 +243,9 @@ function updateQuickSummaryTitle() {
 // Member Status Management
 document.addEventListener('DOMContentLoaded', async function () {
   
-  // ===== INITIALIZE SPLIT TEXT ANIMATION (VANILLA) =====
-  const welcomeTitle = document.getElementById('welcomeTitle');
-  if (welcomeTitle) {
-    initSplitTextAnimation(welcomeTitle, {
-      charDelay: 45,
-      duration: 0.6
-    });
-  }
-
-  const welcomeSubtitle = document.getElementById('welcomeSubtitle');
-  if (welcomeSubtitle) {
-    // Count total chars di title untuk delay subtitle
-    const titleText = document.getElementById('welcomeTitle')?.textContent || '';
-    const totalChars = titleText.replace(/\s/g, '').length;
-    const titleAnimationTime = totalChars * 45 + 600; // 45ms per char + duration
-    
-    setTimeout(() => {
-      initSplitTextAnimation(welcomeSubtitle, {
-        charDelay: 50,
-        duration: 0.6
-      });
-    }, titleAnimationTime + 100);
-  }
+  // ===== WELCOME BANNER ANIMATION (CSS-based) =====
+  // Animation sudah ditangani oleh CSS keyframes di index.html
+  // Tidak perlu inisialisasi JavaScript
 
   let members = [];
   
