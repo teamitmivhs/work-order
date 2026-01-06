@@ -38,9 +38,5 @@ RUN chmod +x /wait-for-db.sh
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
-
-
-
-
 # Command to run the executable
 CMD ["/work-order-backend"]
