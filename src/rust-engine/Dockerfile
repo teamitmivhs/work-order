@@ -4,7 +4,7 @@ FROM rust:1.78-slim AS builder
 WORKDIR /app
 
 # Copy manifest dulu biar dependency ke-cache
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 
 # Dummy src biar cargo build jalan
 RUN mkdir src && echo "fn main() {}" > src/main.rs

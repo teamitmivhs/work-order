@@ -56,8 +56,8 @@ services:
       DB_NAME: dbwoit
       JWT_SECRET: "your-secret-key-change-in-production-12345"
       TIME_TRACKER_URL: "http://time-tracker:9000"
-    expose:
-      - "8080"
+    ports:
+      - "8080:8080"
     networks:
       - workorder-net
 
