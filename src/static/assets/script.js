@@ -4,6 +4,28 @@
 // CSS animation sudah ditangani di index.html
 // Tidak perlu JavaScript animation untuk welcome banner
 
+// ===== REFRESH PAGE FUNCTIONALITY =====
+const refreshBtn = document.getElementById('refreshBtn');
+const refreshIcon = document.getElementById('refreshIcon');
+
+if (refreshBtn) {
+  refreshBtn.addEventListener('click', function() {
+    // Add spinning animation
+    refreshIcon.style.transform = 'rotate(0deg)';
+    refreshIcon.style.transition = 'transform 0.6s linear';
+    
+    // Start rotation animation
+    setTimeout(() => {
+      refreshIcon.style.transform = 'rotate(360deg)';
+    }, 10);
+    
+    // Reload page after animation starts
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
+  });
+}
+
 const btn = document.getElementById("profileDropdownBtn");
 const menu = document.getElementById("profileDropdown");
 
