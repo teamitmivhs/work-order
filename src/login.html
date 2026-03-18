@@ -1,71 +1,125 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="static/assets/style.css" />
-  </head>
-  <body class="font-poppins bg-gray-100 flex justify-center items-center min-h-screen p-4">
-    <div class="w-full max-w-sm bg-white p-6 sm:p-8 rounded-lg shadow-md text-center">
-      <img src="static/public/itlogo.png" alt="IT Logo" class="w-24 mx-auto mb-6" />
-      <h2 class="text-2xl font-bold text-gray-800 mb-6">Login</h2>
-      <form class="login-form space-y-4">
-        <div class="input-group text-left">
-          <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          />
-        </div>
-        <div class="input-group text-left">
-          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-        >
-          Login
-        </button>
-      </form>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/assets/style.css" />
+</head>
+<body class="font-poppins bg-gray-100 flex justify-center items-center min-h-screen p-4">
 
-      <!-- Guest Login Button -->
-      <button
-        type="button"
-        id="guestLoginBtn"
-        class="w-full mt-3 py-2 px-4 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors"
-      >
-        Login as Guest
-      </button>
-
-      <p class="text-sm text-gray-600 mt-4">
-        Don't have an account? <a href="register.html" class="text-blue-600 hover:underline">Register here</a>
-      </p>
-    </div>
-
-    <!-- The Modal -->
-    <div id="myModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-40 flex items-center justify-center p-4">
-      <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl relative">
-        <span class="close absolute top-2 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold cursor-pointer">&times;</span>
-        <p id="modal-message" class="mt-4 text-center text-lg"></p>
+  <div class="w-full max-w-sm bg-white p-6 sm:p-8 rounded-lg shadow-md text-center">
+    <img src="static/public/itlogo.png" alt="IT Logo" class="w-24 mx-auto mb-6" />
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Login</h2>
+    <form class="login-form space-y-4">
+      <div class="input-group text-left">
+        <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+        <input type="text" id="username" name="username" required
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
       </div>
-    </div>
+      <div class="input-group text-left">
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <input type="password" id="password" name="password" required
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+      </div>
+      <button type="submit"
+        class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+        Login
+      </button>
+    </form>
 
-    <script src="static/assets/script.js"></script>
-  </body>
+    <button type="button" id="guestLoginBtn"
+      class="w-full mt-3 py-2 px-4 bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors">
+      Login as Guest
+    </button>
+
+    <p class="text-sm text-gray-600 mt-4">
+      Don't have an account? <a href="register.html" class="text-blue-600 hover:underline">Register here</a>
+    </p>
+  </div>
+
+  <!-- Modal -->
+  <!-- FIX #5: Modal konsisten pakai class 'hidden' untuk show/hide.
+       Script di bawah juga pakai classList, bukan style.display,
+       sehingga backdrop-click berfungsi dengan benar. -->
+  <div id="myModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl relative">
+      <button class="close absolute top-2 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold" aria-label="Tutup">&times;</button>
+      <p id="modal-message" class="mt-4 text-center text-lg"></p>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('myModal');
+    const modalMessage = document.getElementById('modal-message');
+
+    // FIX #5: showModal dan hideModal konsisten pakai classList (bukan style.display)
+    function showModal(message) {
+      modalMessage.textContent = message;
+      modal.classList.remove('hidden');
+    }
+
+    function hideModal() {
+      modal.classList.add('hidden');
+    }
+
+    // Tutup dengan tombol ×
+    document.querySelector('.close').addEventListener('click', hideModal);
+
+    // FIX #5: Tutup dengan klik backdrop — konsisten karena keduanya cek classList.contains('hidden')
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) hideModal();
+    });
+
+    // Guest login
+    document.getElementById('guestLoginBtn').addEventListener('click', function () {
+      localStorage.setItem('isGuestUser', 'true');
+      localStorage.setItem('guestLoginTime', new Date().toISOString());
+      showModal('Welcome Guest! You can only create work orders.');
+      setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+    });
+
+    // Login form
+    const loginForm = document.querySelector('.login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const submitBtn = loginForm.querySelector('[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+
+        const name = e.target.username.value;
+        const password = e.target.password.value;
+
+        fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, password })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.data && data.data.token) {
+            localStorage.removeItem('isGuestUser');
+            localStorage.removeItem('guestLoginTime');
+            localStorage.setItem('isAdmin', 'true');
+            localStorage.setItem('userToken', data.data.token);
+            showModal('Login successful!');
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+          } else {
+            showModal(data.message || 'Login failed');
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+          }
+        })
+        .catch(() => {
+          showModal('An error occurred. Please try again.');
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+        });
+      });
+    }
+  </script>
+</body>
 </html>
