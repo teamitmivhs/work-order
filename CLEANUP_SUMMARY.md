@@ -1,78 +1,178 @@
-# Repository Cleanup & Structure Verification Summary
+# Repository Cleanup & Refactoring Summary
 
-**Date**: January 5, 2026  
+**Last Updated**: March 2026  
 **Status**: ✅ COMPLETE
 
-## What Was Accomplished
+---
 
-### 1. ✅ Rust Build Artifacts Cleanup
-- **Deleted**: `/src/rust-engine/target/` directory (removed ~1000+ compiled object files)
-- **Deleted**: `/src/rust-engine/Cargo.lock` (removed lockfile for clean rebuilds)
-- **Benefit**: Significantly reduces repository size; clean rebuilds will use latest dependencies
+## Overview
 
-### 2. ✅ Go Backend Route Updates
-- **File**: `src/backend/main.go`
-- **Changes**: Added routes for `login.html` and `register.html` pages
-- **Added Endpoints**:
-  - `GET /login.html`, `GET /login`
-  - `GET /register.html`, `GET /register`
-- **Benefit**: Users can access login and register pages from backend (local dev) or nginx (Docker)
+Dokumen ini merangkum semua perubahan signifikan yang dilakukan pada sistem Work Order MIVHS, mencakup perbaikan bug, refactoring, dan peningkatan fitur di seluruh stack (Go backend, Rust engine, frontend, database, dan Docker).
 
-### 3. ✅ Documentation Cleanup  
-- **Removed Redundant Files**:
-  - `QUICK_START_DOCKER.md` (merged into DOCKER_GUIDE.md)
-  - `DOCKER_SETUP.md` (outdated production setup guide)
-  - `BACKEND_COMPLETE_STATUS.md` (historical refactoring status)
-  - `BACKEND_REFACTORING_SUMMARY.md` (historical refactoring notes)
-  - `README_BACKEND_REFACTORING.md` (historical documentation)
-  - `IMPROVEMENTS.md` (outdated improvements list)
-  - `DEPLOYMENT.md` (replaced by DOCKER_GUIDE.md)
+---
 
-- **Kept Essential Documentation**:
-  - `README.md` - Project overview
-  - `DOCKER_GUIDE.md` - Complete Docker deployment guide
-  - `API_REFERENCE.md` - API endpoint documentation
-  - `TODO.md` - Current tasks and improvements
-  - `.gitignore` - Git exclusion rules
-  - `CLEANUP_SUMMARY.md` - This file
+## 1. Go Backend
 
-### 4. ✅ .gitignore Configuration
-- **File**: `.gitignore` (created/updated)
-- **Key Exclusions**:
-  - Makefile (explicitly excluded for deployment)
-  - `src/rust-engine/target/` (build artifacts)
-  - `src/rust-engine/Cargo.lock` (dependency lockfile)
-  - Go binaries (work-order-backend, workorder, etc.)
-  - Go build files (*.a, *.o, go.sum)
-  - Database files, logs, IDE settings
-  - OS files (.DS_Store, Thumbs.db)
+### Bug Fixes
+- **`TakeOrder` logika assignment terbalik** — Pengecekan `IsMemberAssigned` sebelum take dihapus (logika keliru). Sekarang cek dilakukan hanya di `CompleteOrder`.
+- **`CompleteOrder` resource leak** — `rows.Close()` ditambah secara eksplisit sebelum `tx.Exec()` untuk mencegah deadlock transaksi.
+- **`DeleteOrder` tidak reset status member** — Sekarang member yang `onjob` di-reset ke `standby` saat order dihapus.
+- **`UpdateMemberStatus` tidak sync ke API** — Sekarang memanggil `PATCH /api/members/:id/status` ke database.
+- **Race condition di `TakeOrder`** — Pengecekan status executor dipindah ke dalam transaksi dengan `SELECT FOR UPDATE`.
+- **`sql.NullString` tidak kompatibel JSON** — Diganti `*string` pada field `CompletedAt`.
+- **`Requester any`** — Diganti `string` karena selalu berupa string dari database.
+- **Duplikat `exitGuestBtn` listener** — Digabung menjadi satu handler.
+- **Empty slice vs null** — Semua fungsi repository diinisialisasi dengan `make([]T, 0)` bukan `var slice []T`.
 
-### 5. ✅ File Reference Verification
-- **HTML Files**: All references use relative paths (`/static/assets/style.css`, `static/assets/script.js`)
-- **script.js**: API endpoints use absolute paths (`/api/workorders`, `/api/login`, etc.)
-- **docker-compose.yml**: Volume mounts correctly map files to nginx container
-- **main.go**: File paths use relative paths (`../index.html`, `../static`) for local dev
+### Endpoints Baru
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| `POST` | `/api/logout` | Logout user |
+| `PATCH` | `/api/members/:id/status` | Update status member |
+| `PATCH` | `/api/workorders/:id` | Update executor list order |
 
-## Repository Structure After Cleanup
+### Perubahan Struktur
+- **`WorkOrderRequest.CompletedAt`** — `sql.NullString` → `*string`
+- **`WorkOrder.Requester`** — `any` → `string`
+- **`UpdateWorkOrderRequest`** — struct baru untuk PATCH endpoint
+- **Response format** — Semua response konsisten `{ code, message, data }`
+
+### Keamanan
+- **`db.go`** — `DB_USER` dan `DB_PASSWORD` wajib dari env (tidak ada fallback hardcoded)
+- **`jwt.go`** — Secret dibaca dengan `sync.Once` saat pertama dibutuhkan, bukan saat package init
+- **Rate limiting** — 10 req/menit per IP pada `/login` dan `/register`
+- **`INTERNAL_API_KEY`** — Shared secret antara Go dan Rust
+
+### Integrasi Timer
+- `TakeOrder` sekarang memanggil `services.StartTimer()` setelah commit
+- `CompleteOrder` sekarang memanggil `services.StopTimer()`, durasi disimpan ke `working_hours`
+- `time_tracker.go` (Go client) diperbarui: return `(int64, error)`, kirim `X-Internal-Key` header, baca URL saat runtime bukan startup
+
+---
+
+## 2. Rust Time Tracker
+
+### Bug Fixes
+- **`std::sync::Mutex` blocking** — Diganti `tokio::sync::Mutex` untuk async context
+- **`now()` silent zero** — Diganti return `Result<i64, String>` agar error clock terdeteksi
+- **`stop()` `stopped_at` salah** — Sekarang return tuple `(started_at, stopped_at, duration)` dengan `stopped_at` aktual
+- **Durasi negatif** — Ditambah `.max(0)` guard
+- **`executor_id` tidak divalidasi** — Sekarang validasi sama dengan `work_order_id`
+- **`chrono` dan `uuid`** — Dihapus dari `Cargo.toml` (tidak dipakai, menambah build time)
+
+### Fitur Baru
+- **`X-Internal-Key` authentication** — Semua endpoint diproteksi
+- **`GET /timers`** — List semua timer aktif
+- **`PORT` env variable** — Port bisa dikonfigurasi
+- **`list_active()`** — Method baru di `TimeTracker`
+- **`impl Default for AppState`** — Idiomatis Go/Rust
+- **Health check** menampilkan jumlah timer aktif
+
+---
+
+## 3. Database Schema
+
+### Perubahan Tabel `members`
+| Perubahan | Sebelum | Sesudah |
+|-----------|---------|---------|
+| Kolom Password | Tidak ada | `VARCHAR(255) NOT NULL DEFAULT ''` |
+| Kolom Role | `ENUM('programmer','maintenance',...)` | `VARCHAR(50)` |
+| Constraint | Tidak ada | `UNIQUE (name)` |
+| Data rows 26-34 | Ada trailing space | Sudah di-trim |
+
+### Perubahan Tabel `executors`
+| Perubahan | Sebelum | Sesudah |
+|-----------|---------|---------|
+| Nama kolom | `ID`, `Executors` | `order_id`, `member_id` |
+| FK ke members | Tidak ada | `ON DELETE CASCADE` |
+
+### Perubahan Tabel `safetychecklist`
+| Perubahan | Sebelum | Sesudah |
+|-----------|---------|---------|
+| Nama kolom | `ID` | `order_id` |
+| Panjang kolom | `VARCHAR(50)` | `VARCHAR(255)` |
+| FK | Tidak ada cascade | `ON DELETE CASCADE` |
+
+### Perubahan Tabel `orders`
+| Perubahan | Sebelum | Sesudah |
+|-----------|---------|---------|
+| `CompletedAt` | `DATETIME` | `VARCHAR(20)` |
+| `Notes` | Tidak ada | `TEXT DEFAULT NULL` |
+
+---
+
+## 4. Frontend
+
+### Bug Fixes
+- **Welcome banner tidak terbaca** — `text-[#333]` di background gelap → `text-white`
+- **Footer layout rusak** — `div.col-span-3` di luar grid → `<footer>` semantic
+- **Dropdown conflict** — CSS `group-hover:block` + JS `toggle` → JS only
+- **`viewbox` typo** — Diperbaiki ke `viewBox` di semua SVG (8+ instance)
+- **Mobile menu salah posisi** — Ditambah CSS `.mobile-menu-active` untuk dropdown vertikal
+- **User profile hardcoded** — Sekarang dibaca dari JWT token + `GET /api/profile`
+- **`.status-completed` blink terus** — Dihapus animasi, diganti warna statis
+- **`summary.html` + `kaizen.html` pakai localStorage** — Dimigrasi ke API
+- **`colspan="10"` salah** — Diperbaiki ke `12` sesuai jumlah kolom
+- **Kabel LAN step 3 terpotong** — Konten dilengkapi
+- **Modal backdrop tidak bisa tutup** — Konsistenkan `classList` vs `style.display`
+
+### script.js Fixes
+- **Crash di halaman login** — Ditambah null check untuk elemen navbar
+- **Duplikat login/register listener** — Blok `DOMContentLoaded` kedua dihapus
+- **API response format** — Ditambah `unwrapData()` untuk handle `{ code, message, data }`
+- **Missing `Authorization` header** — Ditambah `authHeaders()` helper di semua protected fetch
+- **GSAP null check** — Dibungkus `if (typeof gsap !== 'undefined')`
+- **`logoutBtn` index salah** — `querySelector('button')` → `querySelectorAll('button')[1]`
+- **Mobile menu resize** — Ditambah `window.addEventListener('resize', ...)` reset
+
+---
+
+## 5. Docker & Infrastructure
+
+### docker-compose.yml
+- **Credentials tidak hardcode** — Semua pakai `${VAR}` dari `.env`
+- **`INTERNAL_API_KEY`** — Ditambah ke backend dan time-tracker
+- **`time-tracker` depends_on** — `service_started` → `service_healthy`
+- **`nginx` depends_on** — Dari `condition: service_healthy` (backend tidak punya healthcheck) → `- backend`
+- **Volume mounts** — Ditambah `:ro` (read-only) untuk file HTML/CSS/JS di nginx
+- **Backend healthcheck dihapus** — `wget --spider HEAD /health` selalu 404 karena Gin hanya daftarkan GET. Backend sudah punya retry logic ke DB sendiri.
+
+### Dockerfile Rust
+- **`COPY Cargo.toml Cargo.lock`** — Diubah opsional (tanpa Cargo.lock jika belum ada)
+- **`HEALTHCHECK`** — Ditambah menggunakan `/health` endpoint
+- **`touch src/main.rs`** — Ditambah agar cargo tidak skip recompile
+
+### .env
+- **`.env.example`** — Ditambah `INTERNAL_API_KEY`
+- **`.env.production`** — Diperbarui sesuai variable baru
+
+---
+
+## Struktur Repository Saat Ini
 
 ```
-/home/parothegreat/work-order/
-├── .git/                          # Git repository
-├── .gitignore                     # ✅ Git ignore rules (Makefile excluded)
-├── README.md                      # Project overview
-├── DOCKER_GUIDE.md               # ✅ Docker deployment guide
-├── API_REFERENCE.md              # API documentation
-├── TODO.md                        # Current tasks
-├── CLEANUP_SUMMARY.md            # This cleanup summary
-├── setup.sh                       # Setup script
+work-order/
+├── .gitignore
+├── README.md
+├── DOCKER_GUIDE.md
+├── API_REFERENCE.md
+├── TODO.md
+├── CLEANUP_SUMMARY.md
 ├── nginx/
-│   └── nginx.conf                # Nginx configuration
+│   └── nginx.conf
 └── src/
+    ├── .env                    ← dibuat dari .env.example (tidak di-commit)
+    ├── .env.example
+    ├── .env.production
+    ├── docker-compose.yml
+    ├── docker-compose.external-db.yml
+    ├── docker-compose.persistent.yml
     ├── backend/
-    │   ├── main.go               # ✅ Updated with login/register routes
     │   ├── Dockerfile
+    │   ├── main.go
     │   ├── go.mod
     │   ├── go.sum
+    │   ├── wait-for-db.sh      ← tidak dipakai (digantikan healthcheck compose)
     │   ├── config/
     │   ├── controllers/
     │   ├── middleware/
@@ -83,117 +183,27 @@
     │   └── utils/
     ├── rust-engine/
     │   ├── Cargo.toml
+    │   ├── Cargo.lock          ← generate dengan: cargo generate-lockfile
     │   ├── Dockerfile
-    │   ├── src/                  # ✅ Cargo.lock and target/ removed
-    │   └── (target/ and Cargo.lock deleted)
-    ├── db/                        # SQL initialization files
+    │   └── src/
+    ├── db/
+    │   └── schema_mysql.sql    ← schema lengkap (ganti 4 file SQL lama)
     ├── nginx/
-    │   └── nginx.conf            # Nginx reverse proxy config
+    │   └── nginx.conf
     ├── static/
     │   ├── assets/
-    │   │   ├── script.js         # ✅ Guest login feature
+    │   │   ├── script.js
     │   │   └── style.css
-    │   └── public/
-    ├── docker-compose.yml         # ✅ Docker Compose configuration
-    ├── docker-compose.external-db.yml
-    ├── docker-compose.persistent.yml
-    ├── index.html                 # ✅ Dashboard page
-    ├── login.html                 # ✅ Login with guest button
-    ├── register.html              # Registration page
-    ├── summary.html               # Summary page
-    ├── kaizen.html                # Kaizen metrics page
-    └── techguide.html             # Tech guide page
+    │   └── public/             ← avatar images
+    ├── index.html
+    ├── login.html
+    ├── register.html
+    ├── summary.html
+    ├── kaizen.html
+    └── techguide.html
 ```
-
-## Git Changes Summary
-
-### Changes to Be Committed:
-1. **Modified Files**:
-   - `src/backend/main.go` - Added login/register routes
-   - `src/rust-engine/src/main.rs` - Error handling improvements
-   - `src/rust-engine/src/time_tracker.rs` - Proper Result types
-   - `src/rust-engine/src/web_api.rs` - Comprehensive error responses
-   - `src/docker-compose.yml` - Time-tracker service configuration
-   - `src/index.html` - Guest feature styling
-   - `src/login.html` - Guest login button
-
-2. **Deleted Files** (will be removed from Git):
-   - `src/rust-engine/Cargo.lock`
-   - `src/rust-engine/target/*` (all build artifacts)
-   - Documentation files (7 files removed)
-
-3. **New Files**:
-   - `.gitignore` - Git exclusion rules
-   - `DOCKER_GUIDE.md` - Docker deployment guide
-   - `CLEANUP_SUMMARY.md` - This file
-
-### What's Still Tracked:
-- All source code (.go, .rs, .html, .js, .css files)
-- Configuration files (Cargo.toml, go.mod, docker-compose.yml, etc.)
-- Documentation and guides
-- SQL database initialization scripts
-
-### What's Now Ignored:
-- `Makefile` - Ready for your project-specific Makefile
-- Build artifacts - `target/`, `*.exe`, `*.o`, `go.sum`, etc.
-- IDE files - `.vscode/`, `.idea/`, `*.swp`, etc.
-- Environment files - `.env`, `.env.local`
-- Temporary files - `*.log`, `*.bak`, `*.tmp`
-
-## How to Push These Changes
-
-```bash
-cd /home/parothegreat/work-order
-
-# Stage all changes
-git add -A
-
-# Commit with clear message
-git commit -m "chore: clean up repository, remove build artifacts, update routes
-
-- Remove Rust target/ directory and Cargo.lock
-- Remove redundant documentation files
-- Add comprehensive .gitignore with Makefile exclusion
-- Add login/register routes to Go backend
-- Improve route handling in main.go for better path coverage
-- Create DOCKER_GUIDE.md as definitive deployment documentation"
-
-# Push to GitHub
-git push origin main
-```
-
-## Verification Checklist
-
-- ✅ Rust build artifacts deleted (`target/`, `Cargo.lock`)
-- ✅ Go backend routes updated for login/register pages
-- ✅ Redundant documentation removed (7 files)
-- ✅ `.gitignore` created with comprehensive exclusions
-- ✅ Makefile explicitly excluded from Git
-- ✅ All HTML files have correct asset references
-- ✅ script.js guest login feature integrated
-- ✅ docker-compose.yml properly configured
-- ✅ Repository ready for clean push to GitHub
-
-## Next Steps
-
-1. **Commit and Push** these cleanup changes to GitHub
-2. **Build Docker images** with clean repository
-3. **Run `docker compose up -d`** to verify all services start correctly
-4. **Test guest login workflow** at http://localhost/login.html
-5. **Test admin login** with credentials from database
-6. **Verify all file references** work correctly
-
-## Notes for Future Maintenance
-
-- When adding new files, ensure they're either:
-  - Tracked if they're source code
-  - Excluded in `.gitignore` if they're build artifacts
-- Keep documentation synchronized with actual implementation
-- Makefile can now be added locally for development without being tracked
-- Clean rebuilds will work properly without Cargo.lock in Git
 
 ---
 
-**Created**: January 5, 2026  
-**Repository**: teamitmivhs/work-order  
-**Status**: Ready for deployment
+**Updated**: March 2026  
+**Repository**: teamitmivhs/work-order

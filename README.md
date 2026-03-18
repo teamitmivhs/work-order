@@ -1,12 +1,10 @@
 # IT Work Order System – MIVHS
 
-This is a project of an IT MIVHS Work Order and Helpdesk system designed for the **TEAM IT MIVHS**.  
-The goal is to provide a simple, fast, and user‑friendly interface for requests, helps, and any other thing related to devices on SMK MITRA INDUSTRI MM2100
+A work order and helpdesk system for **TEAM IT MIVHS**, designed to provide a simple, fast, and user-friendly interface for managing IT requests and devices at SMK MITRA INDUSTRI MM2100.
 
 ## 👥 About the Project
 
-This system was created for internal use by the **Web developer of IT MIVHS Team**.  
-It's a complete **full-stack microservices-based work order management system** with:
+Built for internal use by the **IT MIVHS Team**. A complete **full-stack microservices-based work order management system** with:
 
 - ✅ **Frontend UI** (HTML, TailwindCSS, Vanilla JS)
 - ✅ **Backend API** (Go + Gin Framework)
@@ -14,304 +12,295 @@ It's a complete **full-stack microservices-based work order management system** 
 - ✅ **MySQL Database** with health checks
 - ✅ **Nginx Reverse Proxy**
 - ✅ **Multi-service Docker Compose orchestration**
+- ✅ **JWT Authentication** with role-based access (Admin / Operator)
 - ✅ **Real-time status tracking**
 - ✅ **Team member management**
 - ✅ **Safety checklist system**
 - ✅ **Performance evaluation (Kaizen)**
 - ✅ **Audit trail & history tracking**
-- ✅ **Responsive design**
-- ✅ **User authentication system**
+- ✅ **Evaluation notes per work order**
+- ✅ **Responsive design** (mobile-friendly)
+- ✅ **Rate limiting** on auth endpoints
+- ✅ **Internal API key** between Go backend and Rust service
+
+---
 
 ## 🚀 Getting Started
 
-To get the project up and running, follow these steps:
+### Prerequisites
+- Docker Engine 20.10+
+- Docker Compose v2+
+- Port 80 and 443 available on host
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/parothegreat/work-order.git
-   cd work-order
-   ```
+### 1. Clone Repository
+```bash
+git clone https://github.com/teamitmivhs/work-order.git
+cd work-order/src
+```
 
-2. **Run the application:**
-   The easiest way to run the application is using Docker Compose.
-   ```bash
-   docker-compose up -d
-   ```
-   
-   This will start the following services:
-   - `db`: MySQL 8.0 database with automatic initialization
-   - `time-tracker`: Rust-based microservice for time tracking
-   - `work-order-backend`: Go backend API with Gin framework
-   - `work-order-nginx`: Nginx reverse proxy serving the frontend
+### 2. Create Environment File
+```bash
+cp .env.example .env
+```
 
-3. **Access the application:**
-   Once the services are running, you can access the application in your browser:
-   - **Main Application**: [http://localhost](http://localhost)
-   - **Summary Page**: [http://localhost/summary](http://localhost/summary)
-   - **Kaizen Page**: [http://localhost/kaizen](http://localhost/kaizen)
-   - **TechGuide Page**: [http://localhost/techguide](http://localhost/techguide)
+Edit `.env` and fill in all required values:
+
+```env
+DB_HOST=db
+DB_PORT=3306
+DB_USER=adminit2025
+DB_PASSWORD=your_secure_password
+DB_NAME=dbwoit
+MYSQL_ROOT_PASSWORD=your_root_password
+JWT_SECRET=your_random_secret_min_32_chars
+INTERNAL_API_KEY=your_random_hex_key
+```
+
+Generate secure keys:
+```bash
+# JWT_SECRET
+openssl rand -base64 32
+
+# INTERNAL_API_KEY
+openssl rand -hex 32
+```
+
+### 3. Run with Docker Compose
+```bash
+docker compose up -d --build
+```
+
+### 4. Access the Application
+| Page | URL |
+|------|-----|
+| Dashboard | http://localhost |
+| Login | http://localhost/login.html |
+| Register | http://localhost/register.html |
+| Summary | http://localhost/summary.html |
+| Kaizen | http://localhost/kaizen.html |
+| TechGuide | http://localhost/techguide.html |
+
+---
 
 ## 🏗️ Architecture
 
-The system follows a microservices architecture:
+```
+Browser
+  ↓
+┌─────────────────────────────┐
+│     Nginx (Port 80/443)     │
+│  Static files + API proxy   │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│    Go Backend (Port 8080)    │
+│   REST API + JWT Auth        │
+└──────┬───────────────┬───────┘
+       │               │
+       ▼               ▼
+┌────────────┐  ┌──────────────────┐
+│ MySQL 8.0  │  │ Rust Time Tracker│
+│ (Port 3306)│  │   (Port 9000)    │
+└────────────┘  └──────────────────┘
+```
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Nginx         │    │   Go Backend     │    │  Rust Time      │
-│   (Frontend)    │◄──►│   (API Server)   │◄──►│  Tracker        │
-│   Port: 80      │    │   Port: 8080     │    │  Port: 9000     │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌──────────────────┐
-                       │   MySQL 8.0      │
-                       │   Database       │
-                       │   Port: 3306     │
-                       └──────────────────┘
-```
+---
 
 ## 📌 Features
 
 ### Core Functionality
-- **Work Order Management**: Create, assign, track, and complete IT work orders
-- **Team Member Management**: Monitor technician status and availability
-- **Real-time Status Tracking**: Live updates on work order progress
-- ** Ensure compliance with safetySafety Checklist System**: protocols
-- **Time Tracking**: Automatic work duration logging
-- **Performance Analytics**: Kaizen dashboard for team evaluation
+- **Work Order Management** — Create, assign, track, and complete IT work orders
+- **Team Member Management** — Monitor technician availability and status (Stand By, On Job, Support, Next Shift, Off Duty)
+- **Safety Checklist System** — Location-specific safety checklists enforced before work begins
+- **Automatic Time Tracking** — Working hours calculated by Rust service and saved to database
+- **Evaluation Notes** — Add and view notes per completed work order
+- **Performance Analytics (Kaizen)** — Completion rate, average time, and documentation quality metrics
 
-### Technical Features
-- **Microservices Architecture**: Scalable service-based design
-- **Health Checks**: Automatic service monitoring and recovery
-- **Service Dependencies**: Proper startup sequencing between services
-- **User Authentication**: Secure login/registration system
-- **Responsive Design**: Mobile-friendly interface
-- **Error Resilience**: Graceful degradation when database is unavailable
+### Security & Auth
+- **JWT Authentication** — 24-hour token expiry
+- **Role-based Access** — Admin sees all orders; Operator sees only assigned orders
+- **Rate Limiting** — 10 requests/minute per IP on `/login` and `/register`
+- **Internal API Key** — Shared secret between Go backend and Rust time tracker
+- **Password Policy** — Minimum 8 chars, must include uppercase, lowercase, and digit
 
-## 🛠 Technologies Used
+### Technical
+- **Microservices Architecture** — Go, Rust, MySQL, Nginx as separate containers
+- **Docker health checks** — MySQL and Rust service health-checked before backend starts
+- **Retry logic** — Backend retries DB connection up to 30 times on startup
+- **Empty array responses** — API always returns `[]` not `null` for list endpoints
+- **Consistent response format** — All responses use `{ code, message, data }` structure
+- **ON DELETE CASCADE** — Child records (executors, checklist) auto-deleted with parent order
 
-### Frontend
-- **HTML5** - Modern semantic markup
-- **CSS3** (TailwindCSS + custom styles) - Utility-first CSS framework
-- **JavaScript** (vanilla) - Interactive frontend logic
+---
 
-### Backend Services
-- **Go** - Main backend API server
-- **Gin Framework** - High-performance Go web framework
-- **Rust** - Time tracking microservice for optimal performance
-- **Axum** - Modern, fast web framework for Rust
+## 🔄 Workflow
 
-### Database & Infrastructure
-- **MySQL 8.0** - Primary database with auto-initialization
-- **Docker** - Containerization platform
-- **Docker Compose** - Multi-container orchestration
-- **Nginx** - Reverse proxy and static file serving
-
-## 🔄 Work Flow
-
-This system follows a structured workflow to handle work orders efficiently:
-
-### **1. Create Work Order (Requests from helpdesk)**
+### 1. Create Work Order
 ```
-Requester/User
-  ↓
-  Click "Create Orders" button
-  ↓
-  Fill form:
-    - Fill the requester name
-    - Priority (High, Medium, Low)
-    - Location (Gedung A, B, C, etc)
-    - Device (Printer, PC, CCTV, etc)
-    - Problem description
-  ↓
-  Submit → Order enters table with status "Pending"
+User → Click "Create Orders" → Fill form (priority, requester, location, device, problem)
+     → Submit → Status: "Pending"
 ```
 
-### **2. Take Order (Assign Work)**
+### 2. Take Order
 ```
-Technician
-  ↓
-  View work orders in main table
-  ↓
-  Click empty slot or order ID
-  ↓
-  - Select available operators (status: Stand By)
-  - Review & approve safety checklist per location
-  - Click "Confirm"
-  ↓
-  Status changes: "Pending" → "On Progress"
-  IT Team status: "Stand By" → "On Job"
+Operator → Click take button → Select standby operators → Review safety checklist
+         → Confirm → Status: "On Progress" | Operator status: "On Job"
+         → Rust time tracker starts automatically
 ```
 
-### **3. Work in Progress (Executing Job)**
+### 3. Complete Order
 ```
-Order status: "On Progress"
-  ↓
-  Technician executes the work
-  ↓
-  Working hours are recorded by Rust time tracker service
-  ↓
-  Can update team member status (Support, etc) if needed
+Operator → Click done button → Status: "Completed" | Operator status: "Stand By"
+         → Rust time tracker stops → Working hours saved to database
 ```
 
-### **4. Mark as Done (Complete Job)**
+### 4. Review & Evaluate
 ```
-Technician
-  ↓
-  Click "Done" button in table row
-  ↓
-  (Optional) Fill evaluation notes:
-    - What was done
-    - Solution applied
-    - Notes for improvement
-  ↓
-  Submit
-  ↓
-  Status changes: "On Progress" → "Completed"
-  Technician status: "On Job" → "Stand By"
-  Order enters Summary page
+Admin → Summary page → View history → Add evaluation notes
+      → Kaizen page → View completion rate, avg time, notes quality
 ```
 
-### **5. Review Summary (View History)**
-```
-IT Teacher/Admin
-  ↓
-  Click "Summary" hyperlink in navbar
-  ↓
-  View table: Completed work orders with:
-    - Order ID, Priority, Time, Requester
-    - Location, Device, Problem
-    - Completion timestamp
-    - Evaluation notes
-  ↓
-  Can edit notes for additional feedback
-  ↓
-  Analyze data for Kaizen improvement
-```
-
-### **6. Kaizen Activity (Performance Evaluation)**
-```
-Manager can view metrics:
-  - Total work orders
-  - Pending orders
-  - On progress orders
-  - Completed orders
-  
-Completion Rate = (Completed / Total) × 100%
-
-Rating based on completion rate:
-  - Excellent (80%+) → "Keep up the good work"
-  - Good (60-79%) → "Focus on reducing pending"
-  - Fair (40-59%) → "Consider process improvements"
-  - Needs Improvement (<40%) → "Investigate bottlenecks"
-```
+---
 
 ## 🐳 Docker Services
 
-The system consists of four main Docker services:
+| Service | Image/Source | Port | Purpose |
+|---------|-------------|------|---------|
+| `db` | `mysql:8.0` | 3306 (internal) | Primary database |
+| `time-tracker` | `./rust-engine` | 9000 (internal) | Work duration tracking |
+| `backend` | `./backend` | 8080 (internal) | REST API server |
+| `nginx` | `nginx:1.25-alpine` | 80, 443 | Reverse proxy + static files |
 
-### Database Service (`db`)
-- **Image**: `mysql:8.0`
-- **Auto-initialization**: Runs SQL scripts from `./db` directory
-- **Health Check**: Automatic connection testing
-- **Volumes**: Persistent data storage
+### Startup Order
+```
+db (healthy) ──┐
+               ├──► backend ──► nginx
+time-tracker ──┘
+   (healthy)
+```
 
-### Time Tracker Service (`time-tracker`)
-- **Built from**: `./rust-engine` directory
-- **Framework**: Rust with Axum
-- **Purpose**: High-performance time tracking microservice
-- **Port**: 9000
+### Available Compose Files
+| File | Use Case |
+|------|----------|
+| `docker-compose.yml` | Default — MySQL in Docker (named volume) |
+| `docker-compose.persistent.yml` | MySQL in Docker (host path `/docker/work-order/mysql-data`) |
+| `docker-compose.external-db.yml` | MySQL external (set `DB_HOST` in `.env`) |
 
-### Backend Service (`backend`)
-- **Built from**: `./backend` directory
-- **Framework**: Go with Gin
-- **Dependencies**: Waits for database and time-tracker services
-- **Port**: 8080
+---
 
-### Nginx Service (`nginx`)
-- **Image**: `nginx:1.25-alpine`
-- **Purpose**: Reverse proxy and static file serving
-- **Port**: 80 (mapped to host)
-- **Dependencies**: Starts after backend service
+## 📊 Database Schema
 
-## 🔧 Development
+| Table | Description |
+|-------|-------------|
+| `members` | Team member accounts, roles, and status |
+| `orders` | Work order records with priority, status, timestamps |
+| `executors` | Many-to-many: orders ↔ members assignment |
+| `safetychecklist` | Safety checklist items per order |
 
-### Prerequisites
-- Docker and Docker Compose
-- Go 1.21+ (for backend development)
-- Rust 1.70+ (for time tracker development)
+**Key schema notes:**
+- `executors` uses columns `order_id` / `member_id` (not `ID` / `Executors`)
+- `safetychecklist` uses column `order_id` (not `ID`)
+- `orders.completed_at` is `VARCHAR(20)` storing display string e.g. `"14:30"`
+- `orders.notes` column added for evaluation notes
+- `members.password` column required for authentication
+- Both child tables have `ON DELETE CASCADE` to parent `orders`
 
-### Manual Development Setup
+---
 
-#### Backend Development
+## 🔐 Authentication
+
+```
+POST /api/register   → Create account (public)
+POST /api/login      → Get JWT token (public, rate limited)
+POST /api/logout     → Logout (protected)
+GET  /api/profile    → Get current user (protected)
+```
+
+Token usage:
+```javascript
+fetch('/api/workorders', {
+  headers: {
+    'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
+    'Content-Type': 'application/json'
+  }
+})
+```
+
+**Roles:**
+- `Admin` — Full access, can delete orders, sees all work orders
+- `Operator` — Can take/complete orders, sees only assigned orders
+
+---
+
+## 🔧 Development (without Docker)
+
+### Backend
 ```bash
 cd src/backend
+
+# Set environment variables (Windows PowerShell)
+$env:DB_HOST="localhost"; $env:DB_PORT="3306"
+$env:DB_USER="adminit2025"; $env:DB_PASSWORD="your_password"
+$env:DB_NAME="dbwoit"; $env:JWT_SECRET="dev-secret"
+$env:INTERNAL_API_KEY="dev-key"
+
 go mod tidy
 go run main.go
 ```
 
-#### Time Tracker Development
+### Rust Time Tracker
 ```bash
 cd src/rust-engine
-cargo build
+
+# Generate Cargo.lock (only needed once)
+cargo generate-lockfile
+
 cargo run
 ```
 
-#### Database Setup
+### After Docker build — save Cargo.lock
 ```bash
-# MySQL database with auto-initialization scripts
-# Scripts located in: src/db/
-# - dbwoit_orders.sql
-# - dbwoit_members.sql
-# - dbwoit_executors.sql
-# - dbwoit_safetychecklist.sql
+docker cp work-order-time-tracker:/app/Cargo.lock ./src/rust-engine/Cargo.lock
 ```
 
-## 📊 Database Schema
+---
 
-The system uses MySQL with the following main tables:
-- **orders**: Work order records
-- **members**: Team member information
-- **executors**: Work assignment tracking
-- **safety_checklist**: Safety compliance records
+## 🔍 Monitoring
 
-## 🔐 Authentication
+```bash
+# Check all service status
+docker compose ps
 
-The system includes user authentication with:
-- **Registration**: New user account creation
-- **Login**: Secure user authentication
-- **Session Management**: JWT-based session handling
-- **Role-based Access**: Different access levels for team members
+# View logs
+docker compose logs -f backend
+docker compose logs -f time-tracker
+docker compose logs -f db
 
-## 📱 Mobile Support
+# Restart a service
+docker compose restart backend
 
-The system is fully responsive and includes:
-- **Collapsible Navigation**: Hamburger menu for mobile devices
-- **Responsive Tables**: Horizontal scroll for work order data
-- **Mobile-friendly Forms**: Optimized input forms
-- **Touch-friendly Interface**: Optimized for touch interactions
+# Full reset (deletes database data)
+docker compose down -v && docker compose up -d --build
+```
 
-## 🔍 Monitoring & Health Checks
-
-The system includes built-in monitoring:
-- **Database Health Checks**: Automatic connection monitoring
-- **Service Dependencies**: Proper startup sequencing
-- **Graceful Degradation**: Continues operating even without database
-- **Local Storage Fallback**: Frontend data persistence when backend unavailable
+---
 
 ## 🚀 Future Enhancements
 
-Planned improvements:
-- Email/Telegram notifications
-- Advanced reporting & analytics
-- Mobile application
-- Real-time notifications via WebSocket
-- Advanced role-based permissions
-- Integration with external IT tools
+- [ ] Email / Telegram notifications for new orders
+- [ ] Advanced reporting & analytics export (PDF/Excel)
+- [ ] Mobile application (iOS/Android)
+- [ ] Real-time notifications via WebSocket
+- [ ] Production SSL/TLS setup via Let's Encrypt
+- [ ] Redis-based rate limiting (for multi-instance deployment)
+- [ ] Timer state persistence (survive Rust service restart)
+
+---
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 

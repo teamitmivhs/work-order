@@ -1,587 +1,503 @@
-# API Reference - Frontend Integration Guide
+# API Reference - IT Work Order System
 
 ## Base URL
 ```
-http://localhost:8080/api
+http://localhost/api
 ```
+> Semua request ke `/api/*` di-proxy oleh Nginx ke Go backend di port 8080.
 
 ---
 
-## Authentication Flow
+## Response Format
 
-### 1. Register
-Create a new user account.
+Semua response menggunakan format konsisten:
 
-**Endpoint**: `POST /user/register`
-
-**Request**:
+**Success:**
 ```json
 {
-  "name": "username",
-  "password": "Password123"
+  "code": 200,
+  "message": "Description",
+  "data": { ... }
 }
 ```
 
-**Password Requirements**:
-- Minimum 8 characters
-- Must contain uppercase letter (A-Z)
-- Must contain lowercase letter (a-z)
-- Must contain digit (0-9)
-
-**Response** (201 Created):
+**Error:**
 ```json
 {
-  "message": "Registration successful",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "member": {
-      "id": 1,
-      "name": "username",
-      "role": "Operator",
-      "status": "standby"
-    }
-  }
+  "code": 400,
+  "message": "Error description",
+  "details": "Optional additional context"
 }
 ```
 
-**Error Responses**:
-- 400 Bad Request: Invalid input or weak password
-- 409 Conflict: Username already exists
+**Common HTTP Status Codes:**
+| Code | Meaning |
+|------|---------|
+| 200 | OK |
+| 201 | Created |
+| 400 | Bad Request — input tidak valid |
+| 401 | Unauthorized — token missing/expired |
+| 403 | Forbidden — tidak punya akses |
+| 404 | Not Found |
+| 409 | Conflict — data sudah ada |
+| 429 | Too Many Requests — rate limit |
+| 500 | Internal Server Error |
 
 ---
 
-### 2. Login
-Authenticate and get JWT token.
+## Authentication
 
-**Endpoint**: `POST /user/login`
-
-**Request**:
-```json
-{
-  "name": "username",
-  "password": "Password123"
-}
-```
-
-**Response** (200 OK):
-```json
-{
-  "message": "Login successful",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "member": {
-      "id": 1,
-      "name": "username",
-      "role": "Operator",
-      "status": "standby"
-    }
-  }
-}
-```
-
-**Error Responses**:
-- 401 Unauthorized: Invalid credentials
-
----
-
-### 3. Get Profile
-Retrieve current user profile.
-
-**Endpoint**: `GET /user/profile`
-
-**Headers**:
+### Token Usage
+Semua protected endpoint wajib mengirim header:
 ```
 Authorization: Bearer <token>
 ```
 
-**Response** (200 OK):
+Token disimpan di `localStorage`:
+```javascript
+// Simpan setelah login
+localStorage.setItem('userToken', data.data.token);
+
+// Pakai di request
+fetch('/api/workorders', {
+  headers: {
+    'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
+    'Content-Type': 'application/json'
+  }
+});
+```
+
+**Token expiry:** 24 jam. Setelah expired, user harus login ulang.
+
+---
+
+## Auth Endpoints
+
+### Register
+`POST /api/register` — Public, rate limited (10 req/menit per IP)
+
+**Request:**
+```json
+{
+  "name": "username",
+  "password": "Password123"
+}
+```
+
+**Password requirements:**
+- Minimum 8 karakter
+- Harus ada huruf besar (A-Z)
+- Harus ada huruf kecil (a-z)
+- Harus ada angka (0-9)
+
+**Response 201:**
+```json
+{
+  "code": 201,
+  "message": "Registration successful",
+  "data": {
+    "token": "eyJhbGci...",
+    "member": {
+      "id": 1,
+      "name": "username",
+      "role": "Operator",
+      "status": "standby"
+    }
+  }
+}
+```
+
+**Errors:** `400` invalid input / weak password, `409` username exists
+
+---
+
+### Login
+`POST /api/login` — Public, rate limited (10 req/menit per IP)
+
+**Request:**
+```json
+{
+  "name": "username",
+  "password": "Password123"
+}
+```
+
+**Response 200:**
+```json
+{
+  "code": 200,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGci...",
+    "member": {
+      "id": 1,
+      "name": "username",
+      "role": "Operator",
+      "status": "standby",
+      "avatar": "avatar.png"
+    }
+  }
+}
+```
+
+**Errors:** `401` invalid credentials
+
+---
+
+### Logout
+`POST /api/logout` — 🔒 Protected
+
+Menginstruksikan client untuk hapus token lokal. Token tidak di-blacklist di server (stateless JWT).
+
+**Response 200:**
+```json
+{
+  "code": 200,
+  "message": "Logged out successfully. Please remove your token on the client side."
+}
+```
+
+---
+
+### Get Profile
+`GET /api/profile` — 🔒 Protected
+
+**Response 200:**
 ```json
 {
   "id": 1,
   "name": "username",
   "role": "Operator",
   "status": "standby",
-  "avatar": ""
+  "avatar": "avatar.png"
 }
 ```
 
-**Error Responses**:
-- 401 Unauthorized: Missing or invalid token
-- 404 Not Found: User not found
-
 ---
 
-## Members Management
+## Members
 
 ### Get All Members
-Retrieve list of all team members (public endpoint).
+`GET /api/members` — Public (tidak butuh token)
 
-**Endpoint**: `GET /members`
-
-**Response** (200 OK):
+**Response 200:**
 ```json
 [
   {
     "id": 1,
-    "name": "john_doe",
-    "role": "Operator",
+    "name": "Aldi Fadlurahman R",
+    "role": "programmer",
     "status": "standby",
-    "avatar": "avatar_url"
-  },
-  {
-    "id": 2,
-    "name": "jane_doe",
-    "role": "Admin",
-    "status": "onjob",
-    "avatar": "avatar_url"
+    "avatar": "aldi.png"
   }
 ]
 ```
 
----
-
-## Work Order Management
-
-### 1. Create Work Order
-Create a new work order.
-
-**Endpoint**: `POST /workorders`
-
-**Headers**:
-```
-Authorization: Bearer <token>
-Content-Type: application/json
-```
-
-**Request**:
-```json
-{
-  "priority": "high",
-  "requester": "Admin",
-  "location": "Building A - Room 101",
-  "device": "Printer",
-  "problem": "Paper jam in tray 2",
-  "status": "pending",
-  "time_display": "2024-12-27 10:30"
-}
-```
-
-**Priority Values**: `low`, `medium`, `high`, `urgent`
-
-**Response** (201 Created):
-```json
-{
-  "message": "Work order created successfully",
-  "data": {
-    "id": 123
-  }
-}
-```
-
-**Error Responses**:
-- 400 Bad Request: Missing required fields or invalid priority
-- 401 Unauthorized: Missing or invalid token
-- 500 Internal Server Error: Database error
+> Selalu return array `[]`, tidak pernah `null`.
+> Password tidak disertakan dalam response.
 
 ---
 
-### 2. Get Work Orders
-Retrieve work orders (filtered by user role).
+### Update Member Status
+`PATCH /api/members/:id/status` — 🔒 Protected
 
-**Endpoint**: `GET /workorders`
-
-**Headers**:
-```
-Authorization: Bearer <token>
-```
-
-**Query Parameters** (optional):
-```
-?status=pending
-?priority=high
+**Request:**
+```json
+{
+  "status": "onjob"
+}
 ```
 
-**Response** (200 OK):
+**Valid status values:** `standby`, `onjob`, `support`, `nextshift`, `offduty`
+
+**Response 200:**
+```json
+{
+  "code": 200,
+  "message": "Member status updated successfully",
+  "data": { "id": 1 }
+}
+```
+
+**Errors:** `400` invalid status value
+
+---
+
+## Work Orders
+
+### Get Work Orders
+`GET /api/workorders` — Public
+
+Response difilter berdasarkan role user (jika token disertakan):
+- **Tanpa token / Admin** — semua work orders
+- **Operator** — hanya orders yang di-assign ke user tersebut
+
+**Response 200:**
 ```json
 [
   {
     "id": 1,
     "priority": "high",
-    "time": "2024-12-27 10:30",
-    "requester": "Admin",
-    "location": "Building A",
-    "device": "Printer",
-    "problem": "Paper jam",
+    "time": "14:30",
+    "requester": "Budi",
+    "location": "Gedung A - Lantai 2",
+    "device": "Printer HP",
+    "problem": "Paper jam di tray 2",
     "executors": [1, 2],
-    "workingHours": 2,
+    "workingHours": 30,
     "status": "completed",
-    "safetyChecklist": ["Check power", "Test device"],
-    "completedAt": "2024-12-27 12:30"
+    "safetyChecklist": ["ga3", "ga4"],
+    "completedAt": "15:05"
   }
 ]
 ```
 
-**Filtering Rules**:
-- **Admin**: Sees all work orders
-- **Operator**: Sees only assigned work orders (in `executors` list)
+> `workingHours` dalam menit (integer), bisa `null` jika belum selesai.
+> `completedAt` berupa string display `"HH:MM"`, bisa kosong.
 
 ---
 
-### 3. Take Work Order
-Assign operators to work order and start progress.
+### Create Work Order
+`POST /api/workorders` — 🔒 Protected
 
-**Endpoint**: `POST /workorders/{id}/take`
-
-**Headers**:
+**Request:**
+```json
+{
+  "priority": "high",
+  "time_display": "14:30",
+  "time_sort": "14:30:00",
+  "requester": "Budi Santoso",
+  "location": "Gedung A - Lantai 2, Ruang 201",
+  "device": "Printer HP",
+  "problem": "Paper jam di tray 2",
+  "working_hours": "0 menit",
+  "status": "pending",
+  "executors": [],
+  "safety_checklist": []
+}
 ```
-Authorization: Bearer <token>
-Content-Type: application/json
+
+**Valid priority:** `low`, `medium`, `high`, `urgent`
+
+**Response 201:**
+```json
+{
+  "code": 201,
+  "message": "Work order created successfully",
+  "data": { "id": 42 }
+}
 ```
 
-**Request**:
+**Errors:** `400` missing required fields / invalid priority
+
+---
+
+### Take Work Order
+`POST /api/workorders/:id/take` — 🔒 Protected
+
+Assign operator ke order dan mulai pengerjaan. Timer Rust otomatis dimulai setelah commit berhasil.
+
+**Request:**
 ```json
 {
   "status": "progress",
   "executors": [1, 2],
-  "safety_checklist_items": ["Check power", "Check safety gear"]
+  "safety_checklist_items": ["ga3", "ga4", "ga5"]
 }
 ```
 
-**Response** (200 OK):
+**Validasi:**
+- `status` harus `"progress"`
+- `executors` minimal 1 item
+- Semua executor yang dipilih harus berstatus `standby` (bukan `onjob`)
+- Pengecekan status executor dilakukan dengan `SELECT FOR UPDATE` di dalam transaksi
+
+**Response 200:**
 ```json
 {
+  "code": 200,
   "message": "Order taken successfully",
-  "data": {
-    "id": 123
-  }
+  "data": { "id": 42 }
 }
 ```
 
-**Error Responses**:
-- 400 Bad Request: Status must be 'progress'
-- 401 Unauthorized: Missing or invalid token
-- 403 Forbidden: User not assigned to this work order
-- 404 Not Found: Work order not found
+**Errors:** `400` executor sudah onjob / status salah, `404` executor not found
 
 ---
 
-### 4. Get Safety Checklist
-Retrieve safety checklist for a work order.
+### Complete Work Order
+`PATCH /api/workorders/:id/complete` — 🔒 Protected
 
-**Endpoint**: `GET /workorders/{id}/checklist`
+Tandai order selesai. Timer Rust otomatis dihentikan dan `working_hours` disimpan ke database.
 
-**Headers**:
-```
-Authorization: Bearer <token>
-```
-
-**Response** (200 OK):
+**Request:**
 ```json
 {
-  "checklist": [
-    "Check device power",
-    "Verify functionality",
-    "Test after repair",
-    "Document actions taken"
-  ]
+  "status": "completed",
+  "completed_at_display": "15:05"
+}
+```
+
+**Validasi:**
+- Hanya member yang di-assign (`executors`) yang bisa complete
+- Safety checklist harus sudah diisi (count > 0)
+- `status` harus `"completed"`
+
+**Response 200:**
+```json
+{
+  "code": 200,
+  "message": "Order completed successfully",
+  "data": { "id": 42 }
+}
+```
+
+**Errors:** `400` checklist belum diisi, `403` bukan executor order ini
+
+---
+
+### Update Work Order (Executors)
+`PATCH /api/workorders/:id` — 🔒 Protected
+
+Perbarui daftar executor untuk order yang masih pending. Dipakai untuk menambah/menghapus worker.
+
+**Request:**
+```json
+{
+  "executors": [1, 2, 3],
+  "status": "pending"
+}
+```
+
+> `status` opsional. Member yang dihapus dari `executors` otomatis di-reset ke `standby`.
+
+**Response 200:**
+```json
+{
+  "code": 200,
+  "message": "Order updated successfully",
+  "data": { "id": 42 }
 }
 ```
 
 ---
 
-### 5. Update Safety Checklist
-Update safety checklist items for work order.
+### Delete Work Order
+`DELETE /api/workorders/:id` — 🔒 Protected (Admin only)
 
-**Endpoint**: `PUT /workorders/{id}/checklist`
+Menghapus order beserta semua executor dan checklist terkait. Member yang sedang `onjob` untuk order ini otomatis di-reset ke `standby`.
 
-**Headers**:
-```
-Authorization: Bearer <token>
-Content-Type: application/json
-```
-
-**Request**:
+**Response 200:**
 ```json
 {
-  "checklist_items": [
-    "Power checked - OK",
-    "Functionality verified",
-    "Repair completed",
-    "Actions documented"
-  ]
+  "code": 200,
+  "message": "Order deleted successfully",
+  "data": { "id": 42 }
 }
 ```
 
-**Response** (200 OK):
+**Errors:** `403` bukan Admin
+
+---
+
+### Get Safety Checklist
+`GET /api/workorders/:id/checklist` — 🔒 Protected
+
+**Response 200:**
 ```json
 {
+  "checklist": ["ga3", "ga4", "ga5"]
+}
+```
+
+---
+
+### Update Safety Checklist
+`PUT /api/workorders/:id/checklist` — 🔒 Protected
+
+**Request:**
+```json
+{
+  "checklist_items": ["ga3", "ga4", "ga5"]
+}
+```
+
+**Response 200:**
+```json
+{
+  "code": 200,
   "message": "Safety checklist updated successfully"
 }
 ```
 
-**Error Responses**:
-- 400 Bad Request: Checklist items empty
-- 401 Unauthorized: Missing or invalid token
-
 ---
 
-### 6. Complete Work Order
-Mark work order as completed.
-
-**Endpoint**: `PATCH /workorders/{id}/complete`
-
-**Headers**:
-```
-Authorization: Bearer <token>
-Content-Type: application/json
-```
-
-**Request**:
-```json
-{
-  "status": "completed",
-  "completed_at_display": "2024-12-27 15:30"
-}
-```
-
-**Response** (200 OK):
-```json
-{
-  "message": "Order completed successfully",
-  "data": {
-    "id": 123
-  }
-}
-```
-
-**Validation**:
-- Only assigned members can complete
-- Safety checklist must be fulfilled
-- Status must be 'completed'
-
-**Error Responses**:
-- 400 Bad Request: Safety checklist not completed or invalid status
-- 401 Unauthorized: Missing or invalid token
-- 403 Forbidden: User not assigned to this work order
-
----
-
-### 7. Delete Work Order
-Delete a work order (Admin only).
-
-**Endpoint**: `DELETE /workorders/{id}`
-
-**Headers**:
-```
-Authorization: Bearer <token>
-```
-
-**Response** (200 OK):
-```json
-{
-  "message": "Order deleted successfully",
-  "data": {
-    "id": 123
-  }
-}
-```
-
-**Error Responses**:
-- 401 Unauthorized: Missing or invalid token
-- 403 Forbidden: Admin access required
-
----
-
-## Performance & Analytics
+## Analytics
 
 ### Get Kaizen Metrics
-Retrieve performance and efficiency metrics.
+`GET /api/kaizen` — 🔒 Protected
 
-**Endpoint**: `GET /kaizen`
-
-**Headers**:
-```
-Authorization: Bearer <token>
-```
-
-**Response** (200 OK):
+**Response 200:**
 ```json
 {
   "totalKaizens": 50,
   "implementedKaizens": 35,
-  "pendingKaizens": 15
+  "pendingKaizens": 10
 }
 ```
+
+> `totalKaizens` = completed + pending + progress (semua status dihitung).
 
 ---
 
-## Error Response Format
+## Rust Time Tracker (Internal)
 
-All error responses follow this format:
+Endpoint ini hanya bisa diakses dari Go backend (memerlukan header `X-Internal-Key`). Tidak bisa diakses langsung dari browser/frontend.
 
-```json
-{
-  "code": 400,
-  "message": "Error message describing what went wrong",
-  "details": "Optional additional context"
-}
-```
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| `POST` | `/timer/start` | Mulai timer untuk order |
+| `POST` | `/timer/stop` | Hentikan timer, return durasi |
+| `GET` | `/timer/:id` | Status timer satu order |
+| `GET` | `/timers` | List semua timer aktif |
+| `GET` | `/health` | Health check (jumlah timer aktif) |
 
-**Common HTTP Status Codes**:
-- `200 OK`: Successful request
-- `201 Created`: Resource successfully created
-- `400 Bad Request`: Invalid input or validation failed
-- `401 Unauthorized`: Missing or invalid authentication token
-- `403 Forbidden`: User doesn't have permission for this action
-- `404 Not Found`: Resource not found
-- `409 Conflict`: Resource already exists (e.g., duplicate username)
-- `500 Internal Server Error`: Server-side error
+Timer start/stop dipanggil **otomatis** oleh Go backend saat `TakeOrder` dan `CompleteOrder` — tidak perlu dipanggil manual dari frontend.
 
 ---
 
-## Authentication Header
+## CORS
 
-All protected endpoints require the `Authorization` header with JWT token:
-
-```
-Authorization: Bearer <token>
-```
-
-**Token Storage** (Frontend):
-```javascript
-// Save token after login
-localStorage.setItem('auth_token', response.data.token);
-
-// Retrieve token for requests
-const token = localStorage.getItem('auth_token');
-
-// Use in fetch
-fetch('/api/workorders', {
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-});
-```
-
-**Token Expiration**: 24 hours. After expiration, user needs to login again.
-
----
-
-## Frontend Implementation Examples
-
-### JavaScript - Fetch API
-
-```javascript
-// 1. Register
-async function register(username, password) {
-  const response = await fetch('/api/user/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: username, password })
-  });
-  const data = await response.json();
-  if (response.ok) {
-    localStorage.setItem('auth_token', data.data.token);
-    return data.data.member;
-  }
-  throw new Error(data.message);
-}
-
-// 2. Login
-async function login(username, password) {
-  const response = await fetch('/api/user/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: username, password })
-  });
-  const data = await response.json();
-  if (response.ok) {
-    localStorage.setItem('auth_token', data.data.token);
-    return data.data.member;
-  }
-  throw new Error(data.message);
-}
-
-// 3. Protected request
-async function getWorkOrders() {
-  const token = localStorage.getItem('auth_token');
-  const response = await fetch('/api/workorders', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  });
-  const data = await response.json();
-  if (response.ok) {
-    return data;
-  }
-  throw new Error(data.message);
-}
-
-// 4. Create work order
-async function createWorkOrder(workOrder) {
-  const token = localStorage.getItem('auth_token');
-  const response = await fetch('/api/workorders', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(workOrder)
-  });
-  const data = await response.json();
-  if (response.ok) {
-    return data.data;
-  }
-  throw new Error(data.message);
-}
-```
-
----
-
-## CORS Configuration
-
-The backend is configured with CORS enabled:
-- **Allowed Origins**: * (all)
-- **Allowed Methods**: GET, POST, PUT, PATCH, DELETE, OPTIONS
-- **Allowed Headers**: Origin, Content-Type, Authorization
+Backend dikonfigurasi dengan CORS:
+- **Allowed Origins**: `*`
+- **Allowed Methods**: `GET, POST, PUT, PATCH, DELETE, OPTIONS`
+- **Allowed Headers**: `Origin, Content-Type, Authorization`
 
 ---
 
 ## Rate Limiting
 
-Currently not implemented. Recommended for production:
-- 100 requests/minute per IP for public endpoints
-- 50 requests/minute per user for authenticated endpoints
+| Endpoint | Limit |
+|----------|-------|
+| `POST /api/login` | 10 req/menit per IP |
+| `POST /api/register` | 10 req/menit per IP |
+| Semua endpoint lain | Tidak ada limit saat ini |
+
+> Untuk production multi-instance, implementasi Redis-based rate limiter disarankan.
 
 ---
 
 ## Data Validation Rules
 
-### Username
-- Required
-- 3-50 characters
-- Alphanumeric recommended
-
-### Password
-- Required
-- Minimum 8 characters
-- Must include uppercase letter
-- Must include lowercase letter
-- Must include digit
-
-### Priority
-- Must be one of: `low`, `medium`, `high`, `urgent`
-
-### Status
-- Work orders: `pending`, `progress`, `completed`
-- Members: `standby`, `onjob`
-
-### Required Fields for Work Order
-- `priority`
-- `requester`
-- `location`
-- `device`
-- `problem`
-
+| Field | Rule |
+|-------|------|
+| `name` (username) | 3–50 karakter, required |
+| `password` | Min 8 karakter, harus ada uppercase + lowercase + digit |
+| `priority` | `low` / `medium` / `high` / `urgent` |
+| Work order `status` | `pending` / `progress` / `completed` |
+| Member `status` | `standby` / `onjob` / `support` / `nextshift` / `offduty` |
+| `priority` (required) | Ya |
+| `requester` (required) | Ya |
+| `location` (required) | Ya |
+| `device` (required) | Ya |
+| `problem` (required) | Ya |

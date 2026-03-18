@@ -1,185 +1,293 @@
-# IT Work Order System - Docker Deployment Guide
-
-## Quick Start dengan Docker
-
-Panduan lengkap untuk menjalankan IT Work Order System menggunakan Docker Compose.
+# Docker Deployment Guide — IT Work Order System
 
 ## Prerequisites
 
 - Docker Engine 20.10+
-- Docker Compose 1.29+
-- Git
+- Docker Compose v2+
 - Minimal 2GB RAM tersedia
-- Port 80, 3306, 8080 tidak digunakan
+- Port 80 dan 443 tidak digunakan
 
-## Setup Instructions
+---
 
-### 1. Clone Repository
+## Quick Start
 
+### 1. Navigate ke folder src
 ```bash
-git clone https://github.com/teamitmivhs/work-order.git
-cd work-order
+cd work-order/src
 ```
 
-### 2. Navigate to Source Directory
-
+### 2. Buat file `.env`
 ```bash
-cd src
+cp .env.example .env
 ```
 
-### 3. Start Docker Compose
-
-```bash
-# Build and start all services
-docker compose up -d
-
-# View logs untuk verify semua services
-docker compose logs -f
-
-# Atau lihat logs per service
-docker compose logs -f backend
-docker compose logs -f db
-docker compose logs -f time-tracker
-docker compose logs -f nginx
+Edit `.env` dan isi semua nilai:
+```env
+DB_HOST=db
+DB_PORT=3306
+DB_USER=adminit2025
+DB_PASSWORD=ganti_dengan_password_aman
+DB_NAME=dbwoit
+MYSQL_ROOT_PASSWORD=ganti_dengan_root_password
+JWT_SECRET=ganti_random_string_min_32_karakter
+INTERNAL_API_KEY=ganti_random_hex_32_karakter
 ```
 
-### 4. Verify All Services Running
-
+Generate secure keys:
 ```bash
-# Check status
+# Linux/Mac
+openssl rand -base64 32   # untuk JWT_SECRET
+openssl rand -hex 32      # untuk INTERNAL_API_KEY
+
+# Windows PowerShell
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
+-join ((1..32) | ForEach-Object { '{0:x2}' -f (Get-Random -Maximum 256) })
+```
+
+### 3. Build dan jalankan
+```bash
+docker compose up -d --build
+```
+
+### 4. Verifikasi semua service running
+```bash
 docker compose ps
-
-# Expected output:
-# NAME                           STATUS
-# work-order-db                  Up (healthy)
-# work-order-time-tracker        Up (healthy)
-# work-order-backend             Up
-# work-order-nginx               Up
 ```
 
-### 5. Access Application
+Expected output:
+```
+NAME                           STATUS
+work-order-db                  Up (healthy)
+work-order-time-tracker        Up (healthy)
+work-order-backend             Up
+work-order-nginx               Up
+```
 
-Buka browser dan navigasi ke:
+### 5. Akses aplikasi
+| Halaman | URL |
+|---------|-----|
+| Dashboard | http://localhost |
+| Login | http://localhost/login.html |
+| Register | http://localhost/register.html |
+| Summary | http://localhost/summary.html |
+| Kaizen | http://localhost/kaizen.html |
+| TechGuide | http://localhost/techguide.html |
 
-- **Main Dashboard**: http://localhost
-- **Login Page**: http://localhost/login.html
-- **Register Page**: http://localhost/register.html
-- **API Backend**: http://localhost/api
-- **Time Tracker**: http://localhost:9000 (internal only)
+---
 
-## Login Credentials (Default)
+## Pilihan Docker Compose
 
-### Test Admin Account
-- **Username**: adminit2025
-- **Password**: databaseit2045
+Ada 3 file compose sesuai kebutuhan deployment:
 
-### Guest Login
-- Klik tombol "Login as Guest" di login page
-- Dashboard akan membuka dengan popup "Create Orders"
-- Guest bisa membuat orders tetapi tidak bisa manage/delete orders (hanya untuk admin)
-- Klik tombol "Exit Guest" untuk keluar dari guest mode
+### `docker-compose.yml` (Default)
+MySQL berjalan di dalam Docker dengan **named volume**.
+
+```bash
+docker compose up -d --build
+```
+
+Cocok untuk: development lokal, server baru.
+
+---
+
+### `docker-compose.persistent.yml`
+MySQL berjalan di dalam Docker, data disimpan di **path host** `/docker/work-order/mysql-data`.
+
+```bash
+docker compose -f docker-compose.persistent.yml up -d --build
+```
+
+Cocok untuk: server production dimana path backup sudah dikonfigurasi.
+
+---
+
+### `docker-compose.external-db.yml`
+MySQL **tidak** dijalankan di Docker — menggunakan MySQL server eksternal.
+
+```bash
+# Set DB_HOST di .env ke IP/hostname MySQL eksternal
+# Contoh: DB_HOST=192.168.1.100
+docker compose -f docker-compose.external-db.yml up -d --build
+```
+
+Cocok untuk: server production yang sudah punya MySQL dedicated.
+
+---
+
+## Startup Order
+
+Service dimulai dalam urutan berikut berdasarkan health check:
+
+```
+db (healthy) ──┐
+               ├──► backend ──► nginx
+time-tracker ──┘
+   (healthy)
+```
+
+- `db` dan `time-tracker` harus **healthy** sebelum `backend` dimulai
+- `backend` dimulai setelah container-nya running (tanpa health check)
+- `nginx` dimulai setelah `backend` container running
+
+> **Catatan:** Backend punya retry logic — akan mencoba koneksi ke database hingga 30x dengan jeda 2 detik, sehingga tetap aman meski MySQL butuh waktu ekstra untuk siap.
+
+---
 
 ## Database Initialization
 
-Database MySQL akan otomatis diinisialisasi saat container pertama kali startup dengan SQL files di folder `db/`:
+SQL files di folder `./db/` dijalankan otomatis saat container MySQL **pertama kali** dibuat:
 
-- `dbwoit_members.sql` - Tabel members/users
-- `dbwoit_orders.sql` - Tabel work orders
-- `dbwoit_executors.sql` - Tabel executor assignments
-- `dbwoit_safetychecklist.sql` - Tabel safety checklist
+```
+src/db/
+└── schema_mysql.sql    ← schema lengkap (orders, members, executors, safetychecklist)
+```
 
-## Stopping Services
+> Jika container sudah pernah dibuat sebelumnya, SQL init tidak dijalankan ulang. Untuk reset database, gunakan `docker compose down -v`.
+
+---
+
+## Environment Variables
+
+| Variable | Wajib | Deskripsi |
+|----------|-------|-----------|
+| `DB_USER` | ✅ | Username MySQL |
+| `DB_PASSWORD` | ✅ | Password MySQL |
+| `JWT_SECRET` | ✅ | Secret key untuk JWT token |
+| `INTERNAL_API_KEY` | ✅ | Shared key antara Go backend dan Rust service |
+| `MYSQL_ROOT_PASSWORD` | ✅ | Root password MySQL (hanya untuk compose dengan db container) |
+| `DB_HOST` | ✅ | Hostname DB (`db` untuk in-Docker, IP untuk external) |
+| `DB_PORT` | ❌ | Default `3306` |
+| `DB_NAME` | ❌ | Default `dbwoit` |
+
+---
+
+## Perintah Umum
 
 ```bash
-# Stop all services (keep data)
+# Lihat status semua service
+docker compose ps
+
+# Lihat log semua service
+docker compose logs -f
+
+# Lihat log service tertentu
+docker compose logs -f backend
+docker compose logs -f db
+docker compose logs -f time-tracker
+
+# Restart service tertentu
+docker compose restart backend
+
+# Stop semua service (data tetap tersimpan)
 docker compose down
 
-# Stop dan remove volumes (reset database)
+# Stop dan hapus semua data (reset database)
 docker compose down -v
+
+# Rebuild dan restart setelah perubahan kode
+docker compose up -d --build
 ```
+
+---
 
 ## Troubleshooting
 
-### Service tidak start
+### Backend container unhealthy / gagal start
 
 ```bash
-# Check logs
-docker compose logs
-
-# Restart specific service
-docker compose restart backend
-docker compose restart db
+docker logs work-order-backend
 ```
+
+Kemungkinan penyebab:
+- `.env` belum dibuat atau variable kosong
+- MySQL belum selesai init saat backend start (biasanya teratasi otomatis karena retry logic)
+
+---
 
 ### Database connection error
 
 ```bash
-# Ensure MySQL is healthy
+# Cek status MySQL
 docker compose ps db
 
-# Check MySQL logs
+# Cek log MySQL
 docker compose logs db
 
-# Restart database
+# Restart MySQL lalu backend
 docker compose restart db
 docker compose restart backend
 ```
 
-### Port already in use
+---
 
-Edit `src/docker-compose.yml` dan ubah port mappings:
+### Port 80 already in use
 
+Edit `docker-compose.yml`, ubah port nginx:
 ```yaml
 nginx:
   ports:
-    - "8000:80"  # Changed from 80:80
+    - "8000:80"   # akses via http://localhost:8000
 ```
 
-### Clear everything and restart fresh
+---
+
+### Cargo.lock tidak ada (Rust build error)
+
+Jika error `"/Cargo.lock": not found` saat build:
+
+```bash
+# Opsi 1: Generate dari lokal (jika Rust terinstall)
+cd src/rust-engine
+cargo generate-lockfile
+
+# Opsi 2: Ambil dari container setelah build berhasil
+docker cp work-order-time-tracker:/app/Cargo.lock ./src/rust-engine/Cargo.lock
+```
+
+---
+
+### Reset dan mulai dari awal
 
 ```bash
 cd src
 docker compose down -v
-docker compose up -d
+docker compose up -d --build
 ```
 
-## Service Architecture
+---
 
-```
-┌─────────────────────────────────────┐
-│         Nginx (Port 80)             │
-│    (Frontend + API Proxy)           │
-└──────────────────┬──────────────────┘
-                   │
-        ┌──────────┼──────────┐
-        │          │          │
-        ▼          ▼          ▼
-    ┌─────┐  ┌──────────┐  ┌──────────┐
-    │ Go  │  │   Rust   │  │  MySQL   │
-    │ API │  │   Time   │  │   8.0    │
-    │ 8080│  │  Tracker │  │   3306   │
-    │     │  │   9000   │  │          │
-    └─────┘  └──────────┘  └──────────┘
-```
+## Service Architecture Detail
 
-## Performance Notes
+### Nginx
+- Serve file HTML/CSS/JS statis dari volume mount
+- Proxy `/api/*` ke Go backend di port 8080
+- Port 80 dan 443 exposed ke host
 
-- First startup: ~1-2 menit (building images + init database)
-- Subsequent startups: ~30-45 detik
-- Memory usage: ~1.5GB saat running
-- Disk space required: ~2GB untuk images + volumes
+### Go Backend
+- REST API dengan Gin framework
+- Koneksi ke MySQL dengan retry 30x
+- Memanggil Rust time tracker via HTTP dengan `X-Internal-Key` header
+- JWT authentication, rate limiting pada auth endpoints
 
-## Production Deployment
+### Rust Time Tracker
+- Menyimpan timer aktif di in-memory HashMap
+- Endpoint hanya bisa diakses dengan `X-Internal-Key` header
+- Health check tersedia di `GET /health`
+- Port 9000, tidak exposed ke host (internal only)
 
-Untuk production deployment:
+### MySQL
+- Inisialisasi otomatis dari `./db/*.sql`
+- Health check via `mysqladmin ping`
+- Data persistent via named volume atau host path
 
-1. Gunakan external database (jangan container)
-2. Update `.env` dengan credentials production
-3. Implement proper SSL/TLS (nginx config)
-4. Setup monitoring dan logging
-5. Implement backup strategy untuk database
-6. Use strong JWT_SECRET di environment
+---
 
-## Support
+## Production Checklist
 
-Untuk masalah atau pertanyaan, buka issue di GitHub atau hubungi team IT MIVHS.
+- [ ] Ganti semua default password di `.env`
+- [ ] Generate `JWT_SECRET` dan `INTERNAL_API_KEY` yang kuat
+- [ ] Gunakan `docker-compose.external-db.yml` atau `docker-compose.persistent.yml`
+- [ ] Setup SSL/TLS di nginx config
+- [ ] Setup backup database berkala
+- [ ] Batasi akses port 3306 dari luar
+- [ ] Set `GIN_MODE=release` di environment backend
