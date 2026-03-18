@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Request buat start time tracking
-/// Dipanggil saat:
-/// - work order di "TAKE"
-/// - mulai pengerjaan
+/// Dipanggil saat work order di "TAKE" / mulai pengerjaan
 #[derive(Debug, Deserialize)]
 pub struct StartTimeRequest {
     pub work_order_id: u64,
@@ -17,8 +15,7 @@ pub struct StartTimeResponse {
 }
 
 /// Request buat stop time tracking
-/// Dipanggil saat:
-/// - work order di "COMPLETE"
+/// Dipanggil saat work order di "COMPLETE"
 #[derive(Debug, Deserialize)]
 pub struct StopTimeRequest {
     pub work_order_id: u64,
@@ -28,7 +25,7 @@ pub struct StopTimeRequest {
 pub struct StopTimeResponse {
     pub work_order_id: u64,
     pub started_at: i64,
-    pub stopped_at: i64,
+    pub stopped_at: i64,       // FIX: actual timestamp saat stop dipanggil
     pub duration_seconds: i64,
 }
 
@@ -39,6 +36,15 @@ pub struct TimerStatusResponse {
     pub is_running: bool,
     pub started_at: Option<i64>,
     pub elapsed_seconds: Option<i64>,
+}
+
+// FIX: struct baru untuk endpoint list semua timer aktif
+#[derive(Debug, Serialize)]
+pub struct ActiveTimerInfo {
+    pub work_order_id: u64,
+    pub executor_id: u64,
+    pub started_at: i64,
+    pub elapsed_seconds: i64,
 }
 
 /// Error response standar API
