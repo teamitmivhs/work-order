@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"log"
 
 	"teamitmivhs/work-order-backend/config"
@@ -13,16 +14,14 @@ type MemberRepository interface {
 	GetMemberByName(name string) (*models.Member, error)
 	GetMemberByID(id int) (*models.Member, error)
 	IsMemberAssigned(orderID int64, memberID int) (bool, error)
+	// FIX: tambah method untuk update status member via API
+	UpdateMemberStatus(memberID int, newStatus string) error
 }
 
-type memberRepository struct {
-	db interface{}
-}
+type memberRepository struct{}
 
 func NewMemberRepository() MemberRepository {
-	return &memberRepository{
-		db: config.DB,
-	}
+	return &memberRepository{}
 }
 
 func (r *memberRepository) GetAllMembers() ([]models.Member, error) {
@@ -32,7 +31,10 @@ func (r *memberRepository) GetAllMembers() ([]models.Member, error) {
 	}
 	defer rows.Close()
 
-	var members []models.Member
+	// FIX: inisialisasi sebagai empty slice bukan nil
+	// agar JSON response selalu array [] bukan null
+	members := make([]models.Member, 0)
+
 	for rows.Next() {
 		var m models.Member
 		if err := rows.Scan(&m.ID, &m.Name, &m.Role, &m.Status, &m.Avatar); err != nil {
@@ -50,12 +52,14 @@ func (r *memberRepository) GetAllMembers() ([]models.Member, error) {
 }
 
 func (r *memberRepository) CreateMember(member *models.Member) error {
-	result, err := config.DB.Exec("INSERT INTO members (Name, Password, Role, Status, Avatar) VALUES (?, ?, ?, ?, ?)", member.Name, member.Password, member.Role, member.Status, member.Avatar)
+	result, err := config.DB.Exec(
+		"INSERT INTO members (Name, Password, Role, Status, Avatar) VALUES (?, ?, ?, ?, ?)",
+		member.Name, member.Password, member.Role, member.Status, member.Avatar,
+	)
 	if err != nil {
 		return err
 	}
 
-	// Get inserted ID
 	id, err := result.LastInsertId()
 	if err != nil {
 		return err
@@ -65,7 +69,10 @@ func (r *memberRepository) CreateMember(member *models.Member) error {
 }
 
 func (r *memberRepository) GetMemberByName(name string) (*models.Member, error) {
-	row := config.DB.QueryRow("SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE Name = ?", name)
+	row := config.DB.QueryRow(
+		"SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE Name = ?",
+		name,
+	)
 
 	var m models.Member
 	if err := row.Scan(&m.ID, &m.Name, &m.Password, &m.Role, &m.Status, &m.Avatar); err != nil {
@@ -75,7 +82,10 @@ func (r *memberRepository) GetMemberByName(name string) (*models.Member, error) 
 }
 
 func (r *memberRepository) GetMemberByID(id int) (*models.Member, error) {
-	row := config.DB.QueryRow("SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE ID = ?", id)
+	row := config.DB.QueryRow(
+		"SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE ID = ?",
+		id,
+	)
 
 	var m models.Member
 	if err := row.Scan(&m.ID, &m.Name, &m.Password, &m.Role, &m.Status, &m.Avatar); err != nil {
@@ -84,13 +94,40 @@ func (r *memberRepository) GetMemberByID(id int) (*models.Member, error) {
 	return &m, nil
 }
 
-// IsMemberAssigned checks if member is assigned to an order
+// IsMemberAssigned mengecek apakah member sudah di-assign ke order tertentu
+// FIX: nama kolom sudah dibuat eksplisit — order_id dan member_id
+// (asumsi nama kolom di DB ikut diperbaiki menjadi order_id dan member_id)
 func (r *memberRepository) IsMemberAssigned(orderID int64, memberID int) (bool, error) {
-	row := config.DB.QueryRow("SELECT COUNT(*) FROM executors WHERE ID = ? AND Executors = ?", orderID, memberID)
+	row := config.DB.QueryRow(
+		"SELECT COUNT(*) FROM executors WHERE order_id = ? AND member_id = ?",
+		orderID, memberID,
+	)
 
 	var count int
 	if err := row.Scan(&count); err != nil {
 		return false, err
 	}
 	return count > 0, nil
+}
+
+// UpdateMemberStatus memperbarui status member ke database
+// FIX: dipanggil dari PATCH /api/members/:id/status
+// sebelumnya tidak ada — update status hanya dilakukan secara lokal di frontend
+func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) error {
+	validStatuses := map[string]bool{
+		"standby":   true,
+		"onjob":     true,
+		"support":   true,
+		"nextshift": true,
+		"offduty":   true,
+	}
+	if !validStatuses[newStatus] {
+		return sql.ErrNoRows // pakai sentinel; caller bisa wrap menjadi 400
+	}
+
+	_, err := config.DB.Exec(
+		"UPDATE members SET Status = ? WHERE ID = ?",
+		newStatus, memberID,
+	)
+	return err
 }
