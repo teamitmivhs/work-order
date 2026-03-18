@@ -2,29 +2,36 @@ body {
   font-family: 'Poppins', sans-serif;
 }
 
+/* ========== ANIMATIONS ========== */
+
 @keyframes blink {
-  0%,
-  100% {
-    background-color: #fee2e2;
-  }
-  50% {
-    background-color: #fca5a5;
-  }
+  0%, 100% { background-color: #fee2e2; }
+  50%       { background-color: #fca5a5; }
 }
 
 @keyframes fadeLeftYellow {
-  0%,
-  100% {
-    background-color: #fbbf24;
-  }
-  50% {
-    background-color: #ffffff;
-  }
+  0%, 100% { background-color: #fbbf24; }
+  50%       { background-color: #ffffff;  }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(1);    }
+  to   { opacity: 0; transform: scale(0.95); }
+}
+
+.popup-fade-in  { animation: fadeIn  0.3s ease-in-out; }
+.popup-fade-out { animation: fadeOut 0.3s ease-in-out; }
+
+/* ========== TABLE ========== */
 
 .table-container {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
@@ -32,24 +39,12 @@ body {
   width: max-content;
 }
 
-/* Horizontal scroll indicator for mobile */
-.table-container::-webkit-scrollbar {
-  height: 6px;
-}
+.table-container::-webkit-scrollbar        { height: 6px; }
+.table-container::-webkit-scrollbar-track  { background: #f1f5f9; border-radius: 10px; }
+.table-container::-webkit-scrollbar-thumb  { background: #cbd5e1; border-radius: 10px; }
+.table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-.table-container::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-
-.table-container::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
+/* ========== MEMBER AVATARS ========== */
 
 .member-avatar {
   width: 28px;
@@ -68,6 +63,8 @@ body {
   border: 1px solid white;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
+/* ========== BADGES ========== */
 
 .status-badge {
   display: inline-block;
@@ -88,6 +85,16 @@ body {
   color: #1e3a8a;
 }
 
+/* FIX: status-completed tidak lagi blink terus-menerus.
+   Animasi tanpa henti mengganggu perhatian dan melanggar prinsip UX —
+   hanya status yang butuh perhatian segera (high priority pending) yang boleh blink.
+   Badge "selesai" justru harus tenang dan menyiratkan pekerjaan sudah beres. */
+.status-completed {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #14532d;
+  border: 1.5px solid #22c55e;
+}
+
 .priority-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
@@ -97,6 +104,7 @@ body {
   text-align: center;
 }
 
+/* High priority tetap blink — memang butuh perhatian segera */
 .priority-high {
   background-color: #fee2e2;
   color: #991b1b;
@@ -113,24 +121,7 @@ body {
   color: #14532d;
 }
 
-.status-completed {
-  border: 2px solid #22c55e;
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #14532d;
-  animation: blinkGreen 1s infinite;
-}
-
-@keyframes blinkGreen {
-  0%,
-  100% {
-    border-color: #22c55e;
-    background-color: rgba(34, 197, 94, 0.1);
-  }
-  50% {
-    border-color: #16a34a;
-    background-color: rgba(34, 197, 94, 0.2);
-  }
-}
+/* ========== MISC UI ========== */
 
 .empty-executor-slot {
   width: 24px;
@@ -144,21 +135,14 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
-
-.empty-executor-slot:hover {
-  background-color: #d1d5db;
-}
+.empty-executor-slot:hover { background-color: #d1d5db; }
 
 .delete-btn {
   color: #ef4444;
   cursor: pointer;
   transition: all 0.2s;
 }
-
-.delete-btn:hover {
-  color: #dc2626;
-  transform: scale(1.1);
-}
+.delete-btn:hover { color: #dc2626; transform: scale(1.1); }
 
 .done-btn {
   color: #22c55e;
@@ -166,11 +150,7 @@ body {
   transition: all 0.2s;
   margin-right: 0.5rem;
 }
-
-.done-btn:hover {
-  color: #16a34a;
-  transform: scale(1.1);
-}
+.done-btn:hover { color: #16a34a; transform: scale(1.1); }
 
 .custom-checkbox {
   appearance: none;
@@ -182,12 +162,7 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
-
-.custom-checkbox:checked {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
-}
-
+.custom-checkbox:checked { background-color: #3b82f6; border-color: #3b82f6; }
 .custom-checkbox:checked::after {
   content: '✓';
   position: absolute;
@@ -203,6 +178,8 @@ body {
   transform: translateY(20px);
 }
 
+/* On-progress card animasi kuning — tetap dipertahankan karena
+   status ini memang perlu diperhatikan (pekerjaan sedang berjalan) */
 .progress-fade {
   animation: fadeLeftYellow 1.5s infinite !important;
   background-color: #fbbf24 !important;
@@ -211,198 +188,85 @@ body {
 .status-container {
   transition: all 0.3s ease-in-out;
 }
-
 .status-container:hover {
   transform: translateY(-5px);
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+/* ========== LOADING SKELETON ========== */
+/* FIX: tambah skeleton loader untuk kaizen.html dan summary.html */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.2s infinite;
+  border-radius: 4px;
+}
+@keyframes skeleton-loading {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-}
+/* ========== RESPONSIVE ========== */
 
-.popup-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.popup-fade-out {
-  animation: fadeOut 0.3s ease-in-out;
-}
-
-/* ========== RESPONSIVE DESIGN ========== */
-
-/* Mobile-first approach: Base styles for mobile devices (< 640px) */
 @media (max-width: 640px) {
-  body {
-    font-size: 14px;
-  }
+  body { font-size: 14px; }
 
-  /* Navbar adjustments for mobile */
-  nav {
-    padding: 0.75rem 0.75rem !important;
-  }
+  nav { padding: 0.75rem !important; }
 
-  /* Welcome Banner adjustments */
   .gradient-banner {
     padding-top: 3rem !important;
     padding-bottom: 3rem !important;
   }
 
-  /* Table responsive behavior */
-  .table-container {
-    font-size: 12px;
-  }
+  .table-container { font-size: 12px; }
+  .table td, .table th { padding: 0.5rem 0.25rem !important; }
 
-  .table td, .table th {
-    padding: 0.5rem 0.25rem !important;
-  }
+  .status-badge  { padding: 0.15rem 0.35rem; font-size: 0.65rem; }
+  .priority-badge { padding: 0.15rem 0.5rem;  font-size: 0.65rem; }
 
-  /* Status badges smaller on mobile */
-  .status-badge {
-    padding: 0.15rem 0.35rem;
-    font-size: 0.65rem;
-  }
+  .member-avatar       { width: 20px; height: 20px; }
+  .member-avatar-small { width: 16px; height: 16px; }
 
-  .priority-badge {
-    padding: 0.15rem 0.5rem;
-    font-size: 0.65rem;
-  }
+  .fixed.inset-0 > div { margin: 1rem !important; }
 
-  /* Member avatars smaller on mobile */
-  .member-avatar {
-    width: 20px;
-    height: 20px;
-  }
-
-  .member-avatar-small {
-    width: 16px;
-    height: 16px;
-  }
-
-  /* Popups adjust padding for small screens */
-  .fixed.inset-0 > div {
-    margin: 1rem !important;
-  }
-
-  /* Summary cards spacing */
-  .summary-card {
-    margin-bottom: 0.75rem;
-  }
-
-  /* Hide scroll on horizontal tables */
-  .table-container::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  .table-container::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 2px;
-  }
+  .table-container::-webkit-scrollbar       { height: 4px; }
+  .table-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 2px; }
 }
 
-/* Tablet devices (640px - 1024px) */
 @media (min-width: 640px) and (max-width: 1024px) {
-  body {
-    font-size: 15px;
-  }
-
-  .table {
-    font-size: 13px;
-  }
-
-  .table td, .table th {
-    padding: 0.75rem 0.5rem !important;
-  }
+  body { font-size: 15px; }
+  .table { font-size: 13px; }
+  .table td, .table th { padding: 0.75rem 0.5rem !important; }
 }
 
-/* Desktop and larger screens (> 1024px) */
 @media (min-width: 1024px) {
-  body {
-    font-size: 16px;
-  }
-
-  .table {
-    font-size: 14px;
-  }
-
-  .table td, .table th {
-    padding: 0.75rem 0.5rem !important;
-  }
+  body { font-size: 16px; }
+  .table { font-size: 14px; }
+  .table td, .table th { padding: 0.75rem 0.5rem !important; }
 }
 
-/* ========== TOUCH-FRIENDLY ADJUSTMENTS ========== */
+/* Touch-friendly */
 @media (hover: none) and (pointer: coarse) {
-  /* Increase button/link sizes for touch devices */
-  button, a {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  .status-container {
-    padding: 0.75rem 1rem;
-  }
-
-  /* Increase tap target sizes */
-  input, select, textarea {
-    min-height: 44px;
-    font-size: 16px;
-  }
+  button, a    { min-height: 44px; min-width: 44px; }
+  .status-container { padding: 0.75rem 1rem; }
+  input, select, textarea { min-height: 44px; font-size: 16px; }
 }
 
-/* ========== ORIENTATION-SPECIFIC ========== */
+/* Landscape mobile */
 @media (orientation: landscape) and (max-height: 600px) {
-  /* Reduce padding for landscape mode on small screens */
-  main {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
-  }
-
-  .gradient-banner {
-    min-height: auto;
-    padding: 1rem 0 !important;
-  }
+  main { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .gradient-banner { min-height: auto; padding: 1rem 0 !important; }
 }
 
-/* ========== PRINT STYLES ========== */
+/* Print */
 @media print {
-  nav, footer, .fixed {
-    display: none;
-  }
-
-  main {
-    padding: 0;
-  }
-
-  .table-container {
-    overflow: visible;
-  }
-
-  .table {
-    width: 100%;
-  }
+  nav, footer, .fixed { display: none; }
+  main { padding: 0; }
+  .table-container { overflow: visible; }
+  .table { width: 100%; }
 }
 
-/* ========== ACCESSIBILITY ========== */
+/* Reduced motion — hormat ke preferensi aksesibilitas user */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
