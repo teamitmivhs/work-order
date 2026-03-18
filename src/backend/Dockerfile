@@ -21,22 +21,22 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /work-order-backend .
 # Stage 2: Create the final, minimal image
 FROM alpine:latest
 
-# Install mysql-client for the wait script
+# Install dependencies for wait script and healthcheck
+RUN apk add --no-cache mysql-client netcat-openbsd curl
 
-RUN apk add --no-cache mysql-client netcat-openbsd
-
+# Copy wait-for-db BEFORE binary to use it
 # Set the Current Working Directory inside the container
 WORKDIR /
 
 # Copy the pre-built binary from the builder stage
 COPY --from=builder /work-order-backend /work-order-backend
 
-# Copy the wait-for-db script
-COPY wait-for-db.sh /wait-for-db.sh
-RUN chmod +x /wait-for-db.sh
-
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
-# Command to run the executable
-CMD ["/work-order-backend"]
+# Healthcheck - simple root check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/ || exit 1
+
+# Run wait-for-db then app
+CMD ["/wait-for-db.sh", "db", "3306", "/work-order-backend"]

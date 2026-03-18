@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthMiddleware validates JWT token
+// AuthMiddleware validates JWT token dari header Authorization
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -17,23 +17,22 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Expected format: "Bearer <token>"
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
+		// Format yang diharapkan: "Bearer <token>"
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || parts[0] != "Bearer" || parts[1] == "" {
 			utils.Unauthorized(c, "Invalid authorization header format")
 			c.Abort()
 			return
 		}
 
-		token := parts[1]
-		claims, err := utils.ValidateToken(token)
+		claims, err := utils.ValidateToken(parts[1])
 		if err != nil {
 			utils.Unauthorized(c, "Invalid or expired token")
 			c.Abort()
 			return
 		}
 
-		// Store claims in context untuk digunakan di controller
+		// Simpan claims di context untuk dipakai controller
 		c.Set("user_id", claims.ID)
 		c.Set("user_name", claims.Name)
 		c.Set("user_role", claims.Role)
@@ -42,7 +41,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-// AdminMiddleware checks if user is admin
+// AdminMiddleware memastikan user yang login adalah Admin
 func AdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role, exists := c.Get("user_role")
@@ -62,7 +61,7 @@ func AdminMiddleware() gin.HandlerFunc {
 	}
 }
 
-// OperatorMiddleware checks if user is operator
+// OperatorMiddleware memastikan user adalah Operator atau Admin
 func OperatorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role, exists := c.Get("user_role")
@@ -82,28 +81,45 @@ func OperatorMiddleware() gin.HandlerFunc {
 	}
 }
 
-// GetUserIDFromContext gets user ID from context
-func GetUserIDFromContext(c *gin.Context) int {
+// GetUserIDFromContext mengambil user ID dari context.
+// FIX: return (int, bool) — pola Go idiomatis yang aman.
+// Sebelumnya return 0 sebagai sentinel value yang berbahaya
+// karena 0 bisa lolos pengecekan if userID > 0 yang ceroboh.
+func GetUserIDFromContext(c *gin.Context) (int, bool) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		return 0
+		return 0, false
 	}
 	id, ok := userID.(int)
 	if !ok {
-		return 0
+		return 0, false
 	}
-	return id
+	return id, true
 }
 
-// GetUserRoleFromContext gets user role from context
-func GetUserRoleFromContext(c *gin.Context) string {
+// GetUserRoleFromContext mengambil role user dari context.
+// FIX: return (string, bool) — konsisten dengan GetUserIDFromContext.
+func GetUserRoleFromContext(c *gin.Context) (string, bool) {
 	role, exists := c.Get("user_role")
 	if !exists {
-		return ""
+		return "", false
 	}
 	roleStr, ok := role.(string)
 	if !ok {
-		return ""
+		return "", false
 	}
-	return roleStr
+	return roleStr, true
+}
+
+// GetUserNameFromContext mengambil nama user dari context.
+func GetUserNameFromContext(c *gin.Context) (string, bool) {
+	name, exists := c.Get("user_name")
+	if !exists {
+		return "", false
+	}
+	nameStr, ok := name.(string)
+	if !ok {
+		return "", false
+	}
+	return nameStr, true
 }

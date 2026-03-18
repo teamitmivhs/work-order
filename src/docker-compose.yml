@@ -32,7 +32,7 @@ services:
     networks:
       - workorder-net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/timer/1 || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health || exit 1"]
       timeout: 10s
       retries: 5
       start_period: 10s
@@ -48,16 +48,19 @@ services:
         condition: service_healthy
       time-tracker:
         condition: service_started
+    env_file: .env
     environment:
       DB_HOST: db
       DB_PORT: 3306
-      DB_USER: adminit2025
-      DB_PASSWORD: databaseit2045
-      DB_NAME: dbwoit
-      JWT_SECRET: "your-secret-key-change-in-production-12345"
+      DB_USER: ${DB_USER:-adminit2025}
+      DB_PASSWORD: ${DB_PASSWORD:-databaseit2045}
+      DB_NAME: ${DB_NAME:-dbwoit}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production-12345}
       TIME_TRACKER_URL: "http://time-tracker:9000"
-    ports:
-      - "8080:8080"
+    volumes:
+      - ./static:/static:ro
+    expose:
+      - "8080"
     networks:
       - workorder-net
 
