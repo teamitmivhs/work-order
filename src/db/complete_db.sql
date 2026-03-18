@@ -52,7 +52,6 @@ INSERT INTO `members` (`ID`,`Name`,`Password`,`Role`,`Status`,`Avatar`) VALUES
 (23, 'Qiara Latifah Kaltsum',         '', 'data analyst', 'offduty', 'qiara.png'),
 (24, 'Dzaki Mathoriq',                '', 'soundman',     'offduty', 'thoriq.png'),
 (25, 'Alvaro Purnomo',                '', 'data analyst', 'offduty', 'purnomo.png'),
--- FIX: Trailing space dihapus dari rows 26-34
 (26, 'Chelsea Aurelia',               '', 'programmer',   'offduty', 'chelsea.png'),
 (27, 'Nabil Hilmy Zaenal',            '', 'maintenance',  'offduty', 'nabil.png'),
 (28, 'Wildan Bait Maki',              '', 'data analyst', 'offduty', 'wildan.png'),
