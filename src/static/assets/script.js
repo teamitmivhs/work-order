@@ -1,81 +1,123 @@
-// ===== WELCOME BANNER ANIMATION =====
-// Slide up animation menggunakan CSS keyframes - NO DEPENDENCIES
+// ===== UTILITY: JWT TOKEN =====
+// Helper terpusat untuk mengambil token dari localStorage.
+// Semua fetch ke protected endpoint memanggil ini.
+function getAuthToken() {
+  return localStorage.getItem('userToken') || '';
+}
 
-// CSS animation sudah ditangani di index.html
-// Tidak perlu JavaScript animation untuk welcome banner
+// Header default untuk request yang butuh autentikasi
+function authHeaders(extra = {}) {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${getAuthToken()}`,
+    ...extra
+  };
+}
 
-// ===== REFRESH PAGE FUNCTIONALITY =====
-const refreshBtn = document.getElementById('refreshBtn');
+// ===== UTILITY: Unwrap API Response =====
+// Go backend (error.go yang sudah diperbaiki) sekarang return format:
+//   success → { code, message, data: <payload> }
+//   error   → { code, message, details? }
+// Fungsi ini mengekstrak .data jika ada, fallback ke object itu sendiri
+// agar kode yang mengakses field seperti .id tetap bekerja.
+function unwrapData(json) {
+  if (json && json.data !== undefined) return json.data;
+  return json;
+}
+
+// ===== REFRESH PAGE =====
+const refreshBtn  = document.getElementById('refreshBtn');
 const refreshIcon = document.getElementById('refreshIcon');
 
 if (refreshBtn) {
-  refreshBtn.addEventListener('click', function() {
-    refreshIcon.style.transform = 'rotate(0deg)';
+  refreshBtn.addEventListener('click', function () {
+    refreshIcon.style.transform  = 'rotate(0deg)';
     refreshIcon.style.transition = 'transform 0.6s linear';
-    setTimeout(() => {
-      refreshIcon.style.transform = 'rotate(360deg)';
-    }, 10);
-    setTimeout(() => {
-      window.location.reload();
-    }, 300);
+    setTimeout(() => { refreshIcon.style.transform = 'rotate(360deg)'; }, 10);
+    setTimeout(() => { window.location.reload(); }, 300);
   });
 }
 
-const btn = document.getElementById("profileDropdownBtn");
-const menu = document.getElementById("profileDropdown");
+// ===== PROFILE DROPDOWN =====
+// FIX: Semua akses elemen navbar dibungkus null-check.
+// Script ini di-load di login.html dan register.html juga,
+// di mana elemen-elemen navbar tidak ada — tanpa null-check
+// baris `btn.addEventListener(...)` akan crash dan menghentikan
+// seluruh eksekusi script.
+const btn  = document.getElementById('profileDropdownBtn');
+const menu = document.getElementById('profileDropdown');
 
-btn.addEventListener("click", () => {
-  menu.classList.toggle("hidden");
-});
-
-// Logout button handler
-const logoutBtn = menu.querySelector('button');
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', function() {
-    localStorage.removeItem('isGuestUser');
-    localStorage.removeItem('guestLoginTime');
-    localStorage.removeItem('isAdmin');
-    localStorage.removeItem('userToken');
-    window.location.href = 'login.html';
+if (btn && menu) {
+  // FIX: hanya JS click yang mengontrol dropdown (group-hover CSS dihapus dari index.html)
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation(); // cegah document click langsung menutup lagi
+    menu.classList.toggle('hidden');
   });
-}
 
-// Klik di luar dropdown untuk menutup
-document.addEventListener("click", (e) => {
-  if (!btn.contains(e.target) && !menu.contains(e.target)) {
-    menu.classList.add("hidden");
+  // Logout button — ambil tombol kedua (index 1) karena tombol pertama adalah Settings
+  const logoutBtn = menu.querySelectorAll('button')[1];
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function () {
+      localStorage.removeItem('isGuestUser');
+      localStorage.removeItem('guestLoginTime');
+      localStorage.removeItem('isAdmin');
+      localStorage.removeItem('userToken');
+      window.location.href = 'login.html';
+    });
   }
-});
 
-// Mobile menu functionality
-const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-const navMenu = document.getElementById('navMenu');
-
-if (mobileMenuBtn && navMenu) {
-  mobileMenuBtn.addEventListener('click', () => {
-    navMenu.classList.toggle('hidden');
-    navMenu.classList.toggle('mobile-menu-active');
-  });
-
+  // Tutup dropdown saat klik di luar
   document.addEventListener('click', (e) => {
-    if (!mobileMenuBtn.contains(e.target) && !navMenu.contains(e.target)) {
-      navMenu.classList.add('hidden');
-      navMenu.classList.remove('mobile-menu-active');
+    if (!btn.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.add('hidden');
     }
   });
 }
 
-// GSAP Fade + Slide Animation
-window.addEventListener("load", () => {
-  gsap.utils.toArray(".fade-slide").forEach((el, i) => {
-    gsap.to(el, {
-      opacity: 1,
-      y: 0,
-      duration: 0.6,
-      delay: i * 0.15,
-      ease: "power2.out",
-    });
+// ===== MOBILE MENU =====
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const navMenu       = document.getElementById('navMenu');
+
+if (mobileMenuBtn && navMenu) {
+  mobileMenuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // Di desktop navMenu pakai absolute center — di mobile pakai mobile-menu-active
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      navMenu.classList.toggle('mobile-menu-active');
+      // Pastikan hidden tidak menginterferensi di mobile
+      navMenu.classList.remove('hidden');
+    } else {
+      navMenu.classList.toggle('hidden');
+    }
   });
+
+  document.addEventListener('click', (e) => {
+    if (!mobileMenuBtn.contains(e.target) && !navMenu.contains(e.target)) {
+      navMenu.classList.remove('mobile-menu-active');
+      if (window.innerWidth >= 768) navMenu.classList.remove('hidden');
+    }
+  });
+
+  // Reset saat resize agar state tidak stuck
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768) {
+      navMenu.classList.remove('mobile-menu-active');
+      navMenu.classList.remove('hidden');
+    }
+  });
+}
+
+// ===== GSAP ANIMATION =====
+// FIX: Cek keberadaan GSAP sebelum memanggilnya.
+// Jika library tidak ter-load (network error, CDN down),
+// script tidak crash dan halaman tetap fungsional.
+window.addEventListener('load', () => {
+  if (typeof gsap !== 'undefined') {
+    gsap.utils.toArray('.fade-slide').forEach((el, i) => {
+      gsap.to(el, { opacity: 1, y: 0, duration: 0.6, delay: i * 0.15, ease: 'power2.out' });
+    });
+  }
 });
 
 // ===== CUSTOM POPUP SYSTEM =====
@@ -84,71 +126,54 @@ function showPopup(title, message, type = 'info') {
   if (existingPopup) existingPopup.remove();
 
   const popup = document.createElement('div');
-  popup.id = 'customPopup';
+  popup.id        = 'customPopup';
   popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center';
 
   const popupContent = document.createElement('div');
   popupContent.className = 'bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all popup-fade-in';
 
-  let icon = '';
-  let bgColor = '';
-
-  switch (type) {
-    case 'success':
-      icon = `<svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-      bgColor = 'from-green-50 to-green-100';
-      break;
-    case 'warning':
-      icon = `<svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>`;
-      bgColor = 'from-yellow-50 to-yellow-100';
-      break;
-    case 'error':
-      icon = `<svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-      bgColor = 'from-red-50 to-red-100';
-      break;
-    default:
-      icon = `<svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-      bgColor = 'from-blue-50 to-blue-100';
-  }
+  const configs = {
+    success: { icon: `<svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`, bg: 'from-green-50 to-green-100' },
+    warning: { icon: `<svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>`, bg: 'from-yellow-50 to-yellow-100' },
+    error:   { icon: `<svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`, bg: 'from-red-50 to-red-100' },
+    info:    { icon: `<svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`, bg: 'from-blue-50 to-blue-100' },
+  };
+  const { icon, bg } = configs[type] || configs.info;
 
   popupContent.innerHTML = `
     <div class="text-center">
-      <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br ${bgColor} mb-4">${icon}</div>
+      <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br ${bg} mb-4">${icon}</div>
       <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
       <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
       <button class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200">OK</button>
-    </div>
-  `;
+    </div>`;
+
   popup.appendChild(popupContent);
   document.body.appendChild(popup);
 
-  popup.querySelector('button').addEventListener('click', () => {
+  const closePopup = () => {
     popupContent.classList.replace('popup-fade-in', 'popup-fade-out');
     setTimeout(() => popup.remove(), 300);
-  });
+  };
+
+  popup.querySelector('button').addEventListener('click', closePopup);
 
   if (type !== 'error') {
-    setTimeout(() => {
-      if (popup.parentNode) {
-        popupContent.classList.replace('popup-fade-in', 'popup-fade-out');
-        setTimeout(() => popup.remove(), 300);
-      }
-    }, 5000);
+    setTimeout(() => { if (popup.parentNode) closePopup(); }, 5000);
   }
 }
 
-// ===== CUSTOM CONFIRMATION POPUP =====
+// ===== CONFIRMATION POPUP =====
 function showConfirmationPopup(title, message, onConfirm) {
   const existingPopup = document.getElementById('customConfirmationPopup');
   if (existingPopup) existingPopup.remove();
 
   const popup = document.createElement('div');
-  popup.id = 'customConfirmationPopup';
+  popup.id        = 'customConfirmationPopup';
   popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center';
 
   const popupContent = document.createElement('div');
   popupContent.className = 'bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all popup-fade-in';
-
   popupContent.innerHTML = `
     <div class="text-center">
       <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-yellow-50 to-yellow-100 mb-4">
@@ -159,39 +184,35 @@ function showConfirmationPopup(title, message, onConfirm) {
       <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
       <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
       <div class="flex justify-center gap-4">
-        <button id="confirmBtn" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-200">Ya</button>
-        <button id="cancelBtn" class="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-200">Tidak</button>
+        <button id="confirmBtn" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-200">Ya</button>
+        <button id="cancelBtn"  class="px-6 py-3 bg-red-500  text-white font-semibold rounded-lg hover:bg-red-600  transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-200">Tidak</button>
       </div>
-    </div>
-  `;
+    </div>`;
+
   popup.appendChild(popupContent);
   document.body.appendChild(popup);
 
-  const closePopup = () => {
+  const closeThis = () => {
     popupContent.classList.replace('popup-fade-in', 'popup-fade-out');
     setTimeout(() => popup.remove(), 300);
   };
 
-  document.getElementById('confirmBtn').addEventListener('click', () => {
-    onConfirm();
-    closePopup();
-  });
-
-  document.getElementById('cancelBtn').addEventListener('click', closePopup);
+  document.getElementById('confirmBtn').addEventListener('click', () => { onConfirm(); closeThis(); });
+  document.getElementById('cancelBtn').addEventListener('click', closeThis);
 }
 
 // ===== POPUP ANIMATION HELPERS =====
 function showAnimatedPopup(popupElement) {
-  const popupContent = popupElement.firstElementChild;
+  const content = popupElement.firstElementChild;
   popupElement.classList.remove('hidden');
-  popupContent.classList.remove('popup-fade-out');
-  popupContent.classList.add('popup-fade-in');
+  content.classList.remove('popup-fade-out');
+  content.classList.add('popup-fade-in');
 }
 
 function hideAnimatedPopup(popupElement) {
-  const popupContent = popupElement.firstElementChild;
-  popupContent.classList.remove('popup-fade-in');
-  popupContent.classList.add('popup-fade-out');
+  const content = popupElement.firstElementChild;
+  content.classList.remove('popup-fade-in');
+  content.classList.add('popup-fade-out');
   setTimeout(() => popupElement.classList.add('hidden'), 300);
 }
 
@@ -203,27 +224,29 @@ function updateQuickSummaryTitle() {
   }
 }
 
-// ===== LOADING STATE HELPER =====
-// Mencegah double-click saat request sedang berjalan
+// ===== LOADING STATE =====
 function setButtonLoading(btn, isLoading) {
   if (!btn) return;
-  btn.disabled = isLoading;
+  btn.disabled      = isLoading;
   btn.style.opacity = isLoading ? '0.6' : '1';
-  btn.style.cursor = isLoading ? 'not-allowed' : '';
+  btn.style.cursor  = isLoading ? 'not-allowed' : '';
 }
 
 // ===== MAIN DASHBOARD LOGIC =====
 document.addEventListener('DOMContentLoaded', async function () {
 
-  // Panggil updateQuickSummaryTitle — FIX: sebelumnya tidak pernah dipanggil
+  // Script ini di-load di login.html & register.html juga.
+  // Elemen-elemen dashboard tidak akan ada di sana.
+  // FIX: cek keberadaan elemen kunci sebelum menjalankan logika dashboard.
+  const workOrdersTableBody = document.getElementById('workOrdersTableBody');
+  if (!workOrdersTableBody) return; // Bukan halaman dashboard, stop di sini
+
   updateQuickSummaryTitle();
 
-  let members = [];
-  let workOrders = [];
-  let currentOrder = null;
-  let additionalOperators = []; // Operator tambahan yang dipilih lewat modal
-  // FIX: selectedOperators dihapus karena tidak ada mekanisme pengisian checkbox-nya;
-  //      semua operator dipilih melalui additionalOperators saja.
+  let members            = [];
+  let workOrders         = [];
+  let currentOrder       = null;
+  let additionalOperators = [];
 
   const isGuestUser = localStorage.getItem('isGuestUser') === 'true';
 
@@ -243,158 +266,63 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   // ===== DOM REFERENCES =====
-  const memberStatusPopup         = document.getElementById('memberStatusPopup');
-  const memberList                = document.getElementById('memberList');
-  const closePopupBtn             = document.getElementById('closePopup');
-  const statusContainers          = document.querySelectorAll('.status-container');
-  const workOrdersTableBody       = document.getElementById('workOrdersTableBody');
-  const takeOrderPopup            = document.getElementById('takeOrderPopup');
-  const closeTakeOrderPopupBtn    = document.getElementById('closeTakeOrderPopup');
-  const cancelTakeOrderBtn        = document.getElementById('cancelTakeOrderBtn');
-  const confirmTakeOrderBtn       = document.getElementById('confirmTakeOrderBtn');
+  const memberStatusPopup              = document.getElementById('memberStatusPopup');
+  const memberList                     = document.getElementById('memberList');
+  const closePopupBtn                  = document.getElementById('closePopup');
+  const statusContainers               = document.querySelectorAll('.status-container');
+  const takeOrderPopup                 = document.getElementById('takeOrderPopup');
+  const closeTakeOrderPopupBtn         = document.getElementById('closeTakeOrderPopup');
+  const cancelTakeOrderBtn             = document.getElementById('cancelTakeOrderBtn');
+  const confirmTakeOrderBtn            = document.getElementById('confirmTakeOrderBtn');
   const openSelectHelperOperatorModalBtn = document.getElementById('openSelectHelperOperatorModalBtn');
-  const createOrderPopup          = document.getElementById('createOrderPopup');
-  const closeCreateOrderPopupBtn  = document.getElementById('closeCreateOrderPopup');
-  const cancelCreateOrderBtn      = document.getElementById('cancelCreateOrderBtn');
-  const exitGuestBtn              = document.getElementById('exitGuestBtn');
-  const createOrderForm           = document.getElementById('createOrderForm');
-  const createOrderBtn            = document.getElementById('createOrderBtn');
-  const orderLocationSelect       = document.getElementById('orderLocation');
-  const specificLocationContainer = document.getElementById('specificLocationContainer');
-  const specificLocationInput     = document.getElementById('specificLocation');
-  const memberSearchInput         = document.getElementById('memberSearchInput');
-  const searchDropdown            = document.getElementById('searchDropdown');
-  const searchResults             = document.getElementById('searchResults');
-  const statusFilterTabs          = document.querySelectorAll('.status-filter-tab');
-  const selectHelperOperatorModal = document.getElementById('selectHelperOperatorModal');
+  const createOrderPopup               = document.getElementById('createOrderPopup');
+  const closeCreateOrderPopupBtn       = document.getElementById('closeCreateOrderPopup');
+  const cancelCreateOrderBtn           = document.getElementById('cancelCreateOrderBtn');
+  const exitGuestBtn                   = document.getElementById('exitGuestBtn');
+  const createOrderForm                = document.getElementById('createOrderForm');
+  const createOrderBtn                 = document.getElementById('createOrderBtn');
+  const orderLocationSelect            = document.getElementById('orderLocation');
+  const specificLocationContainer      = document.getElementById('specificLocationContainer');
+  const specificLocationInput          = document.getElementById('specificLocation');
+  const memberSearchInput              = document.getElementById('memberSearchInput');
+  const searchDropdown                 = document.getElementById('searchDropdown');
+  const searchResults                  = document.getElementById('searchResults');
+  const statusFilterTabs               = document.querySelectorAll('.status-filter-tab');
+  const selectHelperOperatorModal      = document.getElementById('selectHelperOperatorModal');
   const closeSelectHelperOperatorModalBtn = document.getElementById('closeSelectHelperOperatorModalBtn');
-  const availableStandbyOperatorsList     = document.getElementById('availableStandbyOperatorsList');
+  const availableStandbyOperatorsList  = document.getElementById('availableStandbyOperatorsList');
 
   let currentStatusFilter = 'all';
 
-  // Sample requester data
-  const requesters = [
-    { id: 101, name: 'Michael Scott', department: 'Management' },
-    { id: 102, name: 'Dwight Schrute', department: 'Sales' },
-    { id: 103, name: 'Jim Halpert', department: 'Sales' },
-    { id: 104, name: 'Pam Beesly', department: 'Reception' },
-    { id: 105, name: 'Oscar Martinez', department: 'Accounting' },
-    { id: 106, name: 'Angela Martin', department: 'Accounting' },
-    { id: 107, name: 'Kevin Malone', department: 'Accounting' },
-    { id: 108, name: 'Stanley Hudson', department: 'Sales' },
-    { id: 109, name: 'Phyllis Vance', department: 'Sales' },
-    { id: 110, name: 'Meredith Palmer', department: 'Supplier Relations' }
-  ];
-
-  // ===== SAFETY CHECKLIST =====
+  // ===== SAFETY CHECKLIST DATA =====
   const safetyChecklistItems = {
-    'CCTV': [
-      { id: 'cctv1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'cctv2', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'cctv3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'cctv4', text: 'Gunakan Sarung Tangan', required: true }
-    ],
-    'WiFi': [
-      { id: 'wifi1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'wifi2', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'wifi3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'wifi4', text: 'Gunakan Sarung Tangan', required: true }
-    ],
-    'Gedung A': [
-      { id: 'ga1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'ga2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'ga3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'ga4', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'ga5', text: 'Gunakan sepatu safety', required: true }
-    ],
-    'Gedung B': [
-      { id: 'gb1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'gb2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'gb3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'gb4', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'gb5', text: 'Gunakan sepatu safety', required: true }
-    ],
-    'Gedung B Baru': [
-      { id: 'gbb1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'gbb2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'gbb3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'gbb4', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'gbb5', text: 'Gunakan sepatu safety', required: true }
-    ],
-    'Gedung C': [
-      { id: 'gc1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'gc2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'gc3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'gc4', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'gc5', text: 'Gunakan sepatu safety', required: true }
-    ],
-    'Gedung D': [
-      { id: 'gd1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'gd2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'gd3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'gd4', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'gd5', text: 'Gunakan sepatu safety', required: true }
-    ],
-    'Gedung E': [
-      { id: 'ge1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'ge2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'ge3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'ge4', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'ge5', text: 'Gunakan sepatu safety', required: true }
-    ],
-    'Gedung F': [
-      { id: 'gf1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'gf2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'gf3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'gf4', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'gf5', text: 'Gunakan sepatu safety', required: true }
-    ],
-    'Gedung G': [
-      { id: 'gg1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'gg2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'gg3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'gg4', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'gg5', text: 'Gunakan sepatu safety', required: true }
-    ],
-    'Gedung TKI': [
-      { id: 'gt1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'gt2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'gt3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'gt4', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'gt5', text: 'Gunakan sepatu safety', required: true }
-    ],
-    'Ruang Guru': [
-      { id: 'rg1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'rg2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'rg3', text: 'Pastikan area kerja aman', required: false },
-      { id: 'rg4', text: 'Matikan listrik sebelum bekerja', required: true }
-    ],
-    'Ruang Yayasan': [
-      { id: 'ry1', text: 'Pastikan sirkulasi udara baik', required: false },
-      { id: 'ry2', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'ry3', text: 'Matikan listrik sebelum bekerja', required: true },
-      { id: 'ry4', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'ry5', text: 'Pastikan area kerja aman', required: true }
-    ],
-    'default': [
-      { id: 'def1', text: 'Gunakan pelindung mata (goggles)', required: false },
-      { id: 'def2', text: 'Gunakan Sarung Tangan', required: false },
-      { id: 'def3', text: 'Pastikan area kerja aman', required: true },
-      { id: 'def4', text: 'Matikan listrik sebelum bekerja', required: true }
-    ]
+    'CCTV':        [{ id: 'cctv1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'cctv2', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'cctv3', text: 'Pastikan area kerja aman', required: true }, { id: 'cctv4', text: 'Gunakan Sarung Tangan', required: true }],
+    'WiFi':        [{ id: 'wifi1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'wifi2', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'wifi3', text: 'Pastikan area kerja aman', required: true }, { id: 'wifi4', text: 'Gunakan Sarung Tangan', required: true }],
+    'Gedung A':    [{ id: 'ga1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'ga2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'ga3', text: 'Pastikan area kerja aman', required: true }, { id: 'ga4', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'ga5', text: 'Gunakan sepatu safety', required: true }],
+    'Gedung B':    [{ id: 'gb1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'gb2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'gb3', text: 'Pastikan area kerja aman', required: true }, { id: 'gb4', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'gb5', text: 'Gunakan sepatu safety', required: true }],
+    'Gedung B Baru': [{ id: 'gbb1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'gbb2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'gbb3', text: 'Pastikan area kerja aman', required: true }, { id: 'gbb4', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'gbb5', text: 'Gunakan sepatu safety', required: true }],
+    'Gedung C':    [{ id: 'gc1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'gc2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'gc3', text: 'Pastikan area kerja aman', required: true }, { id: 'gc4', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'gc5', text: 'Gunakan sepatu safety', required: true }],
+    'Gedung D':    [{ id: 'gd1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'gd2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'gd3', text: 'Pastikan area kerja aman', required: true }, { id: 'gd4', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'gd5', text: 'Gunakan sepatu safety', required: true }],
+    'Gedung E':    [{ id: 'ge1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'ge2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'ge3', text: 'Pastikan area kerja aman', required: true }, { id: 'ge4', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'ge5', text: 'Gunakan sepatu safety', required: true }],
+    'Gedung F':    [{ id: 'gf1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'gf2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'gf3', text: 'Pastikan area kerja aman', required: true }, { id: 'gf4', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'gf5', text: 'Gunakan sepatu safety', required: true }],
+    'Gedung G':    [{ id: 'gg1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'gg2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'gg3', text: 'Pastikan area kerja aman', required: true }, { id: 'gg4', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'gg5', text: 'Gunakan sepatu safety', required: true }],
+    'Gedung TKI':  [{ id: 'gt1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'gt2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'gt3', text: 'Pastikan area kerja aman', required: true }, { id: 'gt4', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'gt5', text: 'Gunakan sepatu safety', required: true }],
+    'Ruang Guru':  [{ id: 'rg1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'rg2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'rg3', text: 'Pastikan area kerja aman', required: false }, { id: 'rg4', text: 'Matikan listrik sebelum bekerja', required: true }],
+    'Ruang Yayasan': [{ id: 'ry1', text: 'Pastikan sirkulasi udara baik', required: false }, { id: 'ry2', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'ry3', text: 'Matikan listrik sebelum bekerja', required: true }, { id: 'ry4', text: 'Gunakan Sarung Tangan', required: false }, { id: 'ry5', text: 'Pastikan area kerja aman', required: true }],
+    'default':     [{ id: 'def1', text: 'Gunakan pelindung mata (goggles)', required: false }, { id: 'def2', text: 'Gunakan Sarung Tangan', required: false }, { id: 'def3', text: 'Pastikan area kerja aman', required: true }, { id: 'def4', text: 'Matikan listrik sebelum bekerja', required: true }],
   };
 
   // ===== API FUNCTIONS =====
 
   async function fetchMembers() {
     try {
-      const response = await fetch('/api/members');
-      if (!response.ok) throw new Error('Network response was not ok: ' + response.statusText);
-      members = await response.json();
-      if (!Array.isArray(members)) members = [];
-      console.log("Data members berhasil di-fetch dari Go API:", members);
-    } catch (error) {
-      console.error("Error fetching members:", error);
+      const r = await fetch('/api/members');
+      if (!r.ok) throw new Error(r.statusText);
+      const json = await r.json();
+      // FIX: handle format response baru { code, message, data: [...] }
+      members = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
+    } catch (err) {
+      console.error('Error fetching members:', err);
       if (memberList) memberList.innerHTML = '<div class="text-center py-4 text-red-500">Failed to load member data.</div>';
       members = [];
     }
@@ -402,12 +330,13 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   async function fetchAndRenderWorkOrders() {
     try {
-      const response = await fetch('/api/workorders');
-      if (!response.ok) throw new Error('Gagal mengambil data work order dari server');
-      workOrders = await response.json();
-      if (!Array.isArray(workOrders)) workOrders = [];
-    } catch (error) {
-      console.error("Error fetching work orders:", error);
+      const r = await fetch('/api/workorders');
+      if (!r.ok) throw new Error('Gagal mengambil data work order dari server');
+      const json = await r.json();
+      // FIX: handle format response baru { code, message, data: [...] }
+      workOrders = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
+    } catch (err) {
+      console.error('Error fetching work orders:', err);
       showPopup('Error', 'Gagal memuat data work order dari server.', 'error');
       workOrders = [];
     }
@@ -421,15 +350,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     await fetchAndRenderWorkOrders();
   }
 
-  // FIX: updateMemberStatus sekarang memanggil API ke backend
+  // FIX: Kirim Authorization header ke semua protected endpoint
   async function apiUpdateMemberStatus(memberId, newStatus) {
-    const response = await fetch(`/api/members/${memberId}/status`, {
+    const r = await fetch(`/api/members/${memberId}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ status: newStatus })
     });
-    if (!response.ok) throw new Error('Gagal memperbarui status member. Status: ' + response.status);
-    return response.json();
+    if (!r.ok) throw new Error('Gagal memperbarui status member. Status: ' + r.status);
+    const json = await r.json();
+    return unwrapData(json);
   }
 
   // ===== INIT =====
@@ -438,9 +368,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   initializeMemberImages();
   updateSummaryCounts();
 
-  if (isGuestUser && exitGuestBtn) {
-    exitGuestBtn.classList.remove('hidden');
-  }
+  if (isGuestUser && exitGuestBtn) exitGuestBtn.classList.remove('hidden');
 
   // ===== STATUS CONTAINER CLICK =====
   statusContainers.forEach(container => {
@@ -468,18 +396,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   // ===== TAKE ORDER POPUP =====
-  closeTakeOrderPopupBtn.addEventListener('click', () => {
-    hideAnimatedPopup(takeOrderPopup);
-    resetTakeOrderForm();
-  });
-
-  cancelTakeOrderBtn.addEventListener('click', () => {
-    hideAnimatedPopup(takeOrderPopup);
-    resetTakeOrderForm();
-  });
-
-  confirmTakeOrderBtn.addEventListener('click', () => confirmTakeOrder());
-
+  closeTakeOrderPopupBtn.addEventListener('click', () => { hideAnimatedPopup(takeOrderPopup); resetTakeOrderForm(); });
+  cancelTakeOrderBtn.addEventListener('click',     () => { hideAnimatedPopup(takeOrderPopup); resetTakeOrderForm(); });
+  confirmTakeOrderBtn.addEventListener('click',    () => confirmTakeOrder());
   openSelectHelperOperatorModalBtn.addEventListener('click', openSelectHelperOperatorModal);
 
   // ===== HELPER OPERATOR MODAL =====
@@ -500,9 +419,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     standbyMembers.forEach(member => {
-      const memberDiv = document.createElement('div');
-      memberDiv.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
-      memberDiv.innerHTML = `
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
+      div.innerHTML = `
         <div class="flex items-center gap-3">
           <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
           <span class="font-medium">${member.name}</span>
@@ -512,15 +431,12 @@ document.addEventListener('DOMContentLoaded', async function () {
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
-        </button>
-      `;
-      availableStandbyOperatorsList.appendChild(memberDiv);
+        </button>`;
+      availableStandbyOperatorsList.appendChild(div);
     });
 
-    document.querySelectorAll('.add-helper-operator-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        addHelperOperator(parseInt(this.dataset.memberId));
-      });
+    document.querySelectorAll('.add-helper-operator-btn').forEach(b => {
+      b.addEventListener('click', function () { addHelperOperator(parseInt(this.dataset.memberId)); });
     });
   }
 
@@ -536,23 +452,21 @@ document.addEventListener('DOMContentLoaded', async function () {
     hideAnimatedPopup(selectHelperOperatorModal);
   }
 
-  // FIX: Hanya pakai additionalOperators; selectedOperators dihapus
   function populateStandbyOperatorsInTakeOrderPopup() {
-    const standbyOperatorsListDiv = document.getElementById('standbyOperatorsList');
-    standbyOperatorsListDiv.innerHTML = '';
+    const listDiv = document.getElementById('standbyOperatorsList');
+    listDiv.innerHTML = '';
 
     if (additionalOperators.length === 0) {
-      standbyOperatorsListDiv.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada operator bantuan yang dipilih.</p>';
+      listDiv.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada operator bantuan yang dipilih.</p>';
       return;
     }
 
     additionalOperators.forEach(memberId => {
       const member = members.find(m => m.id === memberId);
       if (!member) return;
-
-      const operatorDiv = document.createElement('div');
-      operatorDiv.className = 'flex items-center gap-3 p-2 bg-blue-50 rounded-lg shadow-sm';
-      operatorDiv.innerHTML = `
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-3 p-2 bg-blue-50 rounded-lg shadow-sm';
+      div.innerHTML = `
         <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
         <div class="flex-1">
           <div class="font-medium">${member.name}</div>
@@ -563,15 +477,12 @@ document.addEventListener('DOMContentLoaded', async function () {
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
-        </button>
-      `;
-      standbyOperatorsListDiv.appendChild(operatorDiv);
+        </button>`;
+      listDiv.appendChild(div);
     });
 
-    document.querySelectorAll('.remove-helper-operator-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        removeHelperOperator(parseInt(this.dataset.memberId));
-      });
+    document.querySelectorAll('.remove-helper-operator-btn').forEach(b => {
+      b.addEventListener('click', function () { removeHelperOperator(parseInt(this.dataset.memberId)); });
     });
   }
 
@@ -586,26 +497,19 @@ document.addEventListener('DOMContentLoaded', async function () {
   createOrderBtn.addEventListener('click', () => showAnimatedPopup(createOrderPopup));
 
   closeCreateOrderPopupBtn.addEventListener('click', () => {
-    if (isGuestUser) {
-      showPopup('Guest Restriction', 'You must create at least one work order before closing.', 'warning');
-      return;
-    }
+    if (isGuestUser) { showPopup('Guest Restriction', 'You must create at least one work order before closing.', 'warning'); return; }
     hideAnimatedPopup(createOrderPopup);
     createOrderForm.reset();
     specificLocationContainer.classList.add('hidden');
   });
 
   cancelCreateOrderBtn.addEventListener('click', () => {
-    if (isGuestUser) {
-      showPopup('Guest Restriction', 'You must create at least one work order before closing.', 'warning');
-      return;
-    }
+    if (isGuestUser) { showPopup('Guest Restriction', 'You must create at least one work order before closing.', 'warning'); return; }
     hideAnimatedPopup(createOrderPopup);
     createOrderForm.reset();
     specificLocationContainer.classList.add('hidden');
   });
 
-  // FIX: exitGuestBtn hanya punya SATU event listener (sebelumnya duplikat dua listener berbeda)
   if (exitGuestBtn) {
     exitGuestBtn.addEventListener('click', function () {
       localStorage.removeItem('isGuestUser');
@@ -621,20 +525,13 @@ document.addEventListener('DOMContentLoaded', async function () {
   // ===== LOCATION DROPDOWN =====
   orderLocationSelect.addEventListener('change', function () {
     const locationPrompts = {
-      'Gedung A': 'Contoh: Lantai 2, Ruang Kelas',
-      'Gedung B': 'Contoh: Lantai 1, Lorong Kelas',
-      'Gedung B Baru': 'Contoh: Lantai 3, Lorong Kelas',
-      'Gedung C': 'Contoh: Lantai 1, Lorong Kelas',
-      'Gedung D': 'Contoh: Lantai 2, Ruang PPDB',
-      'Gedung E': 'Contoh: Lantai 1, Bengkel',
-      'Gedung F': 'Contoh: Lantai 1, Ruang Kelas',
-      'Gedung G': 'Contoh: Pintu Masuk Workshop',
-      'Gedung TKI': 'Contoh: Lantai 1',
-      'Ruang Guru': 'Contoh: Ruang Horenso',
-      'Ruang Yayasan': 'Contoh: Ruang Ketua Yayasan',
-      'default': 'Contoh: Nomor ruang, lantai, atau area spesifik'
+      'Gedung A': 'Contoh: Lantai 2, Ruang Kelas', 'Gedung B': 'Contoh: Lantai 1, Lorong Kelas',
+      'Gedung B Baru': 'Contoh: Lantai 3, Lorong Kelas', 'Gedung C': 'Contoh: Lantai 1, Lorong Kelas',
+      'Gedung D': 'Contoh: Lantai 2, Ruang PPDB', 'Gedung E': 'Contoh: Lantai 1, Bengkel',
+      'Gedung F': 'Contoh: Lantai 1, Ruang Kelas', 'Gedung G': 'Contoh: Pintu Masuk Workshop',
+      'Gedung TKI': 'Contoh: Lantai 1', 'Ruang Guru': 'Contoh: Ruang Horenso',
+      'Ruang Yayasan': 'Contoh: Ruang Ketua Yayasan', 'default': 'Contoh: Nomor ruang, lantai, atau area spesifik'
     };
-
     if (this.value) {
       specificLocationContainer.classList.remove('hidden');
       specificLocationInput.placeholder = locationPrompts[this.value] || locationPrompts['default'];
@@ -643,66 +540,60 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   });
 
-  // ===== CREATE ORDER FORM SUBMIT =====
+  // ===== CREATE ORDER SUBMIT =====
   createOrderForm.addEventListener('submit', function (e) {
     e.preventDefault();
-
     const submitBtn = this.querySelector('[type="submit"]') || createOrderBtn;
-    if (submitBtn.disabled) return; // FIX: Cegah double submit
+    if (submitBtn.disabled) return;
     setButtonLoading(submitBtn, true);
 
-    const priority         = document.getElementById('orderPriority').value;
-    const requesterName    = document.getElementById('orderRequester').value;
-    const location         = document.getElementById('orderLocation').value;
-    const specificLocation = document.getElementById('specificLocation').value;
-    const device           = document.getElementById('orderDevice').value;
-    const problem          = document.getElementById('orderProblem').value;
-
     const now = new Date();
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
+    const hh  = String(now.getHours()).padStart(2, '0');
+    const mm  = String(now.getMinutes()).padStart(2, '0');
+    const loc = document.getElementById('orderLocation').value;
+    const spc = document.getElementById('specificLocation').value;
 
     const payload = {
-      priority,
-      time_display: `${hh}:${mm}`,
-      time_sort: `${hh}:${mm}:00`,
-      requester: requesterName,
-      location: specificLocation ? `${location} - ${specificLocation}` : location,
-      device,
-      problem,
+      priority:      document.getElementById('orderPriority').value,
+      time_display:  `${hh}:${mm}`,
+      time_sort:     `${hh}:${mm}:00`,
+      requester:     document.getElementById('orderRequester').value,
+      location:      spc ? `${loc} - ${spc}` : loc,
+      device:        document.getElementById('orderDevice').value,
+      problem:       document.getElementById('orderProblem').value,
       working_hours: '0 menit',
-      status: 'pending',
-      executors: [],
+      status:        'pending',
+      executors:     [],
       safety_checklist: []
     };
 
+    // FIX: Kirim Authorization header untuk endpoint yang dilindungi
     fetch('/api/workorders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      method:  'POST',
+      headers: authHeaders(),
+      body:    JSON.stringify(payload)
     })
-    .then(response => {
-      if (!response.ok) throw new Error('Gagal menyimpan order. Status: ' + response.status);
-      return response.json();
+    .then(r => {
+      if (!r.ok) throw new Error('Gagal menyimpan order. Status: ' + r.status);
+      return r.json();
     })
-    .then(data => {
+    .then(json => {
+      // FIX: unwrap format response baru { code, message, data: { id } }
+      const data = unwrapData(json);
       hideAnimatedPopup(createOrderPopup);
       createOrderForm.reset();
       specificLocationContainer.classList.add('hidden');
       refreshAllDataFromAPI();
-      showPopup('Work Order Berhasil Dibuat!', `Work Order #${data.id} telah berhasil dibuat dan disimpan di database.`, 'success');
+      showPopup('Work Order Berhasil Dibuat!', `Work Order #${data.id} telah berhasil dibuat dan disimpan.`, 'success');
     })
-    .catch(error => {
-      console.error('Error saat membuat order:', error);
+    .catch(err => {
+      console.error('Error saat membuat order:', err);
       showPopup('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
     })
-    .finally(() => {
-      setButtonLoading(submitBtn, false); // FIX: Selalu re-enable tombol setelah selesai
-    });
+    .finally(() => setButtonLoading(submitBtn, false));
   });
 
   // ===== SEARCH =====
-  // FIX: Duplikat event listener 'focus' dihapus, hanya satu yang tersisa
   memberSearchInput.addEventListener('focus', function () {
     searchDropdown.classList.remove('hidden');
     populateSearchResults();
@@ -713,30 +604,28 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
 
   document.addEventListener('click', function (e) {
-    if (!e.target.closest('.relative')) {
-      searchDropdown.classList.add('hidden');
-    }
+    if (!e.target.closest('.relative')) searchDropdown.classList.add('hidden');
   });
 
   function populateSearchResults(searchTerm = '') {
     searchResults.innerHTML = '';
-    const filteredMembers = members.filter(m => m.name.toLowerCase().includes(searchTerm));
+    const filtered = members.filter(m => m.name.toLowerCase().includes(searchTerm));
 
-    if (filteredMembers.length === 0) {
+    if (filtered.length === 0) {
       searchResults.innerHTML = '<div class="text-center py-4 text-gray-500">No members found</div>';
       return;
     }
 
     const statusMap = {
-      standby:   { color: 'bg-green-500',  text: 'Stand By' },
-      onjob:     { color: 'bg-blue-500',   text: 'On Job' },
-      support:   { color: 'bg-yellow-400', text: 'Support' },
+      standby:   { color: 'bg-green-500',  text: 'Stand By'  },
+      onjob:     { color: 'bg-blue-500',   text: 'On Job'    },
+      support:   { color: 'bg-yellow-400', text: 'Support'   },
       nextshift: { color: 'bg-purple-500', text: 'Next Shift' },
-      offduty:   { color: 'bg-gray-500',   text: 'Off Duty' }
+      offduty:   { color: 'bg-gray-500',   text: 'Off Duty'  }
     };
 
-    filteredMembers.forEach(member => {
-      const s = statusMap[member.status] || { color: 'bg-gray-500', text: 'Unknown' };
+    filtered.forEach(member => {
+      const s    = statusMap[member.status] || { color: 'bg-gray-500', text: 'Unknown' };
       const item = document.createElement('div');
       item.className = 'flex items-center gap-3 px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors';
       item.innerHTML = `
@@ -747,8 +636,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             <span class="w-2 h-2 rounded-full ${s.color}"></span>
             <span>${s.text}</span>
           </div>
-        </div>
-      `;
+        </div>`;
       item.addEventListener('click', () => {
         memberSearchInput.value = member.name;
         searchDropdown.classList.add('hidden');
@@ -759,9 +647,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   function highlightMember(memberId) {
-    document.querySelectorAll('.member-highlight').forEach(el => {
-      el.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
-    });
+    document.querySelectorAll('.member-highlight').forEach(el => el.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2'));
     const img = document.querySelector(`img[data-member-id="${memberId}"]`);
     if (img) {
       img.classList.add('member-highlight', 'ring-2', 'ring-blue-500', 'ring-offset-2');
@@ -771,26 +657,25 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // ===== MEMBER IMAGES =====
   function initializeMemberImages() {
-    // Bersihkan dulu semua container sebelum mengisi ulang
-    statusContainers.forEach(container => {
-      const memberImagesContainer = container.querySelector('.member-images');
-      if (memberImagesContainer) memberImagesContainer.innerHTML = '';
+    statusContainers.forEach(c => {
+      const container = c.querySelector('.member-images');
+      if (container) container.innerHTML = '';
     });
 
     members.forEach(member => {
       const statusContainer = document.getElementById(`status-${member.status}`);
       if (statusContainer) {
-        const memberImagesContainer = statusContainer.querySelector('.member-images');
+        const container = statusContainer.querySelector('.member-images');
         const img = document.createElement('img');
-        img.src = `/static/public/${member.avatar}`;
-        img.alt = member.name;
-        img.className = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
+        img.src            = `/static/public/${member.avatar}`;
+        img.alt            = member.name;
+        img.className      = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
         img.dataset.memberId = member.id;
-        memberImagesContainer.appendChild(img);
+        container.appendChild(img);
       }
     });
 
-    statusContainers.forEach(container => updateMemberDisplay(container));
+    statusContainers.forEach(c => updateMemberDisplay(c));
   }
 
   async function openMemberStatusPopup(statusFilter = 'all') {
@@ -801,14 +686,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function populateMemberList(statusFilter = 'all') {
     memberList.innerHTML = '';
-    const filteredMembers = statusFilter === 'all' ? members : members.filter(m => m.status === statusFilter);
+    const filtered = statusFilter === 'all' ? members : members.filter(m => m.status === statusFilter);
 
-    if (filteredMembers.length === 0) {
+    if (filtered.length === 0) {
       memberList.innerHTML = '<div class="text-center py-4 text-gray-500">No members found for this status</div>';
       return;
     }
 
-    filteredMembers.forEach(member => {
+    filtered.forEach(member => {
       const item = document.createElement('div');
       item.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg';
       item.innerHTML = `
@@ -818,16 +703,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         </div>
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-600">Status:</span>
-          <select class="status-select px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            data-member-id="${member.id}">
+          <select class="status-select px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" data-member-id="${member.id}">
             <option value="standby"   ${member.status === 'standby'   ? 'selected' : ''}>Stand By</option>
             <option value="onjob"     ${member.status === 'onjob'     ? 'selected' : ''}>On Job</option>
             <option value="support"   ${member.status === 'support'   ? 'selected' : ''}>Support</option>
             <option value="nextshift" ${member.status === 'nextshift' ? 'selected' : ''}>Next Shift</option>
             <option value="offduty"   ${member.status === 'offduty'   ? 'selected' : ''}>Off Duty</option>
           </select>
-        </div>
-      `;
+        </div>`;
       memberList.appendChild(item);
     });
 
@@ -838,92 +721,79 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
   }
 
-  // FIX: updateMemberStatus sekarang memanggil API dan disable select selama request
   function updateMemberStatus(memberId, newStatus, selectEl) {
-    const memberIndex = members.findIndex(m => m.id === memberId);
-    if (memberIndex === -1) return;
+    const idx = members.findIndex(m => m.id === memberId);
+    if (idx === -1) return;
 
-    const oldStatus = members[memberIndex].status;
+    const oldStatus = members[idx].status;
     if (selectEl) setButtonLoading(selectEl, true);
 
     apiUpdateMemberStatus(memberId, newStatus)
       .then(() => {
-        members[memberIndex].status = newStatus;
-
-        // Jika member di-off dari onjob, hapus dari semua work order via API
-        if (oldStatus === 'onjob' && newStatus !== 'onjob') {
-          syncRemoveMemberFromOrders(memberId);
-        }
-
-        updateStatusUI(members[memberIndex], oldStatus, newStatus);
-
+        members[idx].status = newStatus;
+        if (oldStatus === 'onjob' && newStatus !== 'onjob') syncRemoveMemberFromOrders(memberId);
+        updateStatusUI(members[idx], oldStatus, newStatus);
         if (!memberStatusPopup.classList.contains('hidden') && currentStatusFilter !== 'all') {
           populateMemberList(currentStatusFilter);
         }
-
         populateWorkOrdersTable();
         updateSummaryCounts();
-        showPopup('Status Diperbarui', `Status ${members[memberIndex].name} berhasil diubah.`, 'success');
+        showPopup('Status Diperbarui', `Status ${members[idx].name} berhasil diubah.`, 'success');
       })
-      .catch(error => {
-        console.error('Error updating member status:', error);
-        // FIX: Rollback select ke nilai lama jika API gagal
+      .catch(err => {
+        console.error('Error updating member status:', err);
         if (selectEl) selectEl.value = oldStatus;
         showPopup('Error', 'Gagal memperbarui status member ke server.', 'error');
       })
-      .finally(() => {
-        if (selectEl) setButtonLoading(selectEl, false);
+      .finally(() => { if (selectEl) setButtonLoading(selectEl, false); });
+  }
+
+  // FIX: Kirim Authorization header ke semua PATCH workorder
+  function syncRemoveMemberFromOrders(memberId) {
+    workOrders
+      .filter(o => o.executors && o.executors.includes(memberId))
+      .forEach(order => {
+        const newExecutors = order.executors.filter(id => id !== memberId);
+        const newStatus    = newExecutors.length === 0 && order.status === 'progress' ? 'pending' : order.status;
+        fetch(`/api/workorders/${order.id}`, {
+          method:  'PATCH',
+          headers: authHeaders(),
+          body:    JSON.stringify({ executors: newExecutors, status: newStatus })
+        })
+        .then(r => { if (!r.ok) throw new Error('Gagal sinkronisasi executor order #' + order.id); })
+        .catch(err => console.error(err));
       });
   }
 
-  // FIX: Hapus member dari order via API jika status berubah dari onjob
-  function syncRemoveMemberFromOrders(memberId) {
-    const affectedOrders = workOrders.filter(o => o.executors && o.executors.includes(memberId));
-    affectedOrders.forEach(order => {
-      const newExecutors = order.executors.filter(id => id !== memberId);
-      const newStatus = newExecutors.length === 0 && order.status === 'progress' ? 'pending' : order.status;
-
-      fetch(`/api/workorders/${order.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ executors: newExecutors, status: newStatus })
-      })
-      .then(res => { if (!res.ok) throw new Error('Gagal sinkronisasi executor order #' + order.id); })
-      .catch(err => console.error(err));
-    });
-  }
-
   function updateStatusUI(member, oldStatus, newStatus) {
-    const oldContainer = document.getElementById(`status-${oldStatus}`);
-    if (oldContainer) {
-      const img = oldContainer.querySelector(`img[data-member-id="${member.id}"]`);
-      if (img) { img.remove(); updateMemberDisplay(oldContainer); }
+    const oldC = document.getElementById(`status-${oldStatus}`);
+    if (oldC) {
+      const img = oldC.querySelector(`img[data-member-id="${member.id}"]`);
+      if (img) { img.remove(); updateMemberDisplay(oldC); }
     }
-
-    const newContainer = document.getElementById(`status-${newStatus}`);
-    if (newContainer) {
-      const memberImagesContainer = newContainer.querySelector('.member-images');
+    const newC = document.getElementById(`status-${newStatus}`);
+    if (newC) {
+      const container = newC.querySelector('.member-images');
       const img = document.createElement('img');
-      img.src = `/static/public/${member.avatar}`;
-      img.alt = member.name;
-      img.className = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
+      img.src              = `/static/public/${member.avatar}`;
+      img.alt              = member.name;
+      img.className        = 'w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm';
       img.dataset.memberId = member.id;
-      memberImagesContainer.appendChild(img);
-      updateMemberDisplay(newContainer);
+      container.appendChild(img);
+      updateMemberDisplay(newC);
     }
   }
 
   function updateMemberDisplay(container) {
-    const memberImages = container.querySelectorAll('.member-images img');
-    const moreMembersDiv = container.querySelector('.more-members');
-
-    if (memberImages.length > 3) {
-      for (let i = 3; i < memberImages.length; i++) memberImages[i].style.display = 'none';
-      moreMembersDiv.classList.remove('hidden');
-      moreMembersDiv.textContent = `+${memberImages.length - 3}`;
+    const imgs   = container.querySelectorAll('.member-images img');
+    const moreEl = container.querySelector('.more-members');
+    if (imgs.length > 3) {
+      for (let i = 3; i < imgs.length; i++) imgs[i].style.display = 'none';
+      moreEl.classList.remove('hidden');
+      moreEl.textContent = `+${imgs.length - 3}`;
     } else {
-      memberImages.forEach(img => img.style.display = 'block');
-      moreMembersDiv.classList.add('hidden');
+      imgs.forEach(img => img.style.display = 'block');
+      moreEl.classList.add('hidden');
     }
   }
 
@@ -931,110 +801,88 @@ document.addEventListener('DOMContentLoaded', async function () {
   function populateWorkOrdersTable() {
     workOrdersTableBody.innerHTML = '';
 
-    const sortedWorkOrders = [...workOrders].sort((a, b) => {
-      const priorityOrder = { high: 0, medium: 1, low: 2 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    const sorted = [...workOrders].sort((a, b) => {
+      return ({ high: 0, medium: 1, low: 2 }[a.priority] ?? 3) - ({ high: 0, medium: 1, low: 2 }[b.priority] ?? 3);
     });
 
-    sortedWorkOrders.forEach(order => {
+    sorted.forEach(order => {
       const row = document.createElement('tr');
       if (order.priority === 'high' && order.status !== 'completed') row.classList.add('high-priority');
 
-      const priorityLabels = { high: 'priority-high', medium: 'priority-medium', low: 'priority-low' };
-      const priorityText   = { high: 'High Priority', medium: 'Medium', low: 'Low' };
-      const statusLabels   = { pending: 'status-pending', progress: 'status-progress', completed: 'status-completed' };
-      const statusText     = { pending: 'Pending', progress: 'On Progress', completed: 'Completed' };
+      const priorityBadge = `<span class="priority-badge priority-${order.priority}">${
+        { high: 'High Priority', medium: 'Medium', low: 'Low' }[order.priority] || order.priority
+      }</span>`;
 
-      const priorityBadge = `<span class="priority-badge ${priorityLabels[order.priority]}">${priorityText[order.priority]}</span>`;
-      const statusBadge   = `<span class="status-badge ${statusLabels[order.status]}">${statusText[order.status]}</span>`;
+      const statusBadge = `<span class="status-badge status-${order.status}">${
+        { pending: 'Pending', progress: 'On Progress', completed: 'Completed' }[order.status] || order.status
+      }</span>`;
 
-      let requesterName = 'Unknown';
-      if (typeof order.requester === 'number') {
-        requesterName = requesters.find(r => r.id === order.requester)?.name || 'Unknown';
-      } else if (typeof order.requester === 'string') {
-        requesterName = order.requester;
-      }
+      // Requester — backend sekarang selalu string, tapi handle juga fallback number
+      const requesterName = typeof order.requester === 'string' ? order.requester : (order.requester || 'Unknown');
 
       let executorsHtml = '<div class="flex -space-x-2">';
-      if (order.executors?.length > 0) {
-        order.executors.forEach(executorId => {
-          // FIX: normalisasi tipe ID (string vs number dari backend)
-          const member = members.find(m => m.id === executorId || m.id === parseInt(executorId));
-          if (member) {
-            executorsHtml += `<img src="/static/public/${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small">`;
-          }
-        });
-      }
+      (order.executors || []).forEach(execId => {
+        const member = members.find(m => m.id === execId || m.id === parseInt(execId));
+        if (member) executorsHtml += `<img src="/static/public/${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small">`;
+      });
       executorsHtml += '</div>';
 
       let actionButtons = '<div class="flex items-center gap-2">';
       if (order.status === 'pending') {
-        if (order.executors?.length > 0) {
+        if ((order.executors || []).length > 0) {
           actionButtons += `<button class="add-worker-btn bg-green-500 text-white rounded-full p-1 hover:bg-green-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Tambah worker">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
           </button>`;
         } else {
           actionButtons += `<button class="take-order-btn bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Ambil order ini">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
           </button>`;
         }
       } else if (order.status === 'progress') {
         actionButtons += `<button class="done-btn bg-green-500 text-white rounded-full p-1 hover:bg-green-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Tandai sebagai selesai">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
         </button>`;
       }
       actionButtons += `<button class="delete-btn bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-all h-7 w-7 flex items-center justify-center" data-order-id="${order.id}" title="Hapus order">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
       </button>`;
       actionButtons += '</div>';
 
       row.innerHTML = `
         <td class="py-3 px-2 text-sm">${order.id}</td>
         <td class="py-3 px-2 text-sm">${priorityBadge}</td>
-        <td class="py-3 px-2 text-sm">${order.time}</td>
+        <td class="py-3 px-2 text-sm">${order.time || '-'}</td>
         <td class="py-3 px-2 text-sm">${requesterName}</td>
-        <td class="py-3 px-2 text-sm">${order.location}</td>
-        <td class="py-3 px-2 text-sm">${order.device}</td>
-        <td class="py-3 px-2 text-sm">${order.problem}</td>
+        <td class="py-3 px-2 text-sm">${order.location || '-'}</td>
+        <td class="py-3 px-2 text-sm">${order.device || '-'}</td>
+        <td class="py-3 px-2 text-sm">${order.problem || '-'}</td>
         <td class="py-3 px-2 text-sm">${executorsHtml}</td>
         <td class="py-3 px-2 text-sm">${order.workingHours || '-'}</td>
         <td class="py-3 px-2 text-sm">${statusBadge}</td>
-        <td class="py-3 px-2 text-sm">${actionButtons}</td>
-      `;
+        <td class="py-3 px-2 text-sm">${actionButtons}</td>`;
       workOrdersTableBody.appendChild(row);
     });
 
-    document.querySelectorAll('.take-order-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
+    document.querySelectorAll('.take-order-btn').forEach(b => {
+      b.addEventListener('click', function () {
         if (checkGuestRestriction('Taking orders')) return;
         openTakeOrderPopup(parseInt(this.dataset.orderId));
       });
     });
-
-    document.querySelectorAll('.add-worker-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
+    document.querySelectorAll('.add-worker-btn').forEach(b => {
+      b.addEventListener('click', function () {
         if (checkGuestRestriction('Adding workers')) return;
         openAddWorkerPopup(parseInt(this.dataset.orderId));
       });
     });
-
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
+    document.querySelectorAll('.delete-btn').forEach(b => {
+      b.addEventListener('click', function () {
         if (checkGuestRestriction('Deleting orders')) return;
         deleteOrder(parseInt(this.dataset.orderId));
       });
     });
-
-    document.querySelectorAll('.done-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
+    document.querySelectorAll('.done-btn').forEach(b => {
+      b.addEventListener('click', function () {
         if (checkGuestRestriction('Completing orders')) return;
         markOrderDone(parseInt(this.dataset.orderId));
       });
@@ -1052,8 +900,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
 
-    currentOrder = order;
-    additionalOperators = [];
+    currentOrder         = order;
+    additionalOperators  = [];
 
     document.getElementById('popupOrderId').textContent  = order.id;
     document.getElementById('popupPriority').textContent = order.priority.charAt(0).toUpperCase() + order.priority.slice(1);
@@ -1074,7 +922,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
 
-    currentOrder = order;
+    currentOrder        = order;
     additionalOperators = [];
 
     document.getElementById('popupOrderId').textContent  = order.id;
@@ -1089,19 +937,18 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function populateAvailableWorkersForAddWorker(existingExecutorIds) {
     availableStandbyOperatorsList.innerHTML = '';
-    // FIX: normalisasi tipe ID saat filter
-    const normalizedExisting = (existingExecutorIds || []).map(id => parseInt(id));
-    const availableMembers = members.filter(m => m.status === 'standby' && !normalizedExisting.includes(m.id));
+    const normalized = (existingExecutorIds || []).map(id => parseInt(id));
+    const available  = members.filter(m => m.status === 'standby' && !normalized.includes(m.id));
 
-    if (availableMembers.length === 0) {
+    if (available.length === 0) {
       availableStandbyOperatorsList.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada worker standby yang tersedia</p>';
       return;
     }
 
-    availableMembers.forEach(member => {
-      const memberDiv = document.createElement('div');
-      memberDiv.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
-      memberDiv.innerHTML = `
+    available.forEach(member => {
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
+      div.innerHTML = `
         <div class="flex items-center gap-3">
           <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full">
           <span class="font-medium">${member.name}</span>
@@ -1111,40 +958,35 @@ document.addEventListener('DOMContentLoaded', async function () {
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
-        </button>
-      `;
-      availableStandbyOperatorsList.appendChild(memberDiv);
+        </button>`;
+      availableStandbyOperatorsList.appendChild(div);
     });
 
-    // FIX: Gunakan class berbeda (.add-worker-direct-btn) agar tidak bentrok dengan
-    //      handler .add-helper-operator-btn di populateAvailableStandbyOperators
-    document.querySelectorAll('.add-worker-direct-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        addWorkerToOrder(parseInt(this.dataset.memberId));
-      });
+    document.querySelectorAll('.add-worker-direct-btn').forEach(b => {
+      b.addEventListener('click', function () { addWorkerToOrder(parseInt(this.dataset.memberId)); });
     });
   }
 
-  // FIX: addWorkerToOrder sekarang memanggil API
+  // FIX: Kirim Authorization header
   function addWorkerToOrder(memberId) {
     if (!currentOrder) return;
 
-    const normalizedExecutors = (currentOrder.executors || []).map(id => parseInt(id));
-    if (normalizedExecutors.includes(memberId)) {
+    const normalized = (currentOrder.executors || []).map(id => parseInt(id));
+    if (normalized.includes(memberId)) {
       showPopup('Peringatan', 'Worker ini sudah terdaftar untuk order ini!', 'warning');
       return;
     }
 
-    const newExecutors = [...normalizedExecutors, memberId];
+    const newExecutors = [...normalized, memberId];
 
     fetch(`/api/workorders/${currentOrder.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ executors: newExecutors })
+      method:  'PATCH',
+      headers: authHeaders(),
+      body:    JSON.stringify({ executors: newExecutors })
     })
-    .then(res => {
-      if (!res.ok) throw new Error('Gagal menambahkan worker. Status: ' + res.status);
-      return res.json();
+    .then(r => {
+      if (!r.ok) throw new Error('Gagal menambahkan worker. Status: ' + r.status);
+      return r.json();
     })
     .then(() => {
       const member = members.find(m => m.id === memberId);
@@ -1153,80 +995,72 @@ document.addEventListener('DOMContentLoaded', async function () {
       showPopup('Worker Ditambahkan', `${member.name} berhasil ditambahkan ke order #${currentOrder.id}.`, 'success');
       currentOrder = null;
     })
-    .catch(error => {
-      console.error('Error saat menambahkan worker:', error);
+    .catch(err => {
+      console.error('Error saat menambahkan worker:', err);
       showPopup('Error', 'Terjadi kesalahan saat menambahkan worker.', 'error');
     });
   }
 
   function populateSafetyChecklist(location) {
-    const safetyChecklistDiv = document.getElementById('safetyChecklist');
-    safetyChecklistDiv.innerHTML = '';
-
-    const mainLocation = location.includes(' - ') ? location.split(' - ')[0] : location;
-    const items = safetyChecklistItems[mainLocation] || safetyChecklistItems['default'];
+    const div = document.getElementById('safetyChecklist');
+    div.innerHTML = '';
+    const mainLoc = location.includes(' - ') ? location.split(' - ')[0] : location;
+    const items   = safetyChecklistItems[mainLoc] || safetyChecklistItems['default'];
 
     if (items.length === 0) {
-      safetyChecklistDiv.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada checklist safety untuk lokasi ini</p>';
+      div.innerHTML = '<p class="text-gray-500 text-center py-4">Tidak ada checklist safety untuk lokasi ini</p>';
       return;
     }
 
     items.forEach(item => {
-      const itemDiv = document.createElement('div');
+      const itemDiv  = document.createElement('div');
       itemDiv.className = 'flex items-center gap-3';
-
       const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
+      checkbox.type  = 'checkbox';
       checkbox.className = 'custom-checkbox';
-      checkbox.id = item.id;
+      checkbox.id    = item.id;
       checkbox.dataset.required = item.required;
-
-      const label = document.createElement('label');
-      label.htmlFor = item.id;
+      const label    = document.createElement('label');
+      label.htmlFor  = item.id;
       label.className = 'flex-1 cursor-pointer';
       label.innerHTML = `${item.text} ${item.required ? '<span class="text-red-500">*</span>' : ''}`;
-
       itemDiv.appendChild(checkbox);
       itemDiv.appendChild(label);
-      safetyChecklistDiv.appendChild(itemDiv);
+      div.appendChild(itemDiv);
     });
   }
 
   // ===== CONFIRM TAKE ORDER =====
+  // FIX: Kirim Authorization header
   function confirmTakeOrder() {
     if (!currentOrder) return;
-
     if (additionalOperators.length === 0) {
       showPopup('Peringatan', 'Pilih minimal satu operator untuk mengambil order ini.', 'warning');
       return;
     }
 
-    // FIX: Disable tombol saat request berlangsung untuk cegah double click
     setButtonLoading(confirmTakeOrderBtn, true);
 
     const safetyChecklist = [];
-    document.querySelectorAll('#safetyChecklist input').forEach(checkbox => {
-      if (checkbox.checked) safetyChecklist.push(checkbox.id);
+    document.querySelectorAll('#safetyChecklist input').forEach(cb => {
+      if (cb.checked) safetyChecklist.push(cb.id);
     });
 
     const payload = {
-      order_id: currentOrder.id,
-      executors: additionalOperators,
+      order_id:              currentOrder.id,
+      executors:             additionalOperators,
       safety_checklist_items: safetyChecklist,
-      status: 'progress'
+      status:                'progress'
     };
 
     fetch(`/api/workorders/${currentOrder.id}/take`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      method:  'POST',
+      headers: authHeaders(),
+      body:    JSON.stringify(payload)
     })
-    .then(response => {
-      if (!response.ok) throw new Error('Gagal mengambil order. Status: ' + response.status);
-      return response.text().then(text => {
-        console.log("DEBUG: Raw response from /take:", text);
-        return text ? JSON.parse(text) : {};
-      });
+    .then(r => {
+      if (!r.ok) throw new Error('Gagal mengambil order. Status: ' + r.status);
+      return r.text().then(text => text ? JSON.parse(text) : {});
     })
     .then(() => {
       showPopup('Order Berhasil Diambil!', `Berhasil mengambil order #${currentOrder.id}!`, 'success');
@@ -1234,80 +1068,73 @@ document.addEventListener('DOMContentLoaded', async function () {
       resetTakeOrderForm();
       refreshAllDataFromAPI();
     })
-    .catch(error => {
-      console.error('Error saat konfirmasi ambil order:', error);
+    .catch(err => {
+      console.error('Error saat konfirmasi ambil order:', err);
       showPopup('Error', 'Terjadi kesalahan saat menyimpan perubahan ke database.', 'error');
     })
-    .finally(() => {
-      setButtonLoading(confirmTakeOrderBtn, false); // FIX: Re-enable tombol setelah selesai
-    });
+    .finally(() => setButtonLoading(confirmTakeOrderBtn, false));
   }
 
   function resetTakeOrderForm() {
-    currentOrder = null;
+    currentOrder        = null;
     additionalOperators = [];
-    const standbyOperatorsListDiv = document.getElementById('standbyOperatorsList');
-    if (standbyOperatorsListDiv) standbyOperatorsListDiv.innerHTML = '';
+    const listDiv = document.getElementById('standbyOperatorsList');
+    if (listDiv) listDiv.innerHTML = '';
     document.querySelectorAll('#safetyChecklist input').forEach(cb => cb.checked = false);
   }
 
   // ===== MARK ORDER DONE =====
+  // FIX: Kirim Authorization header
   function markOrderDone(orderId) {
-    const btn = document.querySelector(`.done-btn[data-order-id="${orderId}"]`);
-    setButtonLoading(btn, true); // FIX: Disable saat request berlangsung
+    const doneBtn = document.querySelector(`.done-btn[data-order-id="${orderId}"]`);
+    setButtonLoading(doneBtn, true);
 
     const now = new Date();
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
+    const hh  = String(now.getHours()).padStart(2, '0');
+    const mm  = String(now.getMinutes()).padStart(2, '0');
     const completionTime = `${hh}:${mm}`;
 
-    const payload = {
-      status: 'completed',
-      completed_at_display: completionTime
-    };
-
     fetch(`/api/workorders/${orderId}/complete`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      method:  'PATCH',
+      headers: authHeaders(),
+      body:    JSON.stringify({ status: 'completed', completed_at_display: completionTime })
     })
-    // FIX: Gunakan .text() lalu parse manual, aman jika response body kosong
-    .then(response => {
-      if (!response.ok) throw new Error('Gagal menyelesaikan order. Status: ' + response.status);
-      return response.text().then(text => text ? JSON.parse(text) : {});
+    .then(r => {
+      if (!r.ok) throw new Error('Gagal menyelesaikan order. Status: ' + r.status);
+      return r.text().then(text => text ? JSON.parse(text) : {});
     })
     .then(() => {
       refreshAllDataFromAPI();
       showPopup('Order Selesai!', `Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`, 'success');
     })
-    .catch(error => {
-      console.error('Error saat menyelesaikan order:', error);
+    .catch(err => {
+      console.error('Error saat menyelesaikan order:', err);
       showPopup('Error', 'Terjadi kesalahan saat memperbarui status order.', 'error');
-      setButtonLoading(btn, false); // FIX: Re-enable jika gagal (jika sukses, tabel di-refresh otomatis)
+      setButtonLoading(doneBtn, false);
     });
   }
 
   // ===== DELETE ORDER =====
+  // FIX: Kirim Authorization header
   function deleteOrder(orderId) {
     showConfirmationPopup(
       'Konfirmasi Hapus Order',
       `Apakah Anda yakin ingin menghapus order #${orderId}?`,
       () => {
         fetch(`/api/workorders/${orderId}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' }
+          method:  'DELETE',
+          headers: authHeaders()
         })
-        // FIX: Gunakan .text() lalu parse manual, aman jika response body kosong
-        .then(response => {
-          if (!response.ok) throw new Error('Gagal menghapus order. Status: ' + response.status);
-          return response.text().then(text => text ? JSON.parse(text) : {});
+        .then(r => {
+          if (!r.ok) throw new Error('Gagal menghapus order. Status: ' + r.status);
+          return r.text().then(text => text ? JSON.parse(text) : {});
         })
         .then(() => {
           refreshAllDataFromAPI();
           showPopup('Order Dihapus!', `Order #${orderId} telah berhasil dihapus dari database.`, 'success');
         })
-        .catch(error => {
-          console.error('Error saat menghapus order:', error);
+        .catch(err => {
+          console.error('Error saat menghapus order:', err);
           showPopup('Error', 'Terjadi kesalahan saat menghapus order.', 'error');
         });
       }
@@ -1320,126 +1147,24 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('pendingOrdersCount').textContent   = workOrders.filter(o => o.status === 'pending').length;
     document.getElementById('progressOrdersCount').textContent  = workOrders.filter(o => o.status === 'progress').length;
     document.getElementById('completedOrdersCount').textContent = workOrders.filter(o => o.status === 'completed').length;
-
-    const kPopup = document.getElementById('kaizenPopup');
-    if (kPopup && !kPopup.classList.contains('hidden') && typeof renderKaizenEvaluation === 'function') {
-      renderKaizenEvaluation();
-    }
   }
 
   // ===== FILTER TABS =====
   function updateFilterTabs(activeStatus) {
     statusFilterTabs.forEach(tab => {
       const isActive = tab.dataset.statusFilter === activeStatus;
-      tab.classList.toggle('bg-blue-500', isActive);
-      tab.classList.toggle('text-white', isActive);
-      tab.classList.toggle('bg-gray-200', !isActive);
+      tab.classList.toggle('bg-blue-500',  isActive);
+      tab.classList.toggle('text-white',   isActive);
+      tab.classList.toggle('bg-gray-200',  !isActive);
       tab.classList.toggle('text-gray-700', !isActive);
     });
   }
 
 }); // END DOMContentLoaded
 
-// ===== LOGIN PAGE LOGIC =====
-document.addEventListener('DOMContentLoaded', function() {
-  const modal        = document.getElementById("myModal");
-  const span         = document.getElementsByClassName("close")[0];
-  const modalMessage = document.getElementById("modal-message");
-
-  function showModal(message) {
-    if (modal && modalMessage) {
-      modalMessage.textContent = message;
-      modal.style.display = "block";
-    }
-  }
-
-  if (span) {
-    span.onclick = () => { if (modal) modal.style.display = "none"; };
-  }
-
-  window.onclick = (event) => {
-    if (event.target === modal) modal.style.display = "none";
-  };
-
-  // Guest login
-  const guestLoginBtn = document.getElementById('guestLoginBtn');
-  if (guestLoginBtn) {
-    guestLoginBtn.addEventListener('click', function() {
-      localStorage.setItem('isGuestUser', 'true');
-      localStorage.setItem('guestLoginTime', new Date().toISOString());
-      showModal('Welcome Guest! You can only create work orders.');
-      setTimeout(() => { window.location.href = 'index.html'; }, 1500);
-    });
-  }
-
-  // Login form
-  const loginForm = document.querySelector('.login-form');
-  if (loginForm) {
-    loginForm.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const submitBtn = loginForm.querySelector('[type="submit"]');
-      setButtonLoading(submitBtn, true);
-
-      const name     = event.target.username.value;
-      const password = event.target.password.value;
-
-      fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, password })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.message) {
-          localStorage.removeItem('isGuestUser');
-          localStorage.removeItem('guestLoginTime');
-          localStorage.setItem('isAdmin', 'true');
-          showModal('Login successful!');
-          setTimeout(() => { window.location.href = 'index.html'; }, 1000);
-        } else {
-          showModal(data.error || 'Login failed');
-          setButtonLoading(submitBtn, false);
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        showModal('An error occurred. Please try again.');
-        setButtonLoading(submitBtn, false);
-      });
-    });
-  }
-
-  // Register form
-  const registerForm = document.querySelector('.register-form');
-  if (registerForm) {
-    registerForm.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const submitBtn = registerForm.querySelector('[type="submit"]');
-      setButtonLoading(submitBtn, true);
-
-      const name     = event.target.username.value;
-      const password = event.target.password.value;
-
-      fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, password })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.message) {
-          showModal('Registration successful! Please log in.');
-          setTimeout(() => { window.location.href = 'login.html'; }, 2000);
-        } else {
-          showModal(data.error || 'Registration failed');
-          setButtonLoading(submitBtn, false);
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        showModal('An error occurred. Please try again.');
-        setButtonLoading(submitBtn, false);
-      });
-    });
-  }
-});
+// ===== LOGIN / REGISTER PAGE LOGIC =====
+// FIX: Logika login/register dipindah sepenuhnya ke inline script di login.html & register.html.
+// Blok ini sekarang hanya menangani hal yang TIDAK bisa diletakkan di inline script:
+// yaitu elemen yang mungkin ada di KEDUA halaman (tidak ada saat ini).
+// Duplikasi event listener yang sebelumnya ada di sini sudah dihapus agar tidak
+// konflik dengan script inline di login.html dan register.html.
