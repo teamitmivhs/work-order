@@ -16,7 +16,6 @@ services:
     networks:
       - workorder-net
     healthcheck:
-      # FIX: pakai variable, bukan credential hardcode
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
              "-u", "${DB_USER}", "-p${DB_PASSWORD}"]
       interval: 10s
@@ -33,7 +32,6 @@ services:
     restart: unless-stopped
     environment:
       PORT: "9000"
-      # FIX: tambah INTERNAL_API_KEY agar Rust validasi request dari Go
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
     expose:
       - "9000"
@@ -56,12 +54,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # FIX: tunggu time-tracker healthy (sebelumnya hanya service_started)
       time-tracker:
         condition: service_healthy
     env_file: .env
     environment:
-      DB_HOST:          db        # nama service docker, bukan localhost
+      DB_HOST:          db
       DB_PORT:          "3306"
       DB_USER:          ${DB_USER}
       DB_PASSWORD:      ${DB_PASSWORD}
@@ -73,14 +70,8 @@ services:
       - "8080"
     networks:
       - workorder-net
-    healthcheck:
-      # FIX: endpoint yang lebih representatif (bukan / yang mungkin tidak ada)
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider",
-             "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    # Tidak ada healthcheck — backend sudah punya retry logic ke DB sendiri
+    # dan nginx tidak perlu tunggu backend "healthy", cukup "started"
 
   # ─── Nginx ─────────────────────────────────────────────────────────────────
   nginx:
@@ -88,9 +79,7 @@ services:
     container_name: work-order-nginx
     restart: unless-stopped
     depends_on:
-      # FIX: tunggu backend healthy sebelum nginx menerima traffic
-      backend:
-        condition: service_healthy
+      - backend
     ports:
       - "80:80"
       - "443:443"
