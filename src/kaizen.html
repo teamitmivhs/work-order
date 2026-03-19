@@ -16,32 +16,31 @@
 <body class="bg-[#f3f4f6] text-black">
 
   <!-- NAVBAR -->
-  <nav class="w-full bg-[#222] px-6 py-4 flex flex-wrap items-center justify-between shadow-xl gap-4">
-    <div class="flex items-center">
-      <a href="/index.html" class="nav-button group flex items-center gap-2 text-white text-sm font-medium transition-all duration-300 hover:scale-105">
-        <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-        Back
-      </a>
-    </div>
-    <h1 class="text-white text-2xl font-bold">Kaizen - Catatan & Evaluasi</h1>
-    <div class="w-20"></div>
+  <nav style="background:linear-gradient(to right,#0f172a,#1e293b);border-bottom:1px solid rgba(255,255,255,0.07);"
+    class="sticky top-0 z-40 w-full px-4 md:px-6 py-3 shadow-2xl flex items-center justify-between">
+    <a href="/index.html" class="flex items-center gap-2 text-white hover:text-blue-300 transition-colors min-h-[44px]">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span class="text-sm font-medium">Kembali</span>
+    </a>
+    <h1 class="text-white text-base sm:text-lg font-bold absolute left-1/2 -translate-x-1/2 whitespace-nowrap">Kaizen — Evaluasi</h1>
+    <div class="w-16"></div>
   </nav>
 
   <!-- NOTES VIEW MODAL -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center" id="notesModal">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-3xl max-h-[80vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">Detail Notes & Evaluasi</h2>
-        <button id="closeNotesModal" class="text-gray-500 hover:text-gray-700" aria-label="Tutup">
+  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-3 md:p-4" id="notesModal">
+    <div class="bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4 md:mb-6">
+        <h2 class="text-lg md:text-2xl font-bold">Detail Notes & Evaluasi</h2>
+        <button id="closeNotesModal" class="text-gray-500 hover:text-gray-700 p-1" aria-label="Tutup">
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
       </div>
-      <div class="bg-gray-50 p-4 rounded-lg mb-6 space-y-2">
-        <div class="grid grid-cols-2 gap-4">
+      <div class="bg-gray-50 p-3 md:p-4 rounded-lg mb-4 md:mb-6 space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 text-sm">
           <div><span class="font-medium text-gray-600">No. Order:</span> <span class="text-gray-800 font-semibold" id="modalOrderId">-</span></div>
           <div><span class="font-medium text-gray-600">Requester:</span> <span class="text-gray-800 font-semibold" id="modalOrderRequester">-</span></div>
           <div><span class="font-medium text-gray-600">Device:</span> <span class="text-gray-800 font-semibold" id="modalOrderDevice">-</span></div>
@@ -49,18 +48,18 @@
           <div><span class="font-medium text-gray-600">Priority:</span> <span class="inline-block" id="modalOrderPriority">-</span></div>
           <div><span class="font-medium text-gray-600">Completed At:</span> <span class="text-gray-800 font-semibold" id="modalOrderCompletedAt">-</span></div>
         </div>
-        <div><span class="font-medium text-gray-600">Problem:</span> <p class="text-gray-800 mt-1" id="modalOrderProblem">-</p></div>
-        <div><span class="font-medium text-gray-600">Executors:</span> <span class="text-gray-800" id="modalOrderExecutors">-</span></div>
-        <div><span class="font-medium text-gray-600">Working Time:</span> <span class="text-gray-800" id="modalOrderWorkingHours">-</span></div>
+        <div class="text-sm"><span class="font-medium text-gray-600">Problem:</span> <p class="text-gray-800 mt-1" id="modalOrderProblem">-</p></div>
+        <div class="text-sm"><span class="font-medium text-gray-600">Executors:</span> <span class="text-gray-800" id="modalOrderExecutors">-</span></div>
+        <div class="text-sm"><span class="font-medium text-gray-600">Working Time:</span> <span class="text-gray-800" id="modalOrderWorkingHours">-</span></div>
       </div>
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-3">Notes & Evaluations</h3>
-        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-          <p class="text-gray-800 leading-relaxed whitespace-pre-wrap" id="modalOrderNotes">No notes available</p>
+      <div class="mb-4 md:mb-6">
+        <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">Notes & Evaluations</h3>
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-3 md:p-4 rounded-r-lg">
+          <p class="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm md:text-base" id="modalOrderNotes">No notes available</p>
         </div>
       </div>
       <div class="flex justify-end">
-        <button id="closeNotesModalBtn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">Close</button>
+        <button id="closeNotesModalBtn" class="px-5 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium">Tutup</button>
       </div>
     </div>
   </div>
@@ -69,68 +68,67 @@
   <main class="px-4 md:px-10 mt-8 mb-12">
 
     <!-- OVERVIEW STATS -->
-    <!-- FIX #12: skeleton loading state -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <p class="text-sm text-gray-600">Total Work Orders</p>
-        <p class="text-4xl font-bold text-blue-600" id="totalOrders"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Total Work Orders</p>
+        <p class="text-3xl md:text-4xl font-bold text-blue-600" id="totalOrders"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
       </div>
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <p class="text-sm text-gray-600">Completed</p>
-        <p class="text-4xl font-bold text-green-600" id="completedOrders"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Completed</p>
+        <p class="text-3xl md:text-4xl font-bold text-green-600" id="completedOrders"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
       </div>
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <p class="text-sm text-gray-600">Completion Rate</p>
-        <p class="text-4xl font-bold text-purple-600" id="completionRate"><span class="skeleton inline-block w-16 h-9 rounded">&nbsp;</span></p>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Completion Rate</p>
+        <p class="text-3xl md:text-4xl font-bold text-purple-600" id="completionRate"><span class="skeleton inline-block w-16 h-9 rounded">&nbsp;</span></p>
         <div class="w-full bg-gray-200 rounded h-2 mt-2">
           <div id="completionBar" class="bg-green-500 h-2 rounded transition-all duration-500" style="width: 0%"></div>
         </div>
       </div>
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <p class="text-sm text-gray-600">Evaluasi</p>
-        <p class="text-4xl font-bold text-orange-600" id="evaluationCount"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Evaluasi</p>
+        <p class="text-3xl md:text-4xl font-bold text-orange-600" id="evaluationCount"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
       </div>
     </div>
 
     <!-- PERFORMANCE EVALUATION -->
-    <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
-      <h2 class="text-2xl font-semibold mb-4">Evaluasi Performa</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-green-800">Current Rating</h3>
-          <p class="text-3xl font-bold text-green-600" id="currentRating">-</p>
-          <p class="text-sm text-green-700" id="ratingSuggestion">-</p>
+    <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6 mb-6 md:mb-8">
+      <h2 class="text-base md:text-2xl font-semibold mb-3 md:mb-4">Evaluasi Performa</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
+        <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl">
+          <h3 class="text-sm md:text-lg font-semibold text-green-800">Current Rating</h3>
+          <p class="text-2xl md:text-3xl font-bold text-green-600 mt-1" id="currentRating">-</p>
+          <p class="text-xs md:text-sm text-green-700 mt-1" id="ratingSuggestion">-</p>
         </div>
-        <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-blue-800">Average Completion Time</h3>
-          <p class="text-3xl font-bold text-blue-600" id="avgCompletionTime">-</p>
-          <p class="text-sm text-blue-700">Berdasarkan menit kerja</p>
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl">
+          <h3 class="text-sm md:text-lg font-semibold text-blue-800">Avg Completion</h3>
+          <p class="text-2xl md:text-3xl font-bold text-blue-600 mt-1" id="avgCompletionTime">-</p>
+          <p class="text-xs md:text-sm text-blue-700 mt-1">Berdasarkan menit kerja</p>
         </div>
-        <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-purple-800">Notes Quality</h3>
-          <p class="text-3xl font-bold text-purple-600" id="notesQuality">-</p>
-          <p class="text-sm text-purple-700" id="notesQualityDetail">-</p>
+        <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-xl">
+          <h3 class="text-sm md:text-lg font-semibold text-purple-800">Notes Quality</h3>
+          <p class="text-2xl md:text-3xl font-bold text-purple-600 mt-1" id="notesQuality">-</p>
+          <p class="text-xs md:text-sm text-purple-700 mt-1" id="notesQualityDetail">-</p>
         </div>
       </div>
     </div>
 
     <!-- FILTERS -->
-    <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
-      <h2 class="text-xl font-semibold mb-4">Filter & Search</h2>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6 mb-6 md:mb-8">
+      <h2 class="text-base md:text-xl font-semibold mb-3 md:mb-4">Filter & Search</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Search by Requester</label>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Requester</label>
           <input type="text" id="searchRequester" placeholder="Cari nama requester..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Search by Device</label>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Device</label>
           <input type="text" id="searchDevice" placeholder="Cari nama device..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-          <select id="filterPriority" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Priority</label>
+          <select id="filterPriority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
             <option value="">All Priorities</option>
             <option value="high">High Priority</option>
             <option value="medium">Medium Priority</option>
@@ -138,15 +136,17 @@
           </select>
         </div>
         <div class="flex items-end">
-          <button id="clearFilters" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">Clear Filters</button>
+          <button id="clearFilters" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">Clear Filters</button>
         </div>
       </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="bg-white rounded-2xl shadow-xl p-6">
-      <h2 class="text-2xl font-semibold mb-4">Work Orders with Notes & Evaluations</h2>
-      <div class="table-container overflow-x-auto">
+    <!-- TABLE (desktop) / CARDS (mobile) -->
+    <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+      <h2 class="text-lg md:text-2xl font-semibold mb-3 md:mb-4">Work Orders with Notes & Evaluations</h2>
+
+      <!-- Desktop table -->
+      <div class="table-section-desktop table-container overflow-x-auto">
         <table class="w-full table">
           <thead>
             <tr class="border-b border-gray-200">
@@ -175,6 +175,9 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Mobile cards -->
+      <div class="cards-section-mobile hidden" id="ordersCardBody"></div>
     </div>
   </main>
 
@@ -285,6 +288,7 @@
       const tbody = document.getElementById('ordersTableBody');
       if (orders.length === 0) {
         tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Tidak ada work order dengan catatan</td></tr>';
+        renderMobileCards(orders);
         return;
       }
       tbody.innerHTML = orders.map((o, i) => `
@@ -315,6 +319,52 @@
             </button>
           </td>
         </tr>`).join('');
+      renderMobileCards(orders);
+    }
+
+    function renderMobileCards(orders = completedOrders) {
+      const cardBody = document.getElementById('ordersCardBody');
+      if (!cardBody) return;
+      const priClass = { urgent:'badge-urgent', high:'badge-high', medium:'badge-medium', low:'badge-low' };
+      if (!orders || orders.length === 0) {
+        cardBody.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Tidak ada work order dengan catatan</p>';
+        return;
+      }
+      cardBody.innerHTML = orders.map((o, i) => {
+        const requester = typeof o.requester === 'object' ? o.requester.name : (o.requester || '-');
+        return `
+        <div class="data-card">
+          <div class="data-card-header">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-gray-400">#${i+1}</span>
+              <span class="badge-priority ${priClass[o.priority] || 'badge-low'}">${o.priority || '-'}</span>
+            </div>
+            <span class="text-xs text-green-600 font-medium">${o.completedAt || '-'}</span>
+          </div>
+          <div class="data-card-row"><span class="data-card-label">Requester</span><span class="data-card-value">${requester}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Device</span><span class="data-card-value">${o.device || '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Lokasi</span><span class="data-card-value">${o.location || '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Masalah</span><span class="data-card-value" style="max-width:60%">${o.problem || '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${convertWorkingTime(o.workingHours)}</span></div>
+          <div class="data-card-row">
+            <span class="data-card-label">Catatan</span>
+            <span class="data-card-value" style="max-width:60%">
+              ${o.notes
+                ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">${o.notes.length>40?o.notes.substring(0,40)+'…':o.notes}</span>`
+                : '<span class="text-gray-400">No notes</span>'}
+            </span>
+          </div>
+          <div class="data-card-actions">
+            <button class="view-note-btn flex items-center gap-1 text-xs text-blue-500 font-semibold px-3 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" data-order-id="${o.id}">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              Lihat Detail
+            </button>
+          </div>
+        </div>`;
+      }).join('');
     }
 
     function filterTable() {
