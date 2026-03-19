@@ -14,8 +14,10 @@ type MemberRepository interface {
 	GetMemberByName(name string) (*models.Member, error)
 	GetMemberByID(id int) (*models.Member, error)
 	IsMemberAssigned(orderID int64, memberID int) (bool, error)
-	// FIX: tambah method untuk update status member via API
 	UpdateMemberStatus(memberID int, newStatus string) error
+	// SetMemberPassword: update password + role member yang sudah ada di DB
+	// Dipakai saat register — member sudah ada (nama dikenal), hanya set password
+	SetMemberPassword(memberID int, hashedPassword string, role string) error
 }
 
 type memberRepository struct{}
@@ -110,9 +112,18 @@ func (r *memberRepository) IsMemberAssigned(orderID int64, memberID int) (bool, 
 	return count > 0, nil
 }
 
+// SetMemberPassword menyimpan password hash dan role ke member yang sudah ada
+// Dipanggil saat register — tidak membuat member baru, hanya update kolom Password dan Role
+func (r *memberRepository) SetMemberPassword(memberID int, hashedPassword string, role string) error {
+	_, err := config.DB.Exec(
+		"UPDATE members SET Password = ?, Role = ? WHERE ID = ?",
+		hashedPassword, role, memberID,
+	)
+	return err
+}
+
 // UpdateMemberStatus memperbarui status member ke database
-// FIX: dipanggil dari PATCH /api/members/:id/status
-// sebelumnya tidak ada — update status hanya dilakukan secara lokal di frontend
+// dipanggil dari PATCH /api/members/:id/status
 func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) error {
 	validStatuses := map[string]bool{
 		"standby":   true,

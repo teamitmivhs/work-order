@@ -92,6 +92,7 @@ services:
       - ./kaizen.html:/usr/share/nginx/html/kaizen.html:ro
       - ./techguide.html:/usr/share/nginx/html/techguide.html:ro
       - ./static:/usr/share/nginx/html/static:ro
+      - ./settings.html:/usr/share/nginx/html/settings.html:ro
     networks:
       - workorder-net
 

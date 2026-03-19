@@ -3,8 +3,6 @@ package controllers
 import (
 	"net/http"
 	"strings"
-
-	"teamitmivhs/work-order-backend/middleware"
 	"teamitmivhs/work-order-backend/models"
 	"teamitmivhs/work-order-backend/repository"
 	"teamitmivhs/work-order-backend/utils"
@@ -19,27 +17,27 @@ const (
 	maxNameLength     = 50
 )
 
-// isStrongPassword memvalidasi kekuatan password:
-// minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka
+// isStrongPassword validates password strength
 func isStrongPassword(password string) bool {
 	if len(password) < minPasswordLength {
 		return false
 	}
-	var hasUpper, hasLower, hasDigit bool
-	for _, ch := range password {
+	hasUpper := false
+	hasLower := false
+	hasDigit := false
+	for _, char := range password {
 		switch {
-		case ch >= 'A' && ch <= 'Z':
+		case char >= 'A' && char <= 'Z':
 			hasUpper = true
-		case ch >= 'a' && ch <= 'z':
+		case char >= 'a' && char <= 'z':
 			hasLower = true
-		case ch >= '0' && ch <= '9':
+		case char >= '0' && char <= '9':
 			hasDigit = true
 		}
 	}
 	return hasUpper && hasLower && hasDigit
 }
 
-// Register membuat akun member baru
 func Register(c *gin.Context) {
 	var member models.Member
 	if err := c.ShouldBindJSON(&member); err != nil {
@@ -47,6 +45,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	// Validasi input
 	member.Name = strings.TrimSpace(member.Name)
 	if len(member.Name) < minNameLength || len(member.Name) > maxNameLength {
 		utils.BadRequest(c, "Username must be between 3 and 50 characters")
@@ -65,10 +64,16 @@ func Register(c *gin.Context) {
 
 	memberRepo := repository.NewMemberRepository()
 
-	// Cek duplikasi username
+	// Whitelist check: nama harus sudah ada di tabel members (36 member IT MIVHS)
 	existingMember, err := memberRepo.GetMemberByName(member.Name)
-	if err == nil && existingMember != nil {
-		utils.Conflict(c, "Username already exists")
+	if err != nil || existingMember == nil {
+		utils.BadRequest(c, "Name not found. Only registered IT MIVHS members can create an account.")
+		return
+	}
+
+	// Cek apakah sudah pernah register (password sudah diset)
+	if existingMember.Password != "" {
+		utils.Conflict(c, "Account already registered. Please login instead.")
 		return
 	}
 
@@ -77,40 +82,38 @@ func Register(c *gin.Context) {
 		utils.InternalServerError(c, "Failed to hash password", err)
 		return
 	}
-	member.Password = string(hashedPassword)
 
-	// Default role dan status untuk member baru
-	member.Role = "Operator"
-	member.Status = "standby"
+	// Role: jika masih role lama (job title), ubah ke Operator
+	// Admin harus diset manual di DB setelah register
+	role := existingMember.Role
+	if role == "" || role == "programmer" || role == "maintenance" ||
+		role == "data analyst" || role == "soundman" {
+		role = "Operator"
+	}
 
-	if err := memberRepo.CreateMember(&member); err != nil {
-		utils.InternalServerError(c, "Failed to create member", err)
+	// Update password member yang sudah ada (bukan INSERT baru)
+	if err := memberRepo.SetMemberPassword(existingMember.ID, string(hashedPassword), role); err != nil {
+		utils.InternalServerError(c, "Failed to register account", err)
 		return
 	}
 
-	token, err := utils.GenerateToken(member.ID, member.Name, member.Role)
+	token, err := utils.GenerateToken(existingMember.ID, existingMember.Name, role)
 	if err != nil {
 		utils.InternalServerError(c, "Failed to generate token", err)
 		return
 	}
 
 	utils.RespondWithMessage(c, http.StatusCreated, "Registration successful", gin.H{
-		"token": token,
-		"member": gin.H{
-			"id":     member.ID,
-			"name":   member.Name,
-			"role":   member.Role,
-			"status": member.Status,
-		},
+		"token":  token,
+		"member": gin.H{"id": existingMember.ID, "name": existingMember.Name, "role": role, "status": existingMember.Status},
 	})
 }
 
 type LoginRequest struct {
-	Name     string `json:"name"     binding:"required"`
+	Name     string `json:"name" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
-// Login memvalidasi kredensial dan mengembalikan JWT token
 func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -126,8 +129,13 @@ func Login(c *gin.Context) {
 
 	memberRepo := repository.NewMemberRepository()
 	member, err := memberRepo.GetMemberByName(req.Name)
-	if err != nil || member == nil {
-		// Jangan ungkapkan apakah username ada atau tidak (security best practice)
+	if err != nil {
+		// Don't reveal if user exists for security
+		utils.Unauthorized(c, "Invalid username or password")
+		return
+	}
+
+	if member == nil {
 		utils.Unauthorized(c, "Invalid username or password")
 		return
 	}
@@ -137,13 +145,14 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// Generate JWT token
 	token, err := utils.GenerateToken(member.ID, member.Name, member.Role)
 	if err != nil {
 		utils.InternalServerError(c, "Failed to generate token", err)
 		return
 	}
 
-	// Jangan kirim password ke frontend
+	// Don't send password to frontend
 	member.Password = ""
 	utils.RespondWithMessage(c, http.StatusOK, "Login successful", gin.H{
 		"token":  token,
@@ -151,18 +160,22 @@ func Login(c *gin.Context) {
 	})
 }
 
-// GetProfile mengembalikan profil user yang sedang login
+// GetProfile returns current user profile
 func GetProfile(c *gin.Context) {
-	// FIX: pakai signature baru GetUserIDFromContext yang return (int, bool)
-	// Sebelumnya return 0 jika tidak ada, yang bisa lolos pengecekan ceroboh
-	userID, ok := middleware.GetUserIDFromContext(c)
-	if !ok {
+	userID, exists := c.Get("user_id")
+	if !exists {
 		utils.Unauthorized(c, "User information not found")
 		return
 	}
 
+	id, ok := userID.(int)
+	if !ok {
+		utils.Unauthorized(c, "Invalid user information")
+		return
+	}
+
 	memberRepo := repository.NewMemberRepository()
-	member, err := memberRepo.GetMemberByID(userID)
+	member, err := memberRepo.GetMemberByID(id)
 	if err != nil {
 		utils.NotFound(c, "User not found")
 		return
