@@ -54,8 +54,8 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 			// Sebelumnya endpoint ini tidak ada sama sekali
 			workorders.PATCH("/:id", workOrderCtrl.UpdateOrderHandler)
 
-			// Hapus order (Admin only)
-			workorders.DELETE("/:id", middleware.AdminMiddleware(), workOrderCtrl.DeleteOrderHandler)
+			// Hapus order — hanya user yang login, admin check di controller
+			workorders.DELETE("/:id", workOrderCtrl.DeleteOrderHandler)
 
 			// Safety checklist
 			workorders.GET("/:id/checklist", workOrderCtrl.GetSafetyChecklistHandler)
