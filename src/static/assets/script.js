@@ -863,7 +863,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         <td class="py-3 px-2 text-sm">${order.device || '-'}</td>
         <td class="py-3 px-2 text-sm">${order.problem || '-'}</td>
         <td class="py-3 px-2 text-sm">${executorsHtml}</td>
-        <td class="py-3 px-2 text-sm">${order.workingHours || '-'}</td>
+        <td class="py-3 px-2 text-sm" id="wh-${order.id}">${renderWorkingHours(order)}</td>
         <td class="py-3 px-2 text-sm">${statusBadge}</td>
         <td class="py-3 px-2 text-sm">${actionButtons}</td>`;
       workOrdersTableBody.appendChild(row);
@@ -1069,6 +1069,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       return r.text().then(text => text ? JSON.parse(text) : {});
     })
     .then(() => {
+      // Simpan waktu mulai pengerjaan di localStorage untuk live counter
+      const timerKey = `order_timer_${currentOrder.id}`;
+      localStorage.setItem(timerKey, Date.now().toString());
       showPopup('Order Berhasil Diambil!', `Berhasil mengambil order #${currentOrder.id}!`, 'success');
       hideAnimatedPopup(takeOrderPopup);
       resetTakeOrderForm();
@@ -1110,6 +1113,13 @@ document.addEventListener('DOMContentLoaded', async function () {
       return r.text().then(text => text ? JSON.parse(text) : {});
     })
     .then(() => {
+      // Simpan waktu terakhir stopwatch sebelum dihapus, untuk ditampilkan saat completed
+      const finalStartedAt = localStorage.getItem(`order_timer_${orderId}`);
+      if (finalStartedAt) {
+        const finalElapsed = Math.floor((Date.now() - parseInt(finalStartedAt)) / 1000);
+        localStorage.setItem(`order_timer_final_${orderId}`, formatElapsed(finalElapsed));
+        localStorage.removeItem(`order_timer_${orderId}`);
+      }
       refreshAllDataFromAPI();
       showPopup('Order Selesai!', `Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`, 'success');
     })
@@ -1146,6 +1156,49 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
     );
   }
+
+
+  // ===== LIVE WORKING HOURS COUNTER =====
+
+  // Format detik → HH.MM.SS (stopwatch style)
+  function formatElapsed(totalSeconds) {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${String(h).padStart(2,'0')}.${String(m).padStart(2,'0')}.${String(s).padStart(2,'0')}`;
+  }
+
+  // Render initial value untuk kolom working hours
+  function renderWorkingHours(order) {
+    if (order.status === 'completed') {
+      // Tampilkan waktu yang tersimpan (dari localStorage sebelum dihapus)
+      const savedTime = localStorage.getItem(`order_timer_final_${order.id}`);
+      if (savedTime) return savedTime;
+      if (order.workingHours != null) return order.workingHours + ' mnt';
+      return '-';
+    }
+    if (order.status === 'progress') {
+      const startedAt = localStorage.getItem(`order_timer_${order.id}`);
+      if (startedAt) {
+        const elapsed = Math.floor((Date.now() - parseInt(startedAt)) / 1000);
+        return formatElapsed(elapsed);
+      }
+      // Order progress tapi tidak ada timer lokal (diambil di device lain)
+      return '00.00.00';
+    }
+    return '-';
+  }
+
+  // Tick setiap detik — update stopwatch untuk semua order yang sedang progress
+  setInterval(() => {
+    document.querySelectorAll('[id^="wh-"]').forEach(cell => {
+      const orderId   = cell.id.slice(3); // hapus "wh-"
+      const startedAt = localStorage.getItem(`order_timer_${orderId}`);
+      if (!startedAt) return;
+      const elapsed = Math.floor((Date.now() - parseInt(startedAt)) / 1000);
+      cell.textContent = formatElapsed(elapsed);
+    });
+  }, 1000);
 
   // ===== SUMMARY COUNTS =====
   function updateSummaryCounts() {
