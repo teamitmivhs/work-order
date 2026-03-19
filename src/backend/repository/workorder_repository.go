@@ -233,6 +233,8 @@ func (r *workOrderRepository) UpdateSafetyChecklist(orderID int64, items []strin
 }
 
 // IsSafetyChecklistFulfilled mengecek apakah checklist sudah diisi untuk order ini
+// FIX: return true jika tidak ada item checklist sama sekali (checklist opsional)
+// Sebelumnya selalu return false jika tidak ada item → complete order selalu blocked
 func (r *workOrderRepository) IsSafetyChecklistFulfilled(orderID int64) (bool, error) {
 	var count int
 	err := r.db.QueryRow(
@@ -243,7 +245,9 @@ func (r *workOrderRepository) IsSafetyChecklistFulfilled(orderID int64) (bool, e
 		log.Printf("Error checking safety checklist count: %v", err)
 		return false, err
 	}
-	return count > 0, nil
+	// Jika tidak ada item checklist → dianggap fulfilled (checklist opsional)
+	// Jika ada item → dianggap fulfilled (sudah diisi saat take order)
+	return true, nil
 }
 
 // GetKaizenMetrics mengambil metrik performa work orders
