@@ -81,29 +81,35 @@ const navMenu       = document.getElementById('navMenu');
 if (mobileMenuBtn && navMenu) {
   mobileMenuBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    // Di desktop navMenu pakai absolute center — di mobile pakai mobile-menu-active
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      navMenu.classList.toggle('mobile-menu-active');
-      // Pastikan hidden tidak menginterferensi di mobile
-      navMenu.classList.remove('hidden');
-    } else {
-      navMenu.classList.toggle('hidden');
-    }
+    // CSS sudah handle show/hide via media query + .mobile-menu-active
+    // JS hanya toggle class — tidak perlu cek innerWidth
+    navMenu.classList.toggle('mobile-menu-active');
+    // Update aria untuk aksesibilitas
+    const isOpen = navMenu.classList.contains('mobile-menu-active');
+    mobileMenuBtn.setAttribute('aria-expanded', isOpen);
   });
 
+  // Tutup menu saat klik di luar area navbar
   document.addEventListener('click', (e) => {
     if (!mobileMenuBtn.contains(e.target) && !navMenu.contains(e.target)) {
       navMenu.classList.remove('mobile-menu-active');
-      if (window.innerWidth >= 768) navMenu.classList.remove('hidden');
+      mobileMenuBtn.setAttribute('aria-expanded', 'false');
     }
   });
 
-  // Reset saat resize agar state tidak stuck
+  // Tutup menu saat salah satu link/button di dalamnya diklik
+  navMenu.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('click', () => {
+      navMenu.classList.remove('mobile-menu-active');
+      mobileMenuBtn.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // Reset saat resize ke desktop agar state tidak stuck
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 768) {
       navMenu.classList.remove('mobile-menu-active');
-      navMenu.classList.remove('hidden');
+      mobileMenuBtn.setAttribute('aria-expanded', 'false');
     }
   });
 }

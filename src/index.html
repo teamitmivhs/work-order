@@ -52,19 +52,23 @@
     }
 
     /* Mobile menu dropdown vertikal */
-    #navMenu.mobile-menu-active {
-      display: flex !important;
-      flex-direction: column;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #1e293b;
-      padding: 1rem;
-      gap: 0.75rem;
-      z-index: 49;
-      border-top: 1px solid #334155;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    /* max-md:hidden = display:none di Tailwind, di-override di sini saat active */
+    @media (max-width: 767px) {
+      #navMenu { display: none; }
+      #navMenu.mobile-menu-active {
+        display: flex !important;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #1e293b;
+        padding: 1rem;
+        gap: 0.75rem;
+        z-index: 49;
+        border-top: 1px solid #334155;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      }
     }
     #navMenu.mobile-menu-active a,
     #navMenu.mobile-menu-active button {
@@ -208,7 +212,7 @@
       <!-- Dropdown — dikontrol JS click saja -->
       <div class="hidden absolute left-0 top-14 bg-slate-800 shadow-xl rounded-lg w-40 md:w-48 text-white text-xs md:text-sm overflow-hidden border border-slate-700 z-50"
         id="profileDropdown">
-        <button class="w-full px-4 py-3 hover:bg-blue-600 text-left transition-colors flex items-center gap-2 border-b border-slate-700">
+        <a href="/settings.html" class="w-full px-4 py-3 hover:bg-blue-600 text-left transition-colors flex items-center gap-2 border-b border-slate-700">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
@@ -216,7 +220,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
           </svg>
           Settings
-        </button>
+        </a>
         <button class="w-full px-4 py-3 hover:bg-red-600 text-left transition-colors flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -229,7 +233,7 @@
 
     <!-- Navigation Menu (CENTER desktop) -->
     <!-- FIX #11: Posisi absolute desktop dipertahankan, tapi mobile punya class khusus via JS -->
-    <div class="hidden md:flex flex-wrap items-center gap-4 lg:gap-8 px-4 lg:px-8 absolute left-1/2 transform -translate-x-1/2 top-3 md:top-4"
+    <div class="md:flex flex-wrap items-center gap-4 lg:gap-8 px-4 lg:px-8 md:absolute md:left-1/2 md:transform md:-translate-x-1/2 md:top-4 max-md:hidden"
       id="navMenu">
       <a href="/kaizen.html"
         class="nav-button group flex items-center gap-1 lg:gap-2 text-white text-xs lg:text-sm font-medium relative transition-all duration-300 hover:scale-105">
