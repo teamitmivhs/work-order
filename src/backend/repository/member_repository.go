@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"database/sql"
+	"fmt"
 	"log"
 
 	"teamitmivhs/work-order-backend/config"
@@ -15,9 +15,8 @@ type MemberRepository interface {
 	GetMemberByID(id int) (*models.Member, error)
 	IsMemberAssigned(orderID int64, memberID int) (bool, error)
 	UpdateMemberStatus(memberID int, newStatus string) error
-	// SetMemberPassword: update password + role member yang sudah ada di DB
-	// Dipakai saat register — member sudah ada (nama dikenal), hanya set password
 	SetMemberPassword(memberID int, hashedPassword string, role string) error
+	UpdateMemberAvatar(memberID int, avatarFilename string) error
 }
 
 type memberRepository struct{}
@@ -33,10 +32,7 @@ func (r *memberRepository) GetAllMembers() ([]models.Member, error) {
 	}
 	defer rows.Close()
 
-	// FIX: inisialisasi sebagai empty slice bukan nil
-	// agar JSON response selalu array [] bukan null
 	members := make([]models.Member, 0)
-
 	for rows.Next() {
 		var m models.Member
 		if err := rows.Scan(&m.ID, &m.Name, &m.Role, &m.Status, &m.Avatar); err != nil {
@@ -45,12 +41,7 @@ func (r *memberRepository) GetAllMembers() ([]models.Member, error) {
 		}
 		members = append(members, m)
 	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return members, nil
+	return members, rows.Err()
 }
 
 func (r *memberRepository) CreateMember(member *models.Member) error {
@@ -61,7 +52,6 @@ func (r *memberRepository) CreateMember(member *models.Member) error {
 	if err != nil {
 		return err
 	}
-
 	id, err := result.LastInsertId()
 	if err != nil {
 		return err
@@ -72,10 +62,8 @@ func (r *memberRepository) CreateMember(member *models.Member) error {
 
 func (r *memberRepository) GetMemberByName(name string) (*models.Member, error) {
 	row := config.DB.QueryRow(
-		"SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE Name = ?",
-		name,
+		"SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE Name = ?", name,
 	)
-
 	var m models.Member
 	if err := row.Scan(&m.ID, &m.Name, &m.Password, &m.Role, &m.Status, &m.Avatar); err != nil {
 		return nil, err
@@ -85,10 +73,8 @@ func (r *memberRepository) GetMemberByName(name string) (*models.Member, error) 
 
 func (r *memberRepository) GetMemberByID(id int) (*models.Member, error) {
 	row := config.DB.QueryRow(
-		"SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE ID = ?",
-		id,
+		"SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE ID = ?", id,
 	)
-
 	var m models.Member
 	if err := row.Scan(&m.ID, &m.Name, &m.Password, &m.Role, &m.Status, &m.Avatar); err != nil {
 		return nil, err
@@ -96,15 +82,13 @@ func (r *memberRepository) GetMemberByID(id int) (*models.Member, error) {
 	return &m, nil
 }
 
-// IsMemberAssigned mengecek apakah member sudah di-assign ke order tertentu
-// FIX: nama kolom sudah dibuat eksplisit — order_id dan member_id
-// (asumsi nama kolom di DB ikut diperbaiki menjadi order_id dan member_id)
+// IsMemberAssigned mengecek apakah member sudah di-assign ke order
+// FIX: pakai kolom order_id dan member_id (bukan ID dan Executors yang sudah di-rename)
 func (r *memberRepository) IsMemberAssigned(orderID int64, memberID int) (bool, error) {
 	row := config.DB.QueryRow(
 		"SELECT COUNT(*) FROM executors WHERE order_id = ? AND member_id = ?",
 		orderID, memberID,
 	)
-
 	var count int
 	if err := row.Scan(&count); err != nil {
 		return false, err
@@ -112,8 +96,24 @@ func (r *memberRepository) IsMemberAssigned(orderID int64, memberID int) (bool, 
 	return count > 0, nil
 }
 
-// SetMemberPassword menyimpan password hash dan role ke member yang sudah ada
-// Dipanggil saat register — tidak membuat member baru, hanya update kolom Password dan Role
+// UpdateMemberStatus memperbarui status member
+func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) error {
+	validStatuses := map[string]bool{
+		"standby": true, "onjob": true, "support": true,
+		"nextshift": true, "offduty": true,
+	}
+	if !validStatuses[newStatus] {
+		return fmt.Errorf("invalid status: %s", newStatus)
+	}
+	_, err := config.DB.Exec(
+		"UPDATE members SET Status = ? WHERE ID = ?",
+		newStatus, memberID,
+	)
+	return err
+}
+
+// SetMemberPassword update password + role member yang sudah ada
+// Dipakai saat register — member sudah ada (nama dikenal), hanya set password
 func (r *memberRepository) SetMemberPassword(memberID int, hashedPassword string, role string) error {
 	_, err := config.DB.Exec(
 		"UPDATE members SET Password = ?, Role = ? WHERE ID = ?",
@@ -122,23 +122,14 @@ func (r *memberRepository) SetMemberPassword(memberID int, hashedPassword string
 	return err
 }
 
-// UpdateMemberStatus memperbarui status member ke database
-// dipanggil dari PATCH /api/members/:id/status
-func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) error {
-	validStatuses := map[string]bool{
-		"standby":   true,
-		"onjob":     true,
-		"support":   true,
-		"nextshift": true,
-		"offduty":   true,
-	}
-	if !validStatuses[newStatus] {
-		return sql.ErrNoRows // pakai sentinel; caller bisa wrap menjadi 400
-	}
-
+// UpdateMemberAvatar update nama file avatar member
+func (r *memberRepository) UpdateMemberAvatar(memberID int, avatarFilename string) error {
 	_, err := config.DB.Exec(
-		"UPDATE members SET Status = ? WHERE ID = ?",
-		newStatus, memberID,
+		"UPDATE members SET Avatar = ? WHERE ID = ?",
+		avatarFilename, memberID,
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to update avatar: %w", err)
+	}
+	return nil
 }
