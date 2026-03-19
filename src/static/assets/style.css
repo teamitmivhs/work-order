@@ -1,3 +1,4 @@
+/* ========== BASE ========== */
 body {
   font-family: 'Poppins', sans-serif;
 }
@@ -52,7 +53,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .member-avatar-small {
@@ -61,7 +62,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 /* ========== BADGES ========== */
@@ -74,23 +75,10 @@ body {
   font-weight: 500;
   text-align: center;
 }
-
-.status-pending {
-  background-color: rgba(251, 191, 36, 0.2);
-  color: #92400e;
-}
-
-.status-progress {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #1e3a8a;
-}
-
-/* FIX: status-completed tidak lagi blink terus-menerus.
-   Animasi tanpa henti mengganggu perhatian dan melanggar prinsip UX —
-   hanya status yang butuh perhatian segera (high priority pending) yang boleh blink.
-   Badge "selesai" justru harus tenang dan menyiratkan pekerjaan sudah beres. */
+.status-pending  { background-color: rgba(251,191,36,0.2);  color: #92400e; }
+.status-progress { background-color: rgba(59,130,246,0.2);  color: #1e3a8a; }
 .status-completed {
-  background-color: rgba(34, 197, 94, 0.15);
+  background-color: rgba(34,197,94,0.15);
   color: #14532d;
   border: 1.5px solid #22c55e;
 }
@@ -103,98 +91,53 @@ body {
   font-weight: 600;
   text-align: center;
 }
-
-/* High priority tetap blink — memang butuh perhatian segera */
-.priority-high {
-  background-color: #fee2e2;
-  color: #991b1b;
-  animation: blink 1s infinite;
-}
-
-.priority-medium {
-  background-color: rgba(245, 158, 11, 0.2);
-  color: #92400e;
-}
-
-.priority-low {
-  background-color: rgba(34, 197, 94, 0.2);
-  color: #14532d;
-}
+.priority-high   { background-color: #fee2e2; color: #991b1b; animation: blink 1s infinite; }
+.priority-medium { background-color: rgba(245,158,11,0.2); color: #92400e; }
+.priority-low    { background-color: rgba(34,197,94,0.2);  color: #14532d; }
 
 /* ========== MISC UI ========== */
 
 .empty-executor-slot {
-  width: 24px;
-  height: 24px;
+  width: 24px; height: 24px;
   border-radius: 50%;
   background-color: #e5e7eb;
   border: 1px solid #d1d5db;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
 }
 .empty-executor-slot:hover { background-color: #d1d5db; }
 
-.delete-btn {
-  color: #ef4444;
-  cursor: pointer;
-  transition: all 0.2s;
-}
+.delete-btn { color: #ef4444; cursor: pointer; transition: all 0.2s; }
 .delete-btn:hover { color: #dc2626; transform: scale(1.1); }
 
-.done-btn {
-  color: #22c55e;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-right: 0.5rem;
-}
+.done-btn { color: #22c55e; cursor: pointer; transition: all 0.2s; margin-right: 0.5rem; }
 .done-btn:hover { color: #16a34a; transform: scale(1.1); }
 
 .custom-checkbox {
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #d1d5db;
-  border-radius: 4px;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s;
+  appearance: none; width: 20px; height: 20px;
+  border: 2px solid #d1d5db; border-radius: 4px;
+  position: relative; cursor: pointer; transition: all 0.2s;
 }
 .custom-checkbox:checked { background-color: #3b82f6; border-color: #3b82f6; }
 .custom-checkbox:checked::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 14px;
+  content: '✓'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%); color: white; font-size: 14px;
 }
 
-.fade-slide {
-  opacity: 0;
-  transform: translateY(20px);
-}
+.fade-slide { opacity: 0; transform: translateY(20px); }
 
-/* On-progress card animasi kuning — tetap dipertahankan karena
-   status ini memang perlu diperhatikan (pekerjaan sedang berjalan) */
 .progress-fade {
   animation: fadeLeftYellow 1.5s infinite !important;
   background-color: #fbbf24 !important;
 }
 
-.status-container {
-  transition: all 0.3s ease-in-out;
-}
+.status-container { transition: all 0.3s ease-in-out; }
 .status-container:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
 }
 
 /* ========== LOADING SKELETON ========== */
-/* FIX: tambah skeleton loader untuk kaizen.html dan summary.html */
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
@@ -206,31 +149,137 @@ body {
   100% { background-position: -200% 0; }
 }
 
-/* ========== RESPONSIVE ========== */
+/* ========== MOBILE CARD (Work Orders) ========== */
+.wo-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.875rem;
+  padding: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  transition: box-shadow 0.2s;
+}
+.wo-card:active { box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
+.wo-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.625rem;
+}
+.wo-card-body {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 0.75rem; font-size: 0.82rem; color: #374151;
+}
+.wo-card-body dt {
+  color: #9ca3af; font-size: 0.68rem;
+  text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 1px;
+}
+.wo-card-body dd { font-weight: 500; margin: 0; }
+.wo-card-body .full-width { grid-column: 1 / -1; }
+.wo-card-actions {
+  margin-top: 0.75rem; padding-top: 0.75rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+}
+.wo-card-actions button {
+  flex: 1; min-width: 80px;
+  padding: 0.5rem 0.75rem; border-radius: 0.625rem;
+  font-size: 0.78rem; font-weight: 600; min-height: 40px;
+  border: none; cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.wo-card-actions button:active { opacity: 0.85; transform: scale(0.97); }
+
+/* Mini badges */
+.badge-urgent  { background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; }
+.badge-high    { background:#fff7ed; color:#ea580c; border:1px solid #fdba74; }
+.badge-medium  { background:#fefce8; color:#ca8a04; border:1px solid #fde047; }
+.badge-low     { background:#f0fdf4; color:#16a34a; border:1px solid #86efac; }
+.badge-priority {
+  font-size: 0.65rem; font-weight: 700;
+  padding: 0.2rem 0.55rem; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.badge-status-pending   { background:#fef3c7; color:#92400e; }
+.badge-status-progress  { background:#dbeafe; color:#1e40af; }
+.badge-status-completed { background:#dcfce7; color:#166534; }
+.badge-status {
+  font-size: 0.65rem; font-weight: 600;
+  padding: 0.2rem 0.55rem; border-radius: 999px;
+}
+
+/* ========== DATA CARD (Kaizen / Summary tables on mobile) ========== */
+.data-card {
+  background: #fff; border: 1px solid #e5e7eb;
+  border-radius: 0.875rem; padding: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.data-card-row {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 0.5rem;
+  padding: 0.35rem 0; border-bottom: 1px solid #f9fafb;
+  font-size: 0.8rem;
+}
+.data-card-row:last-child { border-bottom: none; }
+.data-card-label {
+  color: #9ca3af; font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  flex-shrink: 0; padding-top: 1px; white-space: nowrap;
+}
+.data-card-value { font-weight: 500; color: #1f2937; text-align: right; }
+.data-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.75rem; padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+.data-card-actions {
+  margin-top: 0.75rem; padding-top: 0.75rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex; justify-content: flex-end;
+}
+
+/* ========== PAGE SPECIFIC ========== */
+
+/* Index: mobile table hidden, cards shown */
+@media (max-width: 767px) {
+  .table-desktop { display: none !important; }
+  .cards-mobile  { display: flex !important; flex-direction: column; gap: 0.75rem; }
+
+  /* Banner compact */
+  .banner-min-h { min-height: 160px !important; }
+
+  /* Summary 2x2 grid */
+  .summary-grid-mobile {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  /* Status bar compact */
+  .status-container { padding: 0.4rem 0.6rem !important; }
+
+  /* Popup compact */
+  .popup-inner { padding: 1rem !important; border-radius: 0.875rem !important; }
+  .popup-title { font-size: 1.1rem !important; }
+}
+
+/* Kaizen/Summary: mobile table hidden, data-cards shown */
+@media (max-width: 767px) {
+  .table-section-desktop { display: none !important; }
+  .cards-section-mobile  { display: flex !important; flex-direction: column; gap: 0.75rem; }
+}
+
+/* ========== SMOOTH SCROLL & MISC ========== */
+html { scroll-behavior: smooth; }
+* { -webkit-tap-highlight-color: transparent; }
+
+/* ========== RESPONSIVE BREAKPOINTS ========== */
 
 @media (max-width: 640px) {
   body { font-size: 14px; }
-
-  nav { padding: 0.75rem !important; }
-
-  .gradient-banner {
-    padding-top: 3rem !important;
-    padding-bottom: 3rem !important;
-  }
-
   .table-container { font-size: 12px; }
   .table td, .table th { padding: 0.5rem 0.25rem !important; }
-
-  .status-badge  { padding: 0.15rem 0.35rem; font-size: 0.65rem; }
+  .status-badge   { padding: 0.15rem 0.35rem; font-size: 0.65rem; }
   .priority-badge { padding: 0.15rem 0.5rem;  font-size: 0.65rem; }
-
   .member-avatar       { width: 20px; height: 20px; }
   .member-avatar-small { width: 16px; height: 16px; }
-
-  .fixed.inset-0 > div { margin: 1rem !important; }
-
-  .table-container::-webkit-scrollbar       { height: 4px; }
-  .table-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 2px; }
 }
 
 @media (min-width: 640px) and (max-width: 1024px) {
@@ -245,20 +294,17 @@ body {
   .table td, .table th { padding: 0.75rem 0.5rem !important; }
 }
 
-/* Touch-friendly */
 @media (hover: none) and (pointer: coarse) {
-  button, a    { min-height: 44px; min-width: 44px; }
+  button, a { min-height: 44px; }
+  input, select, textarea { min-height: 44px; font-size: 16px !important; }
   .status-container { padding: 0.75rem 1rem; }
-  input, select, textarea { min-height: 44px; font-size: 16px; }
 }
 
-/* Landscape mobile */
 @media (orientation: landscape) and (max-height: 600px) {
   main { padding-top: 1rem !important; padding-bottom: 1rem !important; }
-  .gradient-banner { min-height: auto; padding: 1rem 0 !important; }
+  .gradient-banner { min-height: auto; padding: 1.5rem 0 !important; }
 }
 
-/* Print */
 @media print {
   nav, footer, .fixed { display: none; }
   main { padding: 0; }
@@ -266,7 +312,6 @@ body {
   .table { width: 100%; }
 }
 
-/* Reduced motion — hormat ke preferensi aksesibilitas user */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
