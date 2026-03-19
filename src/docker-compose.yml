@@ -70,6 +70,8 @@ services:
       - "8080"
     networks:
       - workorder-net
+    volumes:
+    - ./static:/static
     # Tidak ada healthcheck — backend sudah punya retry logic ke DB sendiri
     # dan nginx tidak perlu tunggu backend "healthy", cukup "started"
 
