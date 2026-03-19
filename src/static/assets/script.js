@@ -618,7 +618,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const filtered = members.filter(m => m.name.toLowerCase().includes(searchTerm));
 
     if (filtered.length === 0) {
-      searchResults.innerHTML = '<div class="text-center py-4 text-gray-500">No members found</div>';
+      searchResults.innerHTML = '<div class="text-center py-4 text-gray-500 text-sm">Member tidak ditemukan</div>';
       return;
     }
 
@@ -633,32 +633,60 @@ document.addEventListener('DOMContentLoaded', async function () {
     filtered.forEach(member => {
       const s    = statusMap[member.status] || { color: 'bg-gray-500', text: 'Unknown' };
       const item = document.createElement('div');
-      item.className = 'flex items-center gap-3 px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors';
+      item.className = 'flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 cursor-pointer transition-colors';
       item.innerHTML = `
-        <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full object-cover">
-        <div class="flex-1">
-          <div class="font-medium text-gray-800">${member.name}</div>
-          <div class="flex items-center gap-2 text-xs text-gray-600">
-            <span class="w-2 h-2 rounded-full ${s.color}"></span>
+        <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+        <div class="flex-1 min-w-0">
+          <div class="font-medium text-gray-800 text-sm truncate">${member.name}</div>
+          <div class="flex items-center gap-1.5 text-xs text-gray-500">
+            <span class="w-2 h-2 rounded-full flex-shrink-0 ${s.color}"></span>
             <span>${s.text}</span>
+            ${member.role ? `<span class="text-gray-300">·</span><span class="text-gray-400">${member.role}</span>` : ''}
           </div>
-        </div>`;
+        </div>
+        <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>`;
       item.addEventListener('click', () => {
-        memberSearchInput.value = member.name;
+        memberSearchInput.value = '';
         searchDropdown.classList.add('hidden');
-        highlightMember(member.id);
+        showOperatorProfile(member);
       });
       searchResults.appendChild(item);
     });
   }
 
-  function highlightMember(memberId) {
-    document.querySelectorAll('.member-highlight').forEach(el => el.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2'));
-    const img = document.querySelector(`img[data-member-id="${memberId}"]`);
-    if (img) {
-      img.classList.add('member-highlight', 'ring-2', 'ring-blue-500', 'ring-offset-2');
-      setTimeout(() => img.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2'), 3000);
-    }
+  function showOperatorProfile(member) {
+    const statusMap = {
+      standby:   { text: 'Stand By',  bg: 'bg-green-100',  color: 'text-green-700',  dot: '#22c55e' },
+      onjob:     { text: 'On Job',    bg: 'bg-blue-100',   color: 'text-blue-700',   dot: '#3b82f6' },
+      support:   { text: 'Support',   bg: 'bg-yellow-100', color: 'text-yellow-700', dot: '#eab308' },
+      nextshift: { text: 'Next Shift',bg: 'bg-purple-100', color: 'text-purple-700', dot: '#a855f7' },
+      offduty:   { text: 'Off Duty',  bg: 'bg-gray-100',   color: 'text-gray-600',   dot: '#9ca3af' },
+    };
+    const headerColors = {
+      standby:   'linear-gradient(135deg,#14532d,#166534)',
+      onjob:     'linear-gradient(135deg,#1e3a8a,#1d4ed8)',
+      support:   'linear-gradient(135deg,#713f12,#92400e)',
+      nextshift: 'linear-gradient(135deg,#4c1d95,#6d28d9)',
+      offduty:   'linear-gradient(135deg,#1e293b,#374151)',
+    };
+
+    const s = statusMap[member.status] || statusMap.offduty;
+    const hc = headerColors[member.status] || headerColors.offduty;
+
+    document.getElementById('opModalHeader').style.background = hc;
+    document.getElementById('opModalAvatar').src = '/static/public/' + (member.avatar || 'default-avatar.png');
+    document.getElementById('opModalAvatar').alt = member.name;
+    document.getElementById('opModalName').textContent = member.name;
+    document.getElementById('opModalRole').textContent = member.role || '—';
+    document.getElementById('opModalRoleDetail').textContent = member.role || '—';
+
+    const statusEl = document.getElementById('opModalStatus');
+    statusEl.textContent = s.text;
+    statusEl.className = `text-sm font-semibold px-3 py-1 rounded-full ${s.bg} ${s.color}`;
+
+    document.getElementById('operatorProfileModal').classList.remove('hidden');
   }
 
   // ===== MEMBER IMAGES =====
@@ -893,6 +921,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         markOrderDone(parseInt(this.dataset.orderId));
       });
     });
+
+    // Render mobile card view dengan data dan members yang sama
+    if (typeof window.renderMobileCards === 'function') {
+      window.renderMobileCards(sorted, members);
+    }
   }
 
   // ===== TAKE ORDER =====
@@ -1208,6 +1241,29 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('completedOrdersCount').textContent = workOrders.filter(o => o.status === 'completed').length;
   }
 
+  // ===== OPERATOR PROFILE MODAL (dari search bar) =====
+  const operatorProfileModal = document.getElementById('operatorProfileModal');
+  if (operatorProfileModal) {
+    document.getElementById('closeOperatorProfileModal').addEventListener('click', () => {
+      operatorProfileModal.classList.add('hidden');
+    });
+    operatorProfileModal.addEventListener('click', (e) => {
+      if (e.target === operatorProfileModal) operatorProfileModal.classList.add('hidden');
+    });
+  }
+
+  // ===== PRIORITY RADIO SYNC =====
+  // Sync visual priority selector → hidden <select id="orderPriority">
+  document.querySelectorAll('#prioritySelector input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      const sel = document.getElementById('orderPriority');
+      if (sel) sel.value = this.value;
+    });
+  });
+  // Set default: medium checked on load
+  const defaultPriorityRadio = document.querySelector('#prioritySelector input[value="medium"]');
+  if (defaultPriorityRadio) defaultPriorityRadio.checked = true;
+
   // ===== FILTER TABS =====
   function updateFilterTabs(activeStatus) {
     statusFilterTabs.forEach(tab => {
@@ -1218,6 +1274,15 @@ document.addEventListener('DOMContentLoaded', async function () {
       tab.classList.toggle('text-gray-700', !isActive);
     });
   }
+
+  // Expose fungsi-fungsi yang dibutuhkan oleh renderMobileCards di index.html
+  // Semua fungsi ini ada di dalam closure DOMContentLoaded sehingga tidak
+  // accessible dari luar tanpa di-assign ke window secara eksplisit.
+  window.openTakeOrderPopup    = openTakeOrderPopup;
+  window.openAddWorkerPopup    = openAddWorkerPopup;
+  window.markOrderDone         = markOrderDone;
+  window.deleteOrder           = deleteOrder;
+  window.checkGuestRestriction = checkGuestRestriction;
 
 }); // END DOMContentLoaded
 
