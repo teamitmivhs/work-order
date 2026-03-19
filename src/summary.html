@@ -11,37 +11,38 @@
 <body class="bg-[#f3f4f6] text-black font-poppins">
 
   <!-- NAVBAR -->
-  <nav class="w-full bg-[#222] px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between shadow-xl gap-4">
-    <a href="/index.html" class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105">
-      <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <nav style="background:linear-gradient(to right,#0f172a,#1e293b);border-bottom:1px solid rgba(255,255,255,0.07);"
+    class="sticky top-0 z-40 w-full px-4 md:px-6 py-3 shadow-2xl flex items-center justify-between">
+    <a href="/index.html" class="flex items-center gap-2 text-white hover:text-blue-300 transition-colors min-h-[44px]">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
       </svg>
-      <span class="hidden sm:inline">Back</span>
+      <span class="text-sm font-medium">Kembali</span>
     </a>
-    <h1 class="text-white text-lg sm:text-2xl font-bold text-center">Work Order Summary</h1>
-    <div class="w-10 sm:w-20"></div>
+    <h1 class="text-white text-base sm:text-lg font-bold absolute left-1/2 -translate-x-1/2">Work Order Summary</h1>
+    <div class="w-16"></div>
   </nav>
 
   <!-- FIX #13: margin-top CSS, bukan <br> -->
   <main class="px-4 md:px-10 mt-8 mb-12">
 
     <!-- FILTERS -->
-    <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
-      <h2 class="text-xl font-semibold mb-4">Filter & Search</h2>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6 mb-6 md:mb-8">
+      <h2 class="text-base md:text-xl font-semibold mb-3 md:mb-4">Filter & Search</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Search by Requester</label>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Requester</label>
           <input type="text" id="searchRequester" placeholder="Cari nama requester..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            class="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Search by Device</label>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Device</label>
           <input type="text" id="searchDevice" placeholder="Cari nama device..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            class="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-          <select id="sortBy" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Sort By</label>
+          <select id="sortBy" class="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
             <option value="newest">Terbaru</option>
             <option value="oldest">Tertua</option>
             <option value="priority-high">Prioritas Tinggi</option>
@@ -49,36 +50,37 @@
           </select>
         </div>
         <div class="flex items-end">
-          <button id="clearFilters" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">Clear Filters</button>
+          <button id="clearFilters" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">Clear Filters</button>
         </div>
       </div>
     </div>
 
     <!-- SUMMARY STATS -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <p class="text-sm text-gray-600">Total Completed</p>
-        <!-- FIX #12: skeleton loading state -->
-        <p class="text-4xl font-bold text-green-600" id="totalCompleted"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Total Completed</p>
+        <p class="text-3xl md:text-4xl font-bold text-green-600" id="totalCompleted"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
       </div>
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <p class="text-sm text-gray-600">High Priority</p>
-        <p class="text-4xl font-bold text-red-600" id="highPriority"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">High Priority</p>
+        <p class="text-3xl md:text-4xl font-bold text-red-600" id="highPriority"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
       </div>
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <p class="text-sm text-gray-600">Medium Priority</p>
-        <p class="text-4xl font-bold text-yellow-600" id="mediumPriority"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Medium Priority</p>
+        <p class="text-3xl md:text-4xl font-bold text-yellow-600" id="mediumPriority"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
       </div>
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <p class="text-sm text-gray-600">Low Priority</p>
-        <p class="text-4xl font-bold text-blue-600" id="lowPriority"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Low Priority</p>
+        <p class="text-3xl md:text-4xl font-bold text-blue-600" id="lowPriority"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
       </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="bg-white rounded-2xl shadow-xl p-6">
-      <h2 class="text-2xl font-semibold mb-4">Riwayat Work Order Selesai</h2>
-      <div class="table-container overflow-x-auto">
+    <!-- TABLE (desktop) / CARDS (mobile) -->
+    <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+      <h2 class="text-lg md:text-2xl font-semibold mb-3 md:mb-4">Riwayat Work Order Selesai</h2>
+
+      <!-- Desktop table -->
+      <div class="table-section-desktop table-container overflow-x-auto">
         <table class="w-full table">
           <thead>
             <tr class="border-b border-gray-200">
@@ -96,7 +98,6 @@
               <th class="text-left py-3 px-4 font-semibold text-sm">Aksi</th>
             </tr>
           </thead>
-          <!-- FIX #9: colspan=12 sesuai jumlah kolom (sebelumnya 10) -->
           <tbody id="completedTableBody">
             <tr><td colspan="12" class="text-center py-8 text-gray-400">
               <div class="flex flex-col items-center gap-2">
@@ -108,36 +109,40 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Mobile cards -->
+      <div class="cards-section-mobile hidden" id="completedCardBody"></div>
     </div>
   </main>
 
   <!-- NOTE MODAL -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center" id="noteModal">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">Tambah/Edit Catatan Evaluasi</h2>
-        <button id="closeNoteModal" class="text-gray-500 hover:text-gray-700" aria-label="Tutup">
+  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-3 md:p-4" id="noteModal">
+    <div class="bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4 md:mb-6">
+        <h2 class="text-lg md:text-2xl font-bold">Tambah/Edit Catatan</h2>
+        <button id="closeNoteModal" class="text-gray-500 hover:text-gray-700 p-1" aria-label="Tutup">
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
       </div>
-      <div class="bg-gray-50 p-4 rounded-lg mb-6 space-y-2">
-        <div class="flex justify-between"><span class="font-medium">No. Order:</span><span class="text-gray-700" id="noteOrderId">-</span></div>
-        <div class="flex justify-between"><span class="font-medium">Requester:</span><span class="text-gray-700" id="noteOrderRequester">-</span></div>
-        <div class="flex justify-between"><span class="font-medium">Device:</span><span class="text-gray-700" id="noteOrderDevice">-</span></div>
+      <div class="bg-gray-50 p-3 md:p-4 rounded-lg mb-4 md:mb-6 space-y-2">
+        <div class="flex justify-between text-sm"><span class="font-medium text-gray-600">No. Order:</span><span class="text-gray-700" id="noteOrderId">-</span></div>
+        <div class="flex justify-between text-sm"><span class="font-medium text-gray-600">Requester:</span><span class="text-gray-700" id="noteOrderRequester">-</span></div>
+        <div class="flex justify-between text-sm"><span class="font-medium text-gray-600">Device:</span><span class="text-gray-700" id="noteOrderDevice">-</span></div>
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Catatan/Evaluasi</label>
-        <textarea id="noteText" rows="6" placeholder="Tambahkan catatan evaluasi..."
-          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        <textarea id="noteText" rows="5" placeholder="Tambahkan catatan evaluasi..."
+          class="w-full px-3 md:px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
         <p class="text-xs text-gray-500 mt-2">Catatan ini akan tersimpan untuk referensi dan evaluasi ke depannya.</p>
       </div>
-      <div class="mt-6 flex justify-end gap-3">
-        <button id="cancelNoteBtn" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Batal</button>
-        <button id="saveNoteBtn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">Simpan Catatan</button>
+      <div class="mt-4 md:mt-6 flex justify-end gap-2 md:gap-3">
+        <button id="cancelNoteBtn" class="px-4 md:px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm">Batal</button>
+        <button id="saveNoteBtn" class="px-4 md:px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold">Simpan</button>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- SUCCESS MODAL -->
@@ -251,8 +256,8 @@
     function renderTable(orders = completedOrders) {
       const tbody = document.getElementById('completedTableBody');
       if (orders.length === 0) {
-        // FIX #9: colspan=12 sesuai jumlah kolom header
         tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Tidak ada work order yang selesai</td></tr>';
+        renderMobileCards(orders);
         return;
       }
       tbody.innerHTML = orders.map((order, i) => `
@@ -278,6 +283,42 @@
             </button>
           </td>
         </tr>`).join('');
+      renderMobileCards(orders);
+    }
+
+    function renderMobileCards(orders = completedOrders) {
+      const cardBody = document.getElementById('completedCardBody');
+      if (!cardBody) return;
+      const priClass = { urgent:'badge-urgent', high:'badge-high', medium:'badge-medium', low:'badge-low' };
+      if (!orders || orders.length === 0) {
+        cardBody.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Tidak ada work order yang selesai</p>';
+        return;
+      }
+      cardBody.innerHTML = orders.map((o, i) => {
+        const requester = typeof o.requester === 'object' ? o.requester.name : (o.requester || '-');
+        return `
+        <div class="data-card">
+          <div class="data-card-header">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-gray-400">#${i+1}</span>
+              <span class="badge-priority ${priClass[o.priority] || 'badge-low'}">${o.priority || '-'}</span>
+            </div>
+            <span class="text-xs text-green-600 font-medium">${o.completedAt || '-'}</span>
+          </div>
+          <div class="data-card-row"><span class="data-card-label">Requester</span><span class="data-card-value">${requester}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Device</span><span class="data-card-value">${o.device || '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Lokasi</span><span class="data-card-value">${o.location || '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Masalah</span><span class="data-card-value" style="max-width:60%">${o.problem || '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${convertToMinutes(o.workingHours)}</span></div>
+          ${o.notes ? `<div class="data-card-row"><span class="data-card-label">Catatan</span><span class="data-card-value text-blue-700" style="max-width:60%">${o.notes.substring(0,40)}${o.notes.length>40?'…':''}</span></div>` : ''}
+          <div class="data-card-actions">
+            <button class="edit-note-btn flex items-center gap-1 text-xs text-blue-500 font-semibold px-3 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" data-order-id="${o.id}">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              Edit Catatan
+            </button>
+          </div>
+        </div>`;
+      }).join('');
     }
 
     function filterTable() {
