@@ -51,38 +51,6 @@
       background-size: 50px 50px;
     }
 
-    /* Mobile menu dropdown vertikal */
-    /* max-md:hidden = display:none di Tailwind, di-override di sini saat active */
-    @media (max-width: 767px) {
-      #navMenu { display: none; }
-      #navMenu.mobile-menu-active {
-        display: flex !important;
-        flex-direction: column;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: #1e293b;
-        padding: 1rem;
-        gap: 0.75rem;
-        z-index: 49;
-        border-top: 1px solid #334155;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      }
-    }
-    #navMenu.mobile-menu-active a,
-    #navMenu.mobile-menu-active button {
-      padding: 0.6rem 0.75rem;
-      border-radius: 0.5rem;
-      background: rgba(255,255,255,0.05);
-      width: 100%;
-      justify-content: flex-start;
-    }
-    #navMenu.mobile-menu-active a:hover,
-    #navMenu.mobile-menu-active button:hover {
-      background: rgba(255,255,255,0.12);
-    }
-
     /* ── MOBILE: Card view untuk tabel work orders ── */
     /* Sembunyikan tabel biasa di mobile, tampilkan card */
     @media (max-width: 767px) {
@@ -193,108 +161,254 @@
 <body class="bg-[#f3f4f6] text-black">
 
   <!-- NAVBAR -->
-  <nav class="w-full bg-gradient-to-r from-slate-900 to-slate-800 px-3 md:px-6 py-3 md:py-4 flex items-center justify-between shadow-2xl border-b border-slate-700 relative">
+  <!-- ═══════════════════════════════════════════════════════════════
+       NAVBAR — redesign: 3-column grid, pill nav, glassmorphism card
+       ═══════════════════════════════════════════════════════════════ -->
+  <style>
+    .nav-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.75);
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+      white-space: nowrap;
+      position: relative;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .nav-pill:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .nav-pill.active {
+      background: rgba(59,130,246,0.25);
+      color: #93c5fd;
+      border: 1px solid rgba(59,130,246,0.3);
+    }
+    .nav-pill svg { flex-shrink: 0; }
 
-    <!-- Profile Dropdown -->
-    <!-- FIX #3: Hapus group-hover:block dari dropdown — serahkan semua kontrol ke JS click saja
-         agar tidak konflik antara CSS hover dan JS toggle di touch device -->
-    <div class="flex items-center gap-2 md:gap-3 bg-slate-800 px-2 md:px-4 py-2 rounded-lg shadow hover:bg-slate-700 transition-all duration-300 cursor-pointer relative"
-      id="profileDropdownContainer">
-      <!-- FIX #7: Foto, nama, dan role user diambil dari API saat load — tidak lagi hardcoded -->
-      <img alt="Profile" class="w-8 md:w-10 h-8 md:h-10 rounded-full border-2 border-blue-500 object-cover"
-        id="navProfileImg" src="/static/public/default-avatar.png" />
-      <div class="hidden sm:flex flex-col items-start">
-        <span class="text-white text-xs font-semibold" id="navProfileName">...</span>
-        <span class="text-slate-300 text-xs" id="navProfileRole">...</span>
+    /* Create order — aksen biru */
+    .nav-pill-create {
+      background: rgba(59,130,246,0.2);
+      color: #93c5fd;
+      border: 1px solid rgba(59,130,246,0.35);
+    }
+    .nav-pill-create:hover {
+      background: rgba(59,130,246,0.35);
+      color: #bfdbfe;
+      transform: translateY(-1px);
+    }
+
+    /* Profile card */
+    .nav-profile-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px 6px 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      position: relative;
+    }
+    .nav-profile-card:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    /* Dropdown */
+    .nav-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 200px;
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 99;
+    }
+    .nav-dropdown a,
+    .nav-dropdown button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 16px;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.8);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-dropdown a:hover { background: rgba(59,130,246,0.2); color: #93c5fd; }
+    .nav-dropdown button:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    .nav-dropdown .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
+
+    /* Separator dot */
+    .nav-sep {
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      flex-shrink: 0;
+    }
+
+    /* Hamburger: hidden di desktop, tampil hanya di mobile */
+    #mobileMenuBtn { display: none !important; }
+    @media (max-width: 767px) {
+      #mobileMenuBtn { display: flex !important; }
+    }
+
+    /* Mobile menu */
+    @media (max-width: 767px) {
+      #navMenu { display: none; }
+      #navMenu.mobile-menu-active {
+        display: flex !important;
+        flex-direction: column;
+        /* Reset inline style desktop (absolute center transform) */
+        position: fixed !important;
+        top: 60px !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        width: 100% !important;
+        background: #0f172a;
+        padding: 12px;
+        gap: 4px;
+        z-index: 49;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+      }
+      #navMenu.mobile-menu-active .nav-pill {
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        justify-content: flex-start;
+        width: 100%;
+      }
+      #navMenu.mobile-menu-active .nav-sep { display: none; }
+    }
+  </style>
+
+  <nav style="background: linear-gradient(to right, #0f172a, #1e293b); border-bottom: 1px solid rgba(255,255,255,0.07);"
+    class="w-full px-4 md:px-6 py-3 shadow-2xl relative"
+    style="min-height: 60px;">
+
+    <!-- 3-column grid: profile | nav center | actions -->
+    <div class="flex items-center" style="gap: 0;">
+
+      <!-- ── KIRI: Profile card ───────────────────────────────── -->
+      <div class="nav-profile-card" id="profileDropdownContainer" style="flex-shrink:0;">
+        <img alt="Profile"
+          class="rounded-full object-cover"
+          style="width:34px;height:34px;border:2px solid rgba(59,130,246,0.6);"
+          id="navProfileImg" src="/static/public/default-avatar.png" />
+        <div class="hidden sm:flex flex-col" style="gap:1px;">
+          <span style="color:#fff;font-size:0.78rem;font-weight:600;line-height:1;" id="navProfileName">...</span>
+          <span style="color:rgba(148,163,184,1);font-size:0.68rem;line-height:1;" id="navProfileRole">...</span>
+        </div>
+        <svg style="width:14px;height:14px;color:rgba(148,163,184,0.7);margin-left:2px;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+        <button id="profileDropdownBtn" aria-label="Toggle profile menu"
+          style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;background:none;"></button>
+
+        <!-- Dropdown -->
+        <div class="nav-dropdown hidden" id="profileDropdown">
+          <!-- Info user di atas dropdown -->
+          <div style="padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <p style="color:#fff;font-size:0.82rem;font-weight:600;margin:0;" id="dropdownName">...</p>
+            <p style="color:rgba(148,163,184,0.8);font-size:0.72rem;margin:2px 0 0;" id="dropdownRole">...</p>
+          </div>
+          <a href="/settings.html">
+            <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Settings
+          </a>
+          <div class="divider"></div>
+          <button>
+            <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            Logout
+          </button>
+        </div>
       </div>
-      <button class="text-white text-lg ml-1 md:ml-2" id="profileDropdownBtn" aria-label="Toggle profile menu">▼</button>
 
-      <!-- Dropdown — dikontrol JS click saja -->
-      <div class="hidden absolute left-0 top-14 bg-slate-800 shadow-xl rounded-lg w-40 md:w-48 text-white text-xs md:text-sm overflow-hidden border border-slate-700 z-50"
-        id="profileDropdown">
-        <a href="/settings.html" class="w-full px-4 py-3 hover:bg-blue-600 text-left transition-colors flex items-center gap-2 border-b border-slate-700">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-            </path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      <!-- ── TENGAH: Nav links (absolute center, desktop only) ── -->
+      <div class="hidden md:flex items-center"
+        style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);gap:4px;"
+        id="navMenu">
+        <a href="/kaizen.html" class="nav-pill">
+          <svg style="width:15px;height:15px;" fill="currentColor" viewBox="0 0 24 24">
+            <path clip-rule="evenodd" fill-rule="evenodd"
+              d="M11.47 10.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 12.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z"/>
+            <path clip-rule="evenodd" fill-rule="evenodd"
+              d="M11.47 4.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 6.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z"/>
           </svg>
-          Settings
+          Kaizen
         </a>
-        <button class="w-full px-4 py-3 hover:bg-red-600 text-left transition-colors flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        <div class="nav-sep"></div>
+        <a href="/techguide.html" class="nav-pill">
+          <svg style="width:15px;height:15px;" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.707 5.25 1.886V4.533ZM12.75 20.636A8.214 8.214 0 0 1 18 18.75c.966 0 1.89.166 2.75.47a.75.75 0 0 0 1-.708V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v16.103Z"/>
           </svg>
-          Logout
+          TechGuide
+        </a>
+        <div class="nav-sep"></div>
+        <a href="/summary.html" class="nav-pill">
+          <svg style="width:15px;height:15px;" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M21 6.375c0 2.692-4.03 4.875-9 4.875S3 9.067 3 6.375 7.03 1.5 12 1.5s9 2.183 9 4.875Z"/>
+            <path d="M12 12.75c2.685 0 5.19-.586 7.078-1.609a8.283 8.283 0 0 0 1.897-1.384c.016.121.025.244.025.368C21 12.817 16.97 15 12 15s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.285 8.285 0 0 0 1.897 1.384C6.809 12.164 9.315 12.75 12 12.75Z"/>
+            <path d="M12 16.5c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 15.914 9.315 16.5 12 16.5Z"/>
+            <path d="M12 20.25c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 19.664 9.315 20.25 12 20.25Z"/>
+          </svg>
+          Summary
+        </a>
+        <div class="nav-sep"></div>
+        <button class="nav-pill nav-pill-create" id="createOrderBtn">
+          <svg style="width:15px;height:15px;" fill="currentColor" viewBox="0 0 24 24">
+            <path clip-rule="evenodd" fill-rule="evenodd"
+              d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z"/>
+          </svg>
+          Create Order
         </button>
       </div>
-    </div>
 
-    <!-- Navigation Menu (CENTER desktop) -->
-    <!-- FIX #11: Posisi absolute desktop dipertahankan, tapi mobile punya class khusus via JS -->
-    <div class="md:flex flex-wrap items-center gap-4 lg:gap-8 px-4 lg:px-8 md:absolute md:left-1/2 md:transform md:-translate-x-1/2 md:top-4 max-md:hidden"
-      id="navMenu">
-      <a href="/kaizen.html"
-        class="nav-button group flex items-center gap-1 lg:gap-2 text-white text-xs lg:text-sm font-medium relative transition-all duration-300 hover:scale-105">
-        <!-- FIX #6: viewBox huruf besar (case-sensitive di SVG) -->
-        <svg class="size-4 lg:size-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path clip-rule="evenodd" fill-rule="evenodd"
-            d="M11.47 10.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 12.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z"></path>
-          <path clip-rule="evenodd" fill-rule="evenodd"
-            d="M11.47 4.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 6.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z"></path>
-        </svg>
-        Kaizen Activity
-        <span class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
-      </a>
+      <!-- ── KANAN: Refresh + Hamburger ─────────────────────── -->
+      <div class="flex items-center" style="margin-left:auto;gap:6px;flex-shrink:0;">
+        <button class="nav-pill" id="refreshBtn" aria-label="Refresh" title="Refresh"
+          style="padding:8px;">
+          <svg style="width:16px;height:16px;transition:transform 0.5s;" id="refreshIcon"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </button>
+        <button class="nav-pill" id="mobileMenuBtn" aria-label="Toggle menu"
+          style="padding:8px;display:none;">
+          <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
 
-      <a href="/techguide.html"
-        class="nav-button group flex items-center gap-1 lg:gap-2 text-white text-xs lg:text-sm font-medium relative transition-all duration-300 hover:scale-105">
-        <svg class="size-4 lg:size-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.707 5.25 1.886V4.533ZM12.75 20.636A8.214 8.214 0 0 1 18 18.75c.966 0 1.89.166 2.75.47a.75.75 0 0 0 1-.708V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v16.103Z"></path>
-        </svg>
-        TechGuide
-        <span class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
-      </a>
-
-      <a href="/summary.html"
-        class="nav-button group flex items-center gap-1 lg:gap-2 text-white text-xs lg:text-sm font-medium relative transition-all duration-300 hover:scale-105">
-        <svg class="size-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 6.375c0 2.692-4.03 4.875-9 4.875S3 9.067 3 6.375 7.03 1.5 12 1.5s9 2.183 9 4.875Z"></path>
-          <path d="M12 12.75c2.685 0 5.19-.586 7.078-1.609a8.283 8.283 0 0 0 1.897-1.384c.016.121.025.244.025.368C21 12.817 16.97 15 12 15s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.285 8.285 0 0 0 1.897 1.384C6.809 12.164 9.315 12.75 12 12.75Z"></path>
-          <path d="M12 16.5c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 15.914 9.315 16.5 12 16.5Z"></path>
-          <path d="M12 20.25c2.685 0 5.19-.586 7.078-1.609a8.282 8.282 0 0 0 1.897-1.384c.016.121.025.244.025.368 0 2.692-4.03 4.875-9 4.875s-9-2.183-9-4.875c0-.124.009-.247.025-.368a8.284 8.284 0 0 0 1.897 1.384C6.809 19.664 9.315 20.25 12 20.25Z"></path>
-        </svg>
-        Summary
-        <span class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
-      </a>
-
-      <button class="nav-button group flex items-center gap-1 lg:gap-2 text-white text-xs lg:text-sm font-medium relative transition-all duration-300 hover:scale-105"
-        id="createOrderBtn">
-        <svg class="size-4 lg:size-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path clip-rule="evenodd" fill-rule="evenodd"
-            d="M1.5 6.375c0-1.036.84-1.875 1.875-1.875h17.25c1.035 0 1.875.84 1.875 1.875v3.026a.75.75 0 0 1-.375.65 2.249 2.249 0 0 0 0 3.898.75.75 0 0 1 .375.65v3.026c0 1.035-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 0 1 1.5 17.625v-3.026a.75.75 0 0 1 .374-.65 2.249 2.249 0 0 0 0-3.898.75.75 0 0 1-.374-.65V6.375Zm15-1.125a.75.75 0 0 1 .75.75v.75a.75.75 0 0 1-1.5 0V6a.75.75 0 0 1 .75-.75Zm.75 4.5a.75.75 0 0 0-1.5 0v.75a.75.75 0 0 0 1.5 0v-.75Zm-.75 3a.75.75 0 0 1 .75.75v.75a.75.75 0 0 1-1.5 0v-.75a.75.75 0 0 1 .75-.75Zm.75 4.5a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-.75ZM6 12a.75.75 0 0 1 .75-.75H12a.75.75 0 0 1 0 1.5H6.75A.75.75 0 0 1 6 12Zm.75 2.25a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3Z"></path>
-        </svg>
-        Create Orders
-        <span class="absolute left-1/2 -bottom-1 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
-      </button>
-    </div>
-
-    <!-- Right side: Refresh + Hamburger -->
-    <div class="flex items-center gap-2">
-      <button class="text-white p-2 md:p-3 hover:bg-slate-700 rounded-lg transition-all duration-300 cursor-pointer"
-        id="refreshBtn" aria-label="Refresh page" title="Refresh">
-        <svg class="w-5 h-5 md:w-6 md:h-6 transition-transform duration-500" id="refreshIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-        </svg>
-      </button>
-      <!-- FIX #11: Mobile hamburger — toggle mobile-menu-active class via JS -->
-      <button class="md:hidden text-white p-2 focus:outline-none" id="mobileMenuBtn" aria-label="Toggle mobile menu">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-      </button>
     </div>
   </nav>
 
@@ -609,8 +723,16 @@
       try {
         // Decode JWT payload (base64) tanpa verifikasi — hanya untuk display
         const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.name) document.getElementById('navProfileName').textContent = payload.name;
-        if (payload.role) document.getElementById('navProfileRole').textContent = payload.role;
+        if (payload.name) {
+          document.getElementById('navProfileName').textContent = payload.name;
+          const dd = document.getElementById('dropdownName');
+          if (dd) dd.textContent = payload.name;
+        }
+        if (payload.role) {
+          document.getElementById('navProfileRole').textContent = payload.role;
+          const dr = document.getElementById('dropdownRole');
+          if (dr) dr.textContent = payload.role;
+        }
         // Avatar dari API /api/profile (opsional, skip jika gagal)
         fetch('/api/profile', { headers: { Authorization: 'Bearer ' + token } })
           .then(r => r.ok ? r.json() : null)
