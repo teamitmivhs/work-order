@@ -24,7 +24,7 @@ CREATE TABLE `members` (
   `Avatar`   varchar(255) NOT NULL DEFAULT 'no avatar',
   PRIMARY KEY (`ID`),
   UNIQUE KEY `uq_members_name` (`Name`)
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT INTO `members` (`ID`,`Name`,`Password`,`Role`,`Status`,`Avatar`) VALUES
 (1,  'Aldi Fadlurahman R',           '', 'programmer',   'offduty', 'aldi.png'),
@@ -62,7 +62,10 @@ INSERT INTO `members` (`ID`,`Name`,`Password`,`Role`,`Status`,`Avatar`) VALUES
 (33, 'Azka Fakhri Alfito',            '', 'programmer',   'offduty', 'azka.png'),
 (34, 'Ihsan Bintang Ghifari',         '', 'programmer',   'offduty', 'ihsan.png'),
 (35, 'M. Dhimas Alfachry',            '', 'maintenance',  'offduty', 'dhimas.png'),
-(36, 'Raissya Hanjani',               '', 'data analyst', 'offduty', 'raissya.png');
+(36, 'Raissya Hanjani',               '', 'data analyst', 'offduty', 'raissya.png'),
+-- Akun Guest permanen — password: guest123 (bcrypt hash)
+-- Role 'Guest' memastikan frontend checkGuestRestriction() tetap bekerja
+(37, 'guest',                         '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Guest', 'offduty', 'default-avatar.png');
 
 -- ============================================================
 -- TABEL orders

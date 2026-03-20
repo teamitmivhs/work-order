@@ -54,8 +54,8 @@ if (btn && menu) {
     menu.classList.toggle('hidden');
   });
 
-  // Logout button — ambil tombol kedua (index 1) karena tombol pertama adalah Settings
-  const logoutBtn = menu.querySelectorAll('button')[1];
+  // Logout button — cari berdasarkan ID, bukan index yang rapuh
+  const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', function () {
       localStorage.removeItem('isGuestUser');
@@ -256,13 +256,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   const isGuestUser = localStorage.getItem('isGuestUser') === 'true';
 
-  if (isGuestUser) {
-    setTimeout(() => {
-      const createOrderPopup = document.getElementById('createOrderPopup');
-      if (createOrderPopup) createOrderPopup.classList.remove('hidden');
-    }, 500);
-  }
-
   function checkGuestRestriction(action = 'action') {
     if (isGuestUser) {
       showPopup('Access Denied', `Guests can only create work orders. ${action} is not allowed.`, 'warning');
@@ -369,12 +362,22 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   // ===== INIT =====
-  await fetchMembers();
-  await fetchAndRenderWorkOrders();
-  initializeMemberImages();
-  updateSummaryCounts();
-
-  if (isGuestUser && exitGuestBtn) exitGuestBtn.classList.remove('hidden');
+  if (isGuestUser) {
+    // Guest: tidak load work orders dari DB (data milik operator lain)
+    // Hanya load members untuk status bar, lalu buka popup create order
+    await fetchMembers();
+    initializeMemberImages();
+    updateSummaryCounts();
+    setTimeout(() => {
+      if (createOrderPopup) showAnimatedPopup(createOrderPopup);
+      if (exitGuestBtn) exitGuestBtn.classList.remove('hidden');
+    }, 300);
+  } else {
+    await fetchMembers();
+    await fetchAndRenderWorkOrders();
+    initializeMemberImages();
+    updateSummaryCounts();
+  }
 
   // ===== STATUS CONTAINER CLICK =====
   statusContainers.forEach(container => {
@@ -520,11 +523,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     exitGuestBtn.addEventListener('click', function () {
       localStorage.removeItem('isGuestUser');
       localStorage.removeItem('guestLoginTime');
-      hideAnimatedPopup(createOrderPopup);
-      createOrderForm.reset();
-      specificLocationContainer.classList.add('hidden');
-      exitGuestBtn.classList.add('hidden');
-      showPopup('Guest Mode Ended', 'You have exited guest mode. You can now view the dashboard.', 'success');
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('isAdmin');
+      // Reload agar closure isGuestUser ter-refresh dan tabel dimuat ulang bersih
+      window.location.reload();
     });
   }
 
@@ -584,11 +586,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       return r.json();
     })
     .then(json => {
-      // FIX: unwrap format response baru { code, message, data: { id } }
       const data = unwrapData(json);
       hideAnimatedPopup(createOrderPopup);
       createOrderForm.reset();
       specificLocationContainer.classList.add('hidden');
+      // Guest: refresh untuk tampilkan order yang baru dibuat (hanya milik guest)
+      // Non-guest: refresh semua data seperti biasa
       refreshAllDataFromAPI();
       showPopup('Work Order Berhasil Dibuat!', `Work Order #${data.id} telah berhasil dibuat dan disimpan.`, 'success');
     })

@@ -98,7 +98,7 @@ pub async fn timer_status(
         Ok(Some((started_at, elapsed))) => Ok(Json(TimerStatusResponse {
             work_order_id,
             is_running: true,
-            started_at: Some(started_at),
+            started_at: Some(started_at),   
             elapsed_seconds: Some(elapsed),
         })),
         Ok(None) => Ok(Json(TimerStatusResponse {
