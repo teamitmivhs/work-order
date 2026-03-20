@@ -28,7 +28,6 @@ Thumbs.db
 *.dylib
 *.o
 *.a
-go.sum
 work-order-backend
 work-order-backend.exe
 workorder
