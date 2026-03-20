@@ -13,6 +13,7 @@ type WorkOrder struct {
 	Status          string   `json:"status"`
 	SafetyChecklist []string `json:"safetyChecklist"`
 	CompletedAt     string   `json:"completedAt,omitempty"`
+	Notes           string   `json:"notes,omitempty"`
 }
 
 type Member struct {
@@ -78,4 +79,9 @@ type TakeWorkOrder struct {
 type CompleteWorkOrder struct {
 	Status             string `json:"status"`
 	CompletedAtDisplay string `json:"completed_at_display"`
+}
+
+// UpdateNotesRequest: payload untuk PATCH /api/workorders/:id/notes
+type UpdateNotesRequest struct {
+	Notes string `json:"notes"`
 }

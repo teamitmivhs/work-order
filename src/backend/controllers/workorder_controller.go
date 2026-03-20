@@ -115,6 +115,12 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 // TakeOrderHandler: POST /api/workorders/{id}/take
 // Hanya member yang di-assign yang bisa take order
 func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
+	// Guest tidak boleh ambil order
+	if role, _ := middleware.GetUserRoleFromContext(c); role == "Guest" {
+		utils.Forbidden(c, "Guest hanya bisa membuat work order")
+		return
+	}
+
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
@@ -147,6 +153,12 @@ func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
 // CompleteOrderHandler: PATCH /api/workorders/{id}/complete
 // Validasi: hanya assigned member, safety checklist fulfilled
 func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
+	// Guest tidak boleh complete order
+	if role, _ := middleware.GetUserRoleFromContext(c); role == "Guest" {
+		utils.Forbidden(c, "Guest hanya bisa membuat work order")
+		return
+	}
+
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
@@ -205,6 +217,12 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 // DeleteOrderHandler: DELETE /api/workorders/{id}
 // Hanya admin yang bisa delete
 func (ctrl *WorkOrderController) DeleteOrderHandler(c *gin.Context) {
+	// Guest tidak boleh delete order
+	if role, _ := middleware.GetUserRoleFromContext(c); role == "Guest" {
+		utils.Forbidden(c, "Guest hanya bisa membuat work order")
+		return
+	}
+
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
@@ -323,6 +341,30 @@ func (ctrl *WorkOrderController) UpdateOrderHandler(c *gin.Context) {
 	}
 
 	utils.RespondWithMessage(c, http.StatusOK, "Order updated successfully", gin.H{"id": orderID})
+}
+
+// UpdateNotesHandler: PATCH /api/workorders/{id}/notes
+// Simpan catatan evaluasi untuk work order yang sudah selesai
+func (ctrl *WorkOrderController) UpdateNotesHandler(c *gin.Context) {
+	orderIDStr := c.Param("id")
+	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
+	if err != nil {
+		utils.BadRequest(c, "Invalid Order ID")
+		return
+	}
+
+	var req models.UpdateNotesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	if err := ctrl.Repo.UpdateOrderNotes(orderID, req.Notes); err != nil {
+		utils.InternalServerError(c, "Failed to save notes", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Notes saved successfully", gin.H{"id": orderID})
 }
 
 // UpdateMemberStatusHandler: PATCH /api/members/{id}/status

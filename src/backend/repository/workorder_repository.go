@@ -14,7 +14,8 @@ type WorkOrderRepository interface {
 	TakeOrder(orderID int64, req models.TakeWorkOrder) error
 	CompleteOrder(orderID int64, req models.CompleteWorkOrder) error
 	DeleteOrder(orderID int64) error
-	UpdateOrderExecutors(orderID int64, req models.UpdateWorkOrderRequest) error // FIX: method baru
+	UpdateOrderExecutors(orderID int64, req models.UpdateWorkOrderRequest) error
+	UpdateOrderNotes(orderID int64, notes string) error
 	GetAllTasks() ([]models.WorkOrder, error)
 	GetTasksByExecutor(executorID int) ([]models.WorkOrder, error)
 	GetSafetyChecklist(orderID int64) ([]string, error)
@@ -34,11 +35,11 @@ func NewWorkOrderRepository(db *sql.DB) WorkOrderRepository {
 // scanWorkOrderRow adalah helper untuk menghindari duplikasi scan di GetAllTasks & GetTasksByExecutor
 func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	var wo models.WorkOrder
-	var priority, timeDisplay, requester, location, device, problem, workingHours, status, completedAt sql.NullString
+	var priority, timeDisplay, requester, location, device, problem, workingHours, status, completedAt, notes sql.NullString
 
 	err := rows.Scan(
 		&wo.ID, &priority, &timeDisplay, &requester, &location,
-		&device, &problem, &workingHours, &status, &completedAt,
+		&device, &problem, &workingHours, &status, &completedAt, &notes,
 	)
 	if err != nil {
 		return wo, err
@@ -65,6 +66,9 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	if status.Valid {
 		wo.Status = status.String
 	}
+	if notes.Valid {
+		wo.Notes = notes.String
+	}
 	if completedAt.Valid && completedAt.String != "" {
 		wo.CompletedAt = completedAt.String
 	}
@@ -82,7 +86,7 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 	query := `
 		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay, o.Requester, o.Location, o.Device,
-		       o.Problem, o.WorkingHours, o.Status, o.CompletedAt
+		       o.Problem, o.WorkingHours, o.Status, o.CompletedAt, o.Notes
 		FROM orders o
 		ORDER BY o.ID DESC
 	`
@@ -124,7 +128,7 @@ func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 func (r *workOrderRepository) GetTasksByExecutor(executorID int) ([]models.WorkOrder, error) {
 	query := `
 		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay, o.Requester, o.Location, o.Device,
-		       o.Problem, o.WorkingHours, o.Status, o.CompletedAt
+		       o.Problem, o.WorkingHours, o.Status, o.CompletedAt, o.Notes
 		FROM orders o
 		INNER JOIN executors e ON o.ID = e.order_id
 		WHERE e.member_id = ?
@@ -137,7 +141,6 @@ func (r *workOrderRepository) GetTasksByExecutor(executorID int) ([]models.WorkO
 	}
 	defer rows.Close()
 
-	// FIX: inisialisasi sebagai empty slice
 	workOrders := make([]models.WorkOrder, 0)
 
 	for rows.Next() {
@@ -164,14 +167,12 @@ func (r *workOrderRepository) GetTasksByExecutor(executorID int) ([]models.WorkO
 
 // getOrderExecutors adalah helper untuk mengambil list executor ID sebuah order
 func (r *workOrderRepository) getOrderExecutors(orderID int) ([]int, error) {
-	// FIX: nama kolom eksplisit order_id dan member_id
 	rows, err := r.db.Query("SELECT member_id FROM executors WHERE order_id = ?", orderID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	// FIX: inisialisasi sebagai empty slice
 	executors := make([]int, 0)
 	for rows.Next() {
 		var executorID int
@@ -181,6 +182,18 @@ func (r *workOrderRepository) getOrderExecutors(orderID int) ([]int, error) {
 		executors = append(executors, executorID)
 	}
 	return executors, nil
+}
+
+// UpdateOrderNotes menyimpan catatan evaluasi ke kolom Notes pada tabel orders
+func (r *workOrderRepository) UpdateOrderNotes(orderID int64, notes string) error {
+	_, err := r.db.Exec(
+		"UPDATE orders SET Notes = ? WHERE ID = ?",
+		notes, orderID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update notes for order %d: %w", orderID, err)
+	}
+	return nil
 }
 
 // GetSafetyChecklist mengambil item checklist untuk sebuah order
