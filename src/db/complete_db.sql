@@ -63,9 +63,8 @@ INSERT INTO `members` (`ID`,`Name`,`Password`,`Role`,`Status`,`Avatar`) VALUES
 (34, 'Ihsan Bintang Ghifari',         '', 'programmer',   'offduty', 'ihsan.png'),
 (35, 'M. Dhimas Alfachry',            '', 'maintenance',  'offduty', 'dhimas.png'),
 (36, 'Raissya Hanjani',               '', 'data analyst', 'offduty', 'raissya.png'),
--- Akun Guest permanen — password: guest123 (bcrypt hash)
--- Role 'Guest' memastikan frontend checkGuestRestriction() tetap bekerja
-(37, 'guest',                         '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Guest', 'offduty', 'default-avatar.png');
+-- Akun guest permanen — password: guest123
+(37, 'guest', '$2b$10$kZNK9YSmZhYDt83CQBzdg.OqF0S17Hge7O3BpURFRXVFUSZbQYSWy', 'Guest', 'offduty', 'default-avatar.png');
 
 -- ============================================================
 -- TABEL orders
