@@ -201,21 +201,20 @@
       try {
         const r = await fetch('/api/members');
         if (!r.ok) throw new Error(r.statusText);
-        members = await r.json();
-        if (!Array.isArray(members)) members = [];
+        const json = await r.json();
+        members = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
       } catch (e) {
         console.error('Error fetching members:', e);
         members = [];
       }
     }
 
-    // FIX #4: Ambil work orders dari API, bukan localStorage
     async function fetchWorkOrders() {
       try {
         const r = await fetch('/api/workorders');
         if (!r.ok) throw new Error(r.statusText);
-        const data = await r.json();
-        allWorkOrders = Array.isArray(data) ? data : (data.data || []);
+        const json = await r.json();
+        allWorkOrders = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
         completedOrders = allWorkOrders.filter(o => o.status === 'completed');
       } catch (e) {
         console.error('Error fetching work orders:', e);
@@ -356,20 +355,18 @@
       delete document.getElementById('noteModal').dataset.orderId;
     }
 
-    // FIX #4: saveNote kirim ke API bukan localStorage
     async function saveNote() {
       const orderId = parseInt(document.getElementById('noteModal').dataset.orderId);
       const notes   = document.getElementById('noteText').value.trim();
+      const token   = localStorage.getItem('userToken') || '';
 
       try {
-        // Backend belum punya endpoint notes — simpan via PATCH workorder
-        // Jika endpoint tersedia di masa depan, ganti dengan PATCH /api/workorders/:id/notes
-        const r = await fetch(`/api/workorders/${orderId}`, {
+        const r = await fetch(`/api/workorders/${orderId}/notes`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (localStorage.getItem('userToken') || '') },
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
           body: JSON.stringify({ notes })
         });
-        // Refresh data dari API setelah simpan
+        if (!r.ok) throw new Error('Status: ' + r.status);
         await fetchWorkOrders();
         updateStats();
         renderTable();

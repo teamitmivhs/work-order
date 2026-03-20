@@ -231,7 +231,7 @@
       const mins = Math.round(n * 60);
       if (mins < 60) return mins + ' menit';
       const h = Math.floor(mins / 60), m = mins % 60;
-      return m === 0 ? `${h} jam` : `${h}j ${m}m`;
+      return m === 0 ? `${h} menit` : `${h}j ${m}m`;
     }
 
     function updateOverviewStats() {

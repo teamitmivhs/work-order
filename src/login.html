@@ -155,12 +155,38 @@
       input.type = input.type === 'password' ? 'text' : 'password';
     });
 
-    // Guest login
+    // Guest login — pakai /api/login dengan akun guest permanen
+    // Tidak perlu endpoint baru, tidak perlu rebuild Docker
     document.getElementById('guestLoginBtn').addEventListener('click', function () {
-      localStorage.setItem('isGuestUser', 'true');
-      localStorage.setItem('guestLoginTime', new Date().toISOString());
-      showModal('Welcome Guest! Kamu hanya bisa membuat work order.');
-      setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+      const btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Memproses...';
+
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'guest', password: 'guest123' })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.data && data.data.token) {
+          localStorage.setItem('userToken', data.data.token);
+          localStorage.setItem('isGuestUser', 'true');
+          localStorage.setItem('guestLoginTime', new Date().toISOString());
+          showModal('Welcome Guest! Kamu hanya bisa membuat work order.');
+          setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+        } else {
+          // Fallback: akun guest belum ada di DB, arahkan untuk setup dulu
+          showModal('Akun guest belum tersedia. Hubungi Admin untuk setup.', true);
+          btn.disabled = false;
+          btn.textContent = 'Lanjut sebagai Guest';
+        }
+      })
+      .catch(() => {
+        showModal('Terjadi kesalahan. Coba lagi.', true);
+        btn.disabled = false;
+        btn.textContent = 'Lanjut sebagai Guest';
+      });
     });
 
     // Login form
