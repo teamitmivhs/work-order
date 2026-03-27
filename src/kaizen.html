@@ -191,21 +191,20 @@
       try {
         const r = await fetch('/api/members');
         if (!r.ok) throw new Error(r.statusText);
-        members = await r.json();
-        if (!Array.isArray(members)) members = [];
+        const json = await r.json();
+        members = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
       } catch (e) {
         console.error('Error fetching members:', e);
         members = [];
       }
     }
 
-    // FIX #4: Ambil work orders dari API
     async function fetchWorkOrders() {
       try {
         const r = await fetch('/api/workorders');
         if (!r.ok) throw new Error(r.statusText);
-        const data = await r.json();
-        allWorkOrders  = Array.isArray(data) ? data : (data.data || []);
+        const json = await r.json();
+        allWorkOrders  = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
         completedOrders = allWorkOrders.filter(o => o.status === 'completed');
       } catch (e) {
         console.error('Error fetching work orders:', e);
