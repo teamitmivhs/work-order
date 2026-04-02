@@ -37,7 +37,6 @@ server.log
 
 # Rust
 target/
-Cargo.lock
 **/*.rs.bk
 .rust_backtrace
 
