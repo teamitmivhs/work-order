@@ -259,6 +259,11 @@
         const avatarFile = data.data?.avatar || data.avatar;
         if (avatarFile) {
           avatarImg.src = '/static/public/' + avatarFile + '?t=' + Date.now();
+          // Update navbar profile photo juga
+          const navImg = document.getElementById('navProfileImg');
+          if (navImg) {
+            navImg.src = '/static/public/' + avatarFile + '?t=' + Date.now();
+          }
         }
         removeAvatarBtn.classList.remove('hidden');
         showAvatarFeedback('Foto profil berhasil diperbarui!', false);
@@ -288,6 +293,11 @@
         if (!res.ok) throw new Error('Gagal menghapus avatar');
 
         avatarImg.src = DEFAULT_AVATAR;
+        // Update navbar photo juga
+        const navImg = document.getElementById('navProfileImg');
+        if (navImg) {
+          navImg.src = DEFAULT_AVATAR;
+        }
         removeAvatarBtn.classList.add('hidden');
         showAvatarFeedback('Foto profil dihapus.', false);
 
