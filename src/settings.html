@@ -322,26 +322,34 @@
       } catch(e) {}
 
       // Ambil data lengkap dari API (avatar + status)
-      fetch('/api/profile', { headers: { Authorization: 'Bearer ' + token } })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (!data) return;
-          if (data.avatar) {
-            document.getElementById('settingsAvatar').src = '/static/public/' + data.avatar;
-          }
-          const statusEl = document.getElementById('settingsStatusDisplay');
-          const statusMap = {
-            standby: { label: 'Stand By', color: 'text-green-600' },
-            onjob:   { label: 'On Job',   color: 'text-blue-600'  },
-            support: { label: 'Support',  color: 'text-yellow-600'},
-            nextshift:{ label: 'Next Shift', color: 'text-purple-600'},
-            offduty: { label: 'Off Duty', color: 'text-gray-500'  },
-          };
-          const s = statusMap[data.status] || { label: data.status || '—', color: 'text-gray-500' };
-          statusEl.textContent = s.label;
-          statusEl.className   = 'text-sm font-semibold ' + s.color;
-        })
-        .catch(() => {});
+      const updateProfileStatus = () => {
+        fetch('/api/profile', { headers: { Authorization: 'Bearer ' + token } })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (!data) return;
+            if (data.avatar) {
+              document.getElementById('settingsAvatar').src = '/static/public/' + data.avatar;
+            }
+            const statusEl = document.getElementById('settingsStatusDisplay');
+            const statusMap = {
+              standby: { label: 'Stand By', color: 'text-green-600' },
+              onjob:   { label: 'On Job',   color: 'text-blue-600'  },
+              support: { label: 'Support',  color: 'text-yellow-600'},
+              nextshift:{ label: 'Next Shift', color: 'text-purple-600'},
+              offduty: { label: 'Off Duty', color: 'text-gray-500'  },
+            };
+            const s = statusMap[data.status] || { label: data.status || '—', color: 'text-gray-500' };
+            statusEl.textContent = s.label;
+            statusEl.className   = 'text-sm font-semibold ' + s.color;
+          })
+          .catch(() => {});
+      };
+      
+      // Load initial profile
+      updateProfileStatus();
+      
+      // Auto-refresh status setiap 4 detik agar selalu terupdate
+      setInterval(updateProfileStatus, 4000);
     })();
 
     // ── Password strength checker ──
