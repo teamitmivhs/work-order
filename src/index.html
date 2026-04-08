@@ -1139,7 +1139,17 @@
   <script>
     (function loadUserProfile() {
       const token = localStorage.getItem('userToken');
-      if (!token) return;
+      const isGuest = localStorage.getItem('isGuestUser') === 'true';
+      
+      // Redirect ke login jika belum ada token dan bukan guest user
+      if (!token && !isGuest) {
+        window.location.href = '/login.html';
+        return;
+      }
+      
+      // Skip profile loading jika guest user
+      if (isGuest) return;
+      
       try {
         // Decode JWT payload (base64) tanpa verifikasi — hanya untuk display
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -1172,6 +1182,20 @@
             }
           })
           .catch(() => {}); // silent fail — avatar & status tetap default
+        
+        // Auto-refresh navbar profile every 5 seconds agar tetap sync dengan settings page
+        setInterval(() => {
+          const token = localStorage.getItem('userToken');
+          if (!token) return;
+          fetch('/api/profile', { headers: { Authorization: 'Bearer ' + token } })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+              if (data && data.avatar) {
+                document.getElementById('navProfileImg').src = '/static/public/' + data.avatar;
+              }
+            })
+            .catch(() => {});
+        }, 5000);
         
         // Setup tombol untuk set status ke Standby
         const setStatusBtn = document.getElementById('setStatusBtn');
@@ -1221,8 +1245,6 @@
       } catch (e) { /* silent fail */ }
     })();
   </script>
-
-  <!-- MOBILE: Card view renderer untuk work orders -->
   <!-- Harus didefinisikan SEBELUM script.js agar tersedia saat populateWorkOrdersTable dipanggil -->
   <script>
     window.renderMobileCards = function(orders, members) {
