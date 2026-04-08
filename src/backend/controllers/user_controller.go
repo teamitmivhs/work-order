@@ -73,8 +73,8 @@ func Register(c *gin.Context) {
 	memberRepo := repository.NewMemberRepository()
 	existingMember, err := memberRepo.GetMemberByName(member.Name)
 
-	// Jika nama tidak ditemukan di database, tolak registration
-	if existingMember == nil {
+	// Jika ada error atau nama tidak ditemukan di database, tolak registration
+	if err != nil || existingMember == nil {
 		utils.BadRequest(c, "Username not found in system. You are not authorized to register. Please contact IT administrator.")
 		return
 	}
