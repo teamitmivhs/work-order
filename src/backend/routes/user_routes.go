@@ -22,6 +22,7 @@ func RegisterUserRoutes(rg *gin.RouterGroup) {
 		protected.POST("/logout", logoutHandler)
 		protected.POST("/profile/avatar", controllers.UploadAvatarHandler)
 		protected.DELETE("/profile/avatar", controllers.DeleteAvatarHandler)
+		protected.POST("/status", controllers.UpdateStatusHandler)
 	}
 }
 
