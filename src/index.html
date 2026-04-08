@@ -504,6 +504,18 @@
           <div style="padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,0.08);">
             <p style="color:#fff;font-size:0.82rem;font-weight:600;margin:0;" id="dropdownName">...</p>
             <p style="color:rgba(148,163,184,0.8);font-size:0.72rem;margin:2px 0 0;" id="dropdownRole">...</p>
+            <!-- Status Display & Update Button -->
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <div>
+                <p style="color:rgba(148,163,184,0.8);font-size:0.68rem;margin:0;" id="statusLabel">Status:</p>
+                <p style="color:#fff;font-size:0.78rem;font-weight:500;margin:2px 0 0;" id="dropdownStatus">—</p>
+              </div>
+              <button id="setStatusBtn" type="button"
+                style="padding:4px 10px;font-size:0.7rem;font-weight:600;background:rgba(59,130,246,0.8);color:#fff;border:none;border-radius:4px;cursor:pointer;transition:all 0.2s;"
+                title="Set status to Standby">
+                Standby
+              </button>
+            </div>
           </div>
           <a href="/settings.html">
             <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1141,15 +1153,71 @@
           const dr = document.getElementById('dropdownRole');
           if (dr) dr.textContent = payload.role;
         }
-        // Avatar dari API /api/profile (opsional, skip jika gagal)
+        // Avatar dan Status dari API /api/profile
         fetch('/api/profile', { headers: { Authorization: 'Bearer ' + token } })
           .then(r => r.ok ? r.json() : null)
           .then(data => {
-            if (data && data.avatar) {
-              document.getElementById('navProfileImg').src = '/static/public/' + data.avatar;
+            if (data) {
+              // Update avatar
+              if (data.avatar) {
+                document.getElementById('navProfileImg').src = '/static/public/' + data.avatar;
+              }
+              // Update status di dropdown
+              if (data.status) {
+                const statusEl = document.getElementById('dropdownStatus');
+                if (statusEl) statusEl.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                // Store status untuk settings page juga
+                localStorage.setItem('userStatus', data.status);
+              }
             }
           })
-          .catch(() => {}); // silent fail — avatar tetap default
+          .catch(() => {}); // silent fail — avatar & status tetap default
+        
+        // Setup tombol untuk set status ke Standby
+        const setStatusBtn = document.getElementById('setStatusBtn');
+        if (setStatusBtn) {
+          setStatusBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('userToken');
+            if (!token) return;
+            
+            setStatusBtn.disabled = true;
+            setStatusBtn.textContent = 'Loading...';
+            
+            fetch('/api/status', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+              },
+              body: JSON.stringify({ status: 'standby' })
+            })
+            .then(r => r.json())
+            .then(data => {
+              if (data.member && data.member.status) {
+                // Update tampilan status
+                const statusEl = document.getElementById('dropdownStatus');
+                if (statusEl) statusEl.textContent = data.member.status.charAt(0).toUpperCase() + data.member.status.slice(1);
+                // Store ke localStorage
+                localStorage.setItem('userStatus', data.member.status);
+                // Show success feedback
+                setStatusBtn.textContent = '✓ Updated';
+                setTimeout(() => {
+                  setStatusBtn.textContent = 'Standby';
+                  setStatusBtn.disabled = false;
+                }, 1500);
+              }
+            })
+            .catch(err => {
+              console.error('Failed to update status:', err);
+              setStatusBtn.textContent = 'Error';
+              setTimeout(() => {
+                setStatusBtn.textContent = 'Standby';
+                setStatusBtn.disabled = false;
+              }, 1500);
+            });
+          });
+        }
       } catch (e) { /* silent fail */ }
     })();
   </script>
