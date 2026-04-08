@@ -82,6 +82,17 @@
         <div class="text-center">
           <p class="font-semibold text-gray-800" id="settingsName">—</p>
           <p class="text-xs text-gray-500" id="settingsRole">—</p>
+          <!-- Tombol Simpan & Batalkan untuk avatar (hidden by default) -->
+          <div class="mt-3 flex gap-2 justify-center hidden" id="avatarActionButtons">
+            <button id="saveAvatarBtn"
+              class="text-xs px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors font-medium">
+              Simpan Foto
+            </button>
+            <button id="cancelAvatarBtn"
+              class="text-xs px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors font-medium">
+              Batalkan
+            </button>
+          </div>
           <button id="removeAvatarBtn"
             class="mt-2 text-xs text-red-400 hover:text-red-600 transition-colors hidden">
             Hapus foto
@@ -194,34 +205,53 @@
 
   <script>
     // ── Avatar: buka file explorer, upload ke server, hapus ──
-    const avatarImg       = document.getElementById('settingsAvatar');
-    const changeAvatarBtn = document.getElementById('changeAvatarBtn');
-    const avatarFileInput = document.getElementById('avatarFileInput');
-    const removeAvatarBtn = document.getElementById('removeAvatarBtn');
+    const avatarImg           = document.getElementById('settingsAvatar');
+    const changeAvatarBtn     = document.getElementById('changeAvatarBtn');
+    const avatarFileInput     = document.getElementById('avatarFileInput');
+    const removeAvatarBtn     = document.getElementById('removeAvatarBtn');
+    const avatarActionButtons = document.getElementById('avatarActionButtons');
+    const saveAvatarBtn       = document.getElementById('saveAvatarBtn');
+    const cancelAvatarBtn     = document.getElementById('cancelAvatarBtn');
 
     const DEFAULT_AVATAR = '/static/public/default-avatar.png';
+    let pendingAvatarFile = null; // File yang sedang ditunggu disimpan
+    let originalAvatarSrc = DEFAULT_AVATAR; // Simpan foto asli untuk restore
 
     // Klik tombol kamera ATAU gambar avatar → buka file explorer
     changeAvatarBtn.addEventListener('click', () => avatarFileInput.click());
     avatarImg.addEventListener('click',       () => avatarFileInput.click());
 
-    // Saat file dipilih → preview dulu, lalu upload ke server
-    avatarFileInput.addEventListener('change', async function() {
+    // Saat file dipilih → preview dulu, tampilkan tombol Simpan/Batalkan
+    avatarFileInput.addEventListener('change', function() {
       const file = this.files[0];
       if (!file) return;
 
       // Validasi ukuran (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
         showAvatarFeedback('Ukuran file terlalu besar. Maksimal 2MB.', true);
+        avatarFileInput.value = '';
         return;
       }
 
-      // Preview lokal dulu agar terasa responsif
-      const reader = new FileReader();
-      reader.onload = (e) => { avatarImg.src = e.target.result; };
-      reader.readAsDataURL(file);
+      // Simpan file yang sedang pending
+      pendingAvatarFile = file;
+      originalAvatarSrc = avatarImg.src; // Simpan foto lama
 
-      // Upload ke server
+      // Preview lokal agar terasa responsif
+      const reader = new FileReader();
+      reader.onload = (e) => { 
+        avatarImg.src = e.target.result;
+        // Tampilkan tombol Simpan & Batalkan
+        avatarActionButtons.classList.remove('hidden');
+        showAvatarFeedback('Foto preview berhasil dimuat. Klik Simpan untuk disimpan.', false);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Klik tombol Simpan → upload ke server
+    saveAvatarBtn.addEventListener('click', async () => {
+      if (!pendingAvatarFile) return;
+
       const token = localStorage.getItem('userToken');
       if (!token) {
         showAvatarFeedback('Sesi habis, silakan login ulang.', true);
@@ -229,21 +259,18 @@
       }
 
       showAvatarFeedback('Mengupload...', false);
-      changeAvatarBtn.disabled = true;
+      saveAvatarBtn.disabled = true;
 
       try {
         const formData = new FormData();
-        formData.append('avatar', file);
+        formData.append('avatar', pendingAvatarFile);
 
         const res = await fetch('/api/profile/avatar', {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + token },
           body: formData
-          // Jangan set Content-Type — browser set otomatis dengan boundary
         });
 
-        // Baca response sebagai text dulu, baru parse JSON
-        // agar error message lebih jelas kalau server return non-JSON
         const text = await res.text();
         let data;
         try {
@@ -258,25 +285,35 @@
         // Update gambar dengan URL dari server
         const avatarFile = data.data?.avatar || data.avatar;
         if (avatarFile) {
-          avatarImg.src = '/static/public/' + avatarFile + '?t=' + Date.now();
+          const newUrl = '/static/public/' + avatarFile + '?t=' + Date.now();
+          avatarImg.src = newUrl;
           // Update navbar profile photo juga
           const navImg = document.getElementById('navProfileImg');
           if (navImg) {
-            navImg.src = '/static/public/' + avatarFile + '?t=' + Date.now();
+            navImg.src = newUrl;
           }
         }
         removeAvatarBtn.classList.remove('hidden');
         showAvatarFeedback('Foto profil berhasil diperbarui!', false);
+        avatarActionButtons.classList.add('hidden');
+        pendingAvatarFile = null;
 
       } catch (err) {
         console.error('Avatar upload error:', err);
         showAvatarFeedback('Gagal upload: ' + err.message, true);
-        // Kembalikan gambar lama
-        avatarImg.src = DEFAULT_AVATAR;
       } finally {
-        changeAvatarBtn.disabled = false;
+        saveAvatarBtn.disabled = false;
         avatarFileInput.value = '';
       }
+    });
+
+    // Klik tombol Batalkan → restore foto lama dan sembunyikan tombol
+    cancelAvatarBtn.addEventListener('click', () => {
+      avatarImg.src = originalAvatarSrc;
+      avatarActionButtons.classList.add('hidden');
+      showAvatarFeedback('Perubahan foto dibatalkan.', false);
+      pendingAvatarFile = null;
+      avatarFileInput.value = '';
     });
 
     // Hapus avatar → kirim DELETE ke server
@@ -293,12 +330,16 @@
         if (!res.ok) throw new Error('Gagal menghapus avatar');
 
         avatarImg.src = DEFAULT_AVATAR;
+        originalAvatarSrc = DEFAULT_AVATAR;
         // Update navbar photo juga
         const navImg = document.getElementById('navProfileImg');
         if (navImg) {
           navImg.src = DEFAULT_AVATAR;
         }
         removeAvatarBtn.classList.add('hidden');
+        avatarActionButtons.classList.add('hidden');
+        pendingAvatarFile = null;
+        avatarFileInput.value = '';
         showAvatarFeedback('Foto profil dihapus.', false);
 
       } catch (err) {
@@ -338,7 +379,13 @@
           .then(data => {
             if (!data) return;
             if (data.avatar) {
-              document.getElementById('settingsAvatar').src = '/static/public/' + data.avatar;
+              const avatarUrl = '/static/public/' + data.avatar;
+              document.getElementById('settingsAvatar').src = avatarUrl;
+              originalAvatarSrc = avatarUrl; // Update foto asli reference
+              // Tampilkan tombol hapus jika punya avatar yang bukan default
+              if (data.avatar && data.avatar !== 'no avatar') {
+                removeAvatarBtn.classList.remove('hidden');
+              }
             }
             const statusEl = document.getElementById('settingsStatusDisplay');
             const statusMap = {
