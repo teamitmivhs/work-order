@@ -69,69 +69,45 @@ func Register(c *gin.Context) {
 	}
 
 	// Check apakah nama sudah ada di DB
+	// PENTING: Hanya member yang sudah terdaftar di database yang bisa melakukan registration
 	memberRepo := repository.NewMemberRepository()
 	existingMember, err := memberRepo.GetMemberByName(member.Name)
 
-	if err == nil && existingMember != nil {
-		// Member sudah ada — cek apakah passwordnya masih kosong (belum pernah register)
-		// Ini terjadi karena member di-seed dari SQL dengan password kosong
-		if existingMember.Password != "" {
-			// Sudah punya password — tolak, tidak boleh overwrite akun aktif
-			utils.Conflict(c, "Username already exists")
-			return
-		}
-
-		// Password masih kosong — ini member yang belum pernah register
-		// Set password mereka dan kembalikan token
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(member.Password), bcrypt.DefaultCost)
-		if err != nil {
-			utils.InternalServerError(c, "Failed to hash password", err)
-			return
-		}
-
-		// Tentukan role: pertahankan role yang ada dari DB (programmer, maintenance, dll)
-		// Upgrade ke 'Operator' agar bisa akses protected endpoints
-		roleToSet := "Operator"
-		if existingMember.Role != "" {
-			roleToSet = existingMember.Role
-		}
-
-		if err := memberRepo.SetMemberPassword(existingMember.ID, string(hashedPassword), roleToSet); err != nil {
-			utils.InternalServerError(c, "Failed to set password", err)
-			return
-		}
-
-		token, err := utils.GenerateToken(existingMember.ID, existingMember.Name, roleToSet)
-		if err != nil {
-			utils.InternalServerError(c, "Failed to generate token", err)
-			return
-		}
-
-		utils.RespondWithMessage(c, http.StatusCreated, "Registration successful", gin.H{
-			"token":  token,
-			"member": gin.H{"id": existingMember.ID, "name": existingMember.Name, "role": roleToSet, "status": existingMember.Status},
-		})
+	// Jika nama tidak ditemukan di database, tolak registration
+	if existingMember == nil {
+		utils.BadRequest(c, "Username not found in system. You are not authorized to register. Please contact IT administrator.")
 		return
 	}
 
+	// Member ada di database — cek apakah passwordnya masih kosong (belum pernah register)
+	// Ini terjadi karena member di-seed dari SQL dengan password kosong
+	if existingMember.Password != "" {
+		// Sudah punya password — tolak, tidak boleh overwrite akun aktif
+		utils.Conflict(c, "Username already exists")
+		return
+	}
+
+	// Password masih kosong — ini member yang belum pernah register
+	// Set password mereka dan kembalikan token
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(member.Password), bcrypt.DefaultCost)
 	if err != nil {
 		utils.InternalServerError(c, "Failed to hash password", err)
 		return
 	}
-	member.Password = string(hashedPassword)
 
-	// Assign default role dan status
-	member.Role = "Operator"
-	member.Status = "standby"
+	// Tentukan role: pertahankan role yang ada dari DB (programmer, maintenance, dll)
+	// Upgrade ke 'Operator' agar bisa akses protected endpoints
+	roleToSet := "Operator"
+	if existingMember.Role != "" {
+		roleToSet = existingMember.Role
+	}
 
-	if err := memberRepo.CreateMember(&member); err != nil {
-		utils.InternalServerError(c, "Failed to create member", err)
+	if err := memberRepo.SetMemberPassword(existingMember.ID, string(hashedPassword), roleToSet); err != nil {
+		utils.InternalServerError(c, "Failed to set password", err)
 		return
 	}
 
-	// Generate JWT token
-	token, err := utils.GenerateToken(member.ID, member.Name, member.Role)
+	token, err := utils.GenerateToken(existingMember.ID, existingMember.Name, roleToSet)
 	if err != nil {
 		utils.InternalServerError(c, "Failed to generate token", err)
 		return
@@ -139,7 +115,7 @@ func Register(c *gin.Context) {
 
 	utils.RespondWithMessage(c, http.StatusCreated, "Registration successful", gin.H{
 		"token":  token,
-		"member": gin.H{"id": member.ID, "name": member.Name, "role": member.Role, "status": member.Status},
+		"member": gin.H{"id": existingMember.ID, "name": existingMember.Name, "role": roleToSet, "status": existingMember.Status},
 	})
 }
 
