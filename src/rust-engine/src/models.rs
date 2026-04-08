@@ -50,5 +50,5 @@ pub struct ActiveTimerInfo {
 /// Error response standar API
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
-    pub message: String,
+    pub message: String, 
 }
