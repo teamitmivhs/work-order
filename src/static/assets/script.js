@@ -351,8 +351,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // FIX: Kirim Authorization header ke semua protected endpoint
   async function apiUpdateMemberStatus(memberId, newStatus) {
-    const r = await fetch(`/api/members/${memberId}/status`, {
-      method: 'PATCH',
+    const r = await fetch('/api/status', {
+      method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({ status: newStatus })
     });
