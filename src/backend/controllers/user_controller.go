@@ -291,3 +291,57 @@ func DeleteAvatarHandler(c *gin.Context) {
 		"avatar": "no avatar",
 	})
 }
+
+// UpdateStatusHandler: POST /api/status
+// Update status member (standby, onjob, support, nextshift, offduty)
+type UpdateStatusRequest struct {
+	Status string `json:"status" binding:"required"`
+}
+
+func UpdateStatusHandler(c *gin.Context) {
+	userID, ok := middleware.GetUserIDFromContext(c)
+	if !ok || userID == 0 {
+		utils.Unauthorized(c, "User not found")
+		return
+	}
+
+	var req UpdateStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	// Trim dan lowercase status
+	req.Status = strings.TrimSpace(strings.ToLower(req.Status))
+
+	// Validasi status (validation juga ada di repository, tapi cek dulu di sini)
+	validStatuses := map[string]bool{
+		"standby": true, "onjob": true, "support": true,
+		"nextshift": true, "offduty": true,
+	}
+	if !validStatuses[req.Status] {
+		utils.BadRequest(c, "Invalid status. Must be: standby, onjob, support, nextshift, or offduty")
+		return
+	}
+
+	memberRepo := repository.NewMemberRepository()
+
+	// Update status di database
+	if err := memberRepo.UpdateMemberStatus(userID, req.Status); err != nil {
+		utils.InternalServerError(c, "Failed to update status", err)
+		return
+	}
+
+	// Ambil data member terbaru setelah update
+	member, err := memberRepo.GetMemberByID(userID)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to fetch updated member data", err)
+		return
+	}
+
+	member.Password = ""
+	utils.RespondWithMessage(c, http.StatusOK, "Status updated successfully", gin.H{
+		"member": member,
+		"status": member.Status,
+	})
+}
