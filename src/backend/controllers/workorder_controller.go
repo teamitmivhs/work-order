@@ -3,7 +3,6 @@ package controllers
 import (
 	"net/http"
 	"strconv"
-	"sync"
 
 	"teamitmivhs/work-order-backend/middleware"
 	"teamitmivhs/work-order-backend/models"
@@ -18,12 +17,6 @@ type WorkOrderController struct {
 	MemberRepo repository.MemberRepository
 }
 
-var (
-	mu         sync.Mutex
-	workOrders = []models.WorkOrder{}
-	nextID     = 1
-)
-
 func NewWorkOrderController(repo repository.WorkOrderRepository) *WorkOrderController {
 	return &WorkOrderController{
 		Repo:       repo,
@@ -32,25 +25,24 @@ func NewWorkOrderController(repo repository.WorkOrderRepository) *WorkOrderContr
 }
 
 // GetTaskListHandler menangani request GET /api/workorders
-// Filter berdasarkan role user
+// Public endpoint — filter berdasarkan token jika ada
 func (ctrl *WorkOrderController) GetTaskListHandler(c *gin.Context) {
-	userID := middleware.GetUserIDFromContext(c)
-	userRole := middleware.GetUserRoleFromContext(c)
-
 	var tasks []models.WorkOrder
 	var err error
 
-	// Filter berdasarkan role
-	switch userRole {
-	case "Admin":
-		// Admin melihat semua orders
+	// Cek apakah ada token di header
+	// Jika ada token → filter berdasarkan role
+	// Jika tidak ada token → tampilkan semua orders (guest/public view)
+	userRole, _ := middleware.GetUserRoleFromContext(c)
+	userID, _ := middleware.GetUserIDFromContext(c)
+
+	if userRole == "Admin" {
 		tasks, err = ctrl.Repo.GetAllTasks()
-	case "Operator":
-		// Operator hanya melihat orders yang mereka assigned
+	} else if userRole == "Operator" && userID > 0 {
 		tasks, err = ctrl.Repo.GetTasksByExecutor(userID)
-	default:
-		utils.Forbidden(c, "Invalid role")
-		return
+	} else {
+		// Tidak ada token atau role tidak dikenal — tampilkan semua
+		tasks, err = ctrl.Repo.GetAllTasks()
 	}
 
 	if err != nil {
@@ -123,14 +115,18 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 // TakeOrderHandler: POST /api/workorders/{id}/take
 // Hanya member yang di-assign yang bisa take order
 func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
+	// Guest tidak boleh ambil order
+	if role, _ := middleware.GetUserRoleFromContext(c); role == "Guest" {
+		utils.Forbidden(c, "Guest hanya bisa membuat work order")
+		return
+	}
+
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
 		utils.BadRequest(c, "Invalid Order ID")
 		return
 	}
-
-	userID := middleware.GetUserIDFromContext(c)
 
 	var req models.TakeWorkOrder
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -143,18 +139,8 @@ func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
 		return
 	}
 
-	// Check if member is assigned to this order
-	isAssigned, err := ctrl.MemberRepo.IsMemberAssigned(orderID, userID)
-	if err != nil {
-		utils.InternalServerError(c, "Failed to check assignment", err)
-		return
-	}
-
-	if !isAssigned {
-		utils.Forbidden(c, "You are not assigned to this work order")
-		return
-	}
-
+	// TakeOrder tidak perlu cek IsMemberAssigned karena executor baru diisi
+	// di dalam TakeOrder itu sendiri — belum ada sebelum take dilakukan
 	err = ctrl.Repo.TakeOrder(orderID, req)
 	if err != nil {
 		utils.InternalServerError(c, "Failed to take order", err)
@@ -167,6 +153,12 @@ func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
 // CompleteOrderHandler: PATCH /api/workorders/{id}/complete
 // Validasi: hanya assigned member, safety checklist fulfilled
 func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
+	// Guest tidak boleh complete order
+	if role, _ := middleware.GetUserRoleFromContext(c); role == "Guest" {
+		utils.Forbidden(c, "Guest hanya bisa membuat work order")
+		return
+	}
+
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
@@ -174,7 +166,7 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 		return
 	}
 
-	userID := middleware.GetUserIDFromContext(c)
+	userRole, _ := middleware.GetUserRoleFromContext(c)
 
 	var req models.CompleteWorkOrder
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -187,16 +179,18 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 		return
 	}
 
-	// Check if member is assigned to this order
-	isAssigned, err := ctrl.MemberRepo.IsMemberAssigned(orderID, userID)
-	if err != nil {
-		utils.InternalServerError(c, "Failed to check assignment", err)
-		return
-	}
-
-	if !isAssigned {
-		utils.Forbidden(c, "You are not assigned to this work order")
-		return
+	// Cek assignment hanya untuk Operator — Admin bisa complete order apapun
+	if userRole != "Admin" {
+		userID, _ := middleware.GetUserIDFromContext(c)
+		isAssigned, err := ctrl.MemberRepo.IsMemberAssigned(orderID, userID)
+		if err != nil {
+			utils.InternalServerError(c, "Failed to check assignment", err)
+			return
+		}
+		if !isAssigned {
+			utils.Forbidden(c, "You are not assigned to this work order")
+			return
+		}
 	}
 
 	// Validasi safety checklist
@@ -223,6 +217,12 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 // DeleteOrderHandler: DELETE /api/workorders/{id}
 // Hanya admin yang bisa delete
 func (ctrl *WorkOrderController) DeleteOrderHandler(c *gin.Context) {
+	// Guest tidak boleh delete order
+	if role, _ := middleware.GetUserRoleFromContext(c); role == "Guest" {
+		utils.Forbidden(c, "Guest hanya bisa membuat work order")
+		return
+	}
+
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
@@ -316,6 +316,82 @@ func GetMembersHandler(c *gin.Context) {
 	}
 
 	utils.RespondSuccess(c, http.StatusOK, members)
+}
+
+// UpdateOrderHandler: PATCH /api/workorders/{id}
+// Update executor list untuk order yang masih pending
+func (ctrl *WorkOrderController) UpdateOrderHandler(c *gin.Context) {
+	orderIDStr := c.Param("id")
+	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
+	if err != nil {
+		utils.BadRequest(c, "Invalid Order ID")
+		return
+	}
+
+	var req models.UpdateWorkOrderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	err = ctrl.Repo.UpdateOrderExecutors(orderID, req)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to update order", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Order updated successfully", gin.H{"id": orderID})
+}
+
+// UpdateNotesHandler: PATCH /api/workorders/{id}/notes
+// Simpan catatan evaluasi untuk work order yang sudah selesai
+func (ctrl *WorkOrderController) UpdateNotesHandler(c *gin.Context) {
+	orderIDStr := c.Param("id")
+	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
+	if err != nil {
+		utils.BadRequest(c, "Invalid Order ID")
+		return
+	}
+
+	var req models.UpdateNotesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	if err := ctrl.Repo.UpdateOrderNotes(orderID, req.Notes); err != nil {
+		utils.InternalServerError(c, "Failed to save notes", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Notes saved successfully", gin.H{"id": orderID})
+}
+
+// UpdateMemberStatusHandler: PATCH /api/members/{id}/status
+// Update status member (standby, onjob, support, nextshift, offduty)
+func UpdateMemberStatusHandler(c *gin.Context) {
+	memberIDStr := c.Param("id")
+	memberID, err := strconv.Atoi(memberIDStr)
+	if err != nil {
+		utils.BadRequest(c, "Invalid Member ID")
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	memberRepo := repository.NewMemberRepository()
+	if err := memberRepo.UpdateMemberStatus(memberID, req.Status); err != nil {
+		utils.BadRequest(c, "Invalid status value")
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Member status updated successfully", gin.H{"id": memberID})
 }
 
 // OLD IN-MEMORY FUNCTIONS - DEPRECATED (KEEPING FOR REFERENCE BUT NOT USED)

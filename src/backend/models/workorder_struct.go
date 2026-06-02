@@ -1,12 +1,10 @@
 package models
 
-import "database/sql"
-
 type WorkOrder struct {
 	ID              int      `json:"id"`
 	Priority        string   `json:"priority"`
 	Time            string   `json:"time"`
-	Requester       any      `json:"requester"`
+	Requester       string   `json:"requester"`
 	Location        string   `json:"location"`
 	Device          string   `json:"device"`
 	Problem         string   `json:"problem"`
@@ -15,6 +13,7 @@ type WorkOrder struct {
 	Status          string   `json:"status"`
 	SafetyChecklist []string `json:"safetyChecklist"`
 	CompletedAt     string   `json:"completedAt,omitempty"`
+	Notes           string   `json:"notes,omitempty"`
 }
 
 type Member struct {
@@ -62,7 +61,14 @@ type WorkOrderRequest struct {
 	SafetyChecklist []string `json:"safetyChecklist"`
 
 	// CompletedAt bisa NULL di DB
-	CompletedAt sql.NullString `json:"completedAt"`
+	CompletedAt *string `json:"completedAt,omitempty"`
+}
+
+// UpdateWorkOrderRequest: payload untuk PATCH /api/workorders/:id
+// Dipakai untuk update executor list dan status order
+type UpdateWorkOrderRequest struct {
+	Executors []int   `json:"executors"`
+	Status    *string `json:"status,omitempty"`
 }
 
 type TakeWorkOrder struct {
@@ -73,4 +79,9 @@ type TakeWorkOrder struct {
 type CompleteWorkOrder struct {
 	Status             string `json:"status"`
 	CompletedAtDisplay string `json:"completed_at_display"`
+}
+
+// UpdateNotesRequest: payload untuk PATCH /api/workorders/:id/notes
+type UpdateNotesRequest struct {
+	Notes string `json:"notes"`
 }

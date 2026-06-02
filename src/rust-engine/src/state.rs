@@ -1,7 +1,6 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::Mutex; // FIX: ganti std::sync::Mutex → tokio::sync::Mutex agar tidak blocking di async context
 
 #[derive(Debug, Clone)]
 pub struct RunningTimer {
@@ -20,5 +19,12 @@ impl AppState {
         Self {
             timers: Arc::new(Mutex::new(HashMap::new())),
         }
+    }
+}
+
+// FIX: tambah impl Default agar clippy tidak warning dan framework Axum kompatibel
+impl Default for AppState {
+    fn default() -> Self {
+        Self::new()
     }
 }

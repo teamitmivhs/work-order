@@ -1,8 +1,14 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
+	"time"
+
+	"teamitmivhs/work-order-backend/middleware"
 	"teamitmivhs/work-order-backend/models"
 	"teamitmivhs/work-order-backend/repository"
 	"teamitmivhs/work-order-backend/utils"
@@ -62,32 +68,46 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// Check duplikasi username
+	// Check apakah nama sudah ada di DB
+	// PENTING: Hanya member yang sudah terdaftar di database yang bisa melakukan registration
 	memberRepo := repository.NewMemberRepository()
 	existingMember, err := memberRepo.GetMemberByName(member.Name)
-	if err == nil && existingMember != nil {
+
+	// Jika ada error atau nama tidak ditemukan di database, tolak registration
+	if err != nil || existingMember == nil {
+		utils.BadRequest(c, "Username not found in system. You are not authorized to register. Please contact IT administrator.")
+		return
+	}
+
+	// Member ada di database — cek apakah passwordnya masih kosong (belum pernah register)
+	// Ini terjadi karena member di-seed dari SQL dengan password kosong
+	if existingMember.Password != "" {
+		// Sudah punya password — tolak, tidak boleh overwrite akun aktif
 		utils.Conflict(c, "Username already exists")
 		return
 	}
 
+	// Password masih kosong — ini member yang belum pernah register
+	// Set password mereka dan kembalikan token
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(member.Password), bcrypt.DefaultCost)
 	if err != nil {
 		utils.InternalServerError(c, "Failed to hash password", err)
 		return
 	}
-	member.Password = string(hashedPassword)
 
-	// Assign default role dan status
-	member.Role = "Operator"
-	member.Status = "standby"
+	// Tentukan role: pertahankan role yang ada dari DB (programmer, maintenance, dll)
+	// Upgrade ke 'Operator' agar bisa akses protected endpoints
+	roleToSet := "Operator"
+	if existingMember.Role != "" {
+		roleToSet = existingMember.Role
+	}
 
-	if err := memberRepo.CreateMember(&member); err != nil {
-		utils.InternalServerError(c, "Failed to create member", err)
+	if err := memberRepo.SetMemberPassword(existingMember.ID, string(hashedPassword), roleToSet); err != nil {
+		utils.InternalServerError(c, "Failed to set password", err)
 		return
 	}
 
-	// Generate JWT token
-	token, err := utils.GenerateToken(member.ID, member.Name, member.Role)
+	token, err := utils.GenerateToken(existingMember.ID, existingMember.Name, roleToSet)
 	if err != nil {
 		utils.InternalServerError(c, "Failed to generate token", err)
 		return
@@ -95,7 +115,7 @@ func Register(c *gin.Context) {
 
 	utils.RespondWithMessage(c, http.StatusCreated, "Registration successful", gin.H{
 		"token":  token,
-		"member": gin.H{"id": member.ID, "name": member.Name, "role": member.Role, "status": member.Status},
+		"member": gin.H{"id": existingMember.ID, "name": existingMember.Name, "role": roleToSet, "status": existingMember.Status},
 	})
 }
 
@@ -173,4 +193,155 @@ func GetProfile(c *gin.Context) {
 
 	member.Password = ""
 	utils.RespondSuccess(c, http.StatusOK, member)
+}
+
+// UploadAvatarHandler: POST /api/profile/avatar
+// Upload foto profil user — simpan ke static/public/ dan update DB
+func UploadAvatarHandler(c *gin.Context) {
+	userID, ok := middleware.GetUserIDFromContext(c)
+	if !ok || userID == 0 {
+		utils.Unauthorized(c, "User not found")
+		return
+	}
+
+	// Ambil file dari form
+	file, header, err := c.Request.FormFile("avatar")
+	if err != nil {
+		utils.BadRequest(c, "No file uploaded")
+		return
+	}
+	defer file.Close()
+
+	// Validasi ukuran (max 2MB)
+	if header.Size > 2*1024*1024 {
+		utils.BadRequest(c, "File too large. Maximum 2MB")
+		return
+	}
+
+	// Validasi extension
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	allowedExts := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
+	if !allowedExts[ext] {
+		utils.BadRequest(c, "Invalid file type. Allowed: jpg, jpeg, png, webp")
+		return
+	}
+
+	// Generate nama file unik — pakai userID + timestamp agar tidak bentrok
+	filename := fmt.Sprintf("avatar_%d_%d%s", userID, time.Now().Unix(), ext)
+
+	// Pastikan folder static/public ada
+	uploadDir := "/static/public"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		utils.InternalServerError(c, "Failed to create upload directory", err)
+		return
+	}
+
+	// Simpan file
+	dst := filepath.Join(uploadDir, filename)
+	if err := c.SaveUploadedFile(header, dst); err != nil {
+		utils.InternalServerError(c, "Failed to save file", err)
+		return
+	}
+
+	// Update kolom Avatar di database
+	memberRepo := repository.NewMemberRepository()
+	if err := memberRepo.UpdateMemberAvatar(userID, filename); err != nil {
+		utils.InternalServerError(c, "Failed to update avatar in database", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Avatar updated successfully", gin.H{
+		"avatar": filename,
+		"url":    "/static/public/" + filename,
+	})
+}
+
+// DeleteAvatarHandler: DELETE /api/profile/avatar
+// Reset avatar ke default
+func DeleteAvatarHandler(c *gin.Context) {
+	userID, ok := middleware.GetUserIDFromContext(c)
+	if !ok || userID == 0 {
+		utils.Unauthorized(c, "User not found")
+		return
+	}
+
+	memberRepo := repository.NewMemberRepository()
+
+	// Ambil avatar lama untuk dihapus dari disk
+	member, err := memberRepo.GetMemberByID(userID)
+	if err != nil {
+		utils.NotFound(c, "User not found")
+		return
+	}
+
+	// Hapus file lama jika bukan default
+	if member.Avatar != "" && member.Avatar != "no avatar" &&
+		!strings.HasPrefix(member.Avatar, "default") {
+		oldPath := filepath.Join("/static/public", member.Avatar)
+		os.Remove(oldPath) // silent fail — file mungkin sudah tidak ada
+	}
+
+	// Reset ke default di DB
+	if err := memberRepo.UpdateMemberAvatar(userID, "no avatar"); err != nil {
+		utils.InternalServerError(c, "Failed to reset avatar", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Avatar removed successfully", gin.H{
+		"avatar": "no avatar",
+	})
+}
+
+// UpdateStatusHandler: POST /api/status
+// Update status member (standby, onjob, support, nextshift, offduty)
+type UpdateStatusRequest struct {
+	Status string `json:"status" binding:"required"`
+}
+
+func UpdateStatusHandler(c *gin.Context) {
+	userID, ok := middleware.GetUserIDFromContext(c)
+	if !ok || userID == 0 {
+		utils.Unauthorized(c, "User not found")
+		return
+	}
+
+	var req UpdateStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	// Trim dan lowercase status
+	req.Status = strings.TrimSpace(strings.ToLower(req.Status))
+
+	// Validasi status (validation juga ada di repository, tapi cek dulu di sini)
+	validStatuses := map[string]bool{
+		"standby": true, "onjob": true, "support": true,
+		"nextshift": true, "offduty": true,
+	}
+	if !validStatuses[req.Status] {
+		utils.BadRequest(c, "Invalid status. Must be: standby, onjob, support, nextshift, or offduty")
+		return
+	}
+
+	memberRepo := repository.NewMemberRepository()
+
+	// Update status di database
+	if err := memberRepo.UpdateMemberStatus(userID, req.Status); err != nil {
+		utils.InternalServerError(c, "Failed to update status", err)
+		return
+	}
+
+	// Ambil data member terbaru setelah update
+	member, err := memberRepo.GetMemberByID(userID)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to fetch updated member data", err)
+		return
+	}
+
+	member.Password = ""
+	utils.RespondWithMessage(c, http.StatusOK, "Status updated successfully", gin.H{
+		"member": member,
+		"status": member.Status,
+	})
 }

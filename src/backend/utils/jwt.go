@@ -2,8 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
-	
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -16,42 +17,70 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-var jwtSecret = []byte(getJWTSecret())
+var (
+	jwtSecret     []byte
+	jwtSecretOnce sync.Once
+)
 
-func getJWTSecret() string {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		secret = "your-secret-key-change-in-production-12345"
-	}
-	return secret
+func getJWTSecret() []byte {
+	jwtSecretOnce.Do(func() {
+		secret := os.Getenv("JWT_SECRET")
+		if secret == "" {
+			// FIX: log WARNING yang jelas agar tidak luput di production
+			log.Println("[WARNING] JWT_SECRET environment variable is not set. " +
+				"Using default secret — this is UNSAFE in production!")
+			secret = "your-secret-key-change-in-production-12345"
+		}
+		jwtSecret = []byte(secret)
+	})
+	return jwtSecret
 }
 
-// GenerateToken menghasilkan JWT token untuk user
+// GenerateToken menghasilkan JWT token untuk user dengan expiry 24 jam
 func GenerateToken(id int, name, role string) (string, error) {
-	expirationTime := time.Now().Add(24 * time.Hour)
+	if id <= 0 {
+		return "", fmt.Errorf("invalid user ID: %d", id)
+	}
+	if name == "" {
+		return "", fmt.Errorf("user name cannot be empty")
+	}
+	if role == "" {
+		return "", fmt.Errorf("user role cannot be empty")
+	}
+
+	now := time.Now()
 	claims := &Claims{
 		ID:   id,
 		Name: name,
 		Role: role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(now.Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(now),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	return token.SignedString(getJWTSecret())
 }
 
-// ValidateToken memvalidasi dan parse JWT token
+// ValidateToken memvalidasi dan mem-parse JWT token
 func ValidateToken(tokenString string) (*Claims, error) {
+	if tokenString == "" {
+		return nil, fmt.Errorf("token string cannot be empty")
+	}
+
 	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return jwtSecret, nil
-	})
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		claims,
+		func(token *jwt.Token) (interface{}, error) {
+			// Pastiin algoritma sesuai sama ekspektasi buat prevent attack yang pake algoritma lain
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return getJWTSecret(), nil
+		},
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid token: %w", err)

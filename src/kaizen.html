@@ -1,760 +1,432 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kaizen Activity - IT Work Order</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link href="/static/assets/style.css" rel="stylesheet" />
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kaizen Activity - IT Work Order</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="/static/assets/style.css" rel="stylesheet" />
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+    .member-avatar-small { transition: all 0.2s ease; }
+    .member-avatar-small:hover { transform: scale(1.1); z-index: 10; position: relative; }
+  </style>
+</head>
+<body class="bg-[#f3f4f6] text-black">
 
-    <style>
-      body {
-        font-family: 'Poppins', sans-serif;
-      }
-      .member-avatar-small {
-        transition: all 0.2s ease;
-      }
-      .member-avatar-small:hover {
-        transform: scale(1.1);
-        z-index: 10;
-        position: relative;
-      }
-    </style>
-  </head>
-  <body class="bg-[#f3f4f6] text-black">
-    <!-- NAVBAR -->
-    <nav
-      class="w-full bg-[#222] px-6 py-4 flex flex-wrap items-center justify-between shadow-xl gap-4"
-    >
-      <div class="flex flex-wrap items-center gap-8 px-8">
-        <a
-          href="/index.html"
-          class="nav-button group flex items-center gap-2 text-white text-sm font-medium relative transition-all duration-300 hover:scale-105"
-        >
-          <svg
-            class="size-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7"
-            ></path>
+  <!-- NAVBAR -->
+  <nav style="background:linear-gradient(to right,#0f172a,#1e293b);border-bottom:1px solid rgba(255,255,255,0.07);"
+    class="sticky top-0 z-40 w-full px-4 md:px-6 py-3 shadow-2xl flex items-center justify-between">
+    <a href="/index.html" class="flex items-center gap-2 text-white hover:text-blue-300 transition-colors min-h-[44px]">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span class="text-sm font-medium">Kembali</span>
+    </a>
+    <h1 class="text-white text-base sm:text-lg font-bold absolute left-1/2 -translate-x-1/2 whitespace-nowrap">Kaizen — Evaluasi</h1>
+    <div class="w-16"></div>
+  </nav>
+
+  <!-- NOTES VIEW MODAL -->
+  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-3 md:p-4" id="notesModal">
+    <div class="bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4 md:mb-6">
+        <h2 class="text-lg md:text-2xl font-bold">Detail Notes & Evaluasi</h2>
+        <button id="closeNotesModal" class="text-gray-500 hover:text-gray-700 p-1" aria-label="Tutup">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
-          Back
-        </a>
+        </button>
       </div>
-      <h1 class="text-white text-2xl font-bold">Kaizen - Catatan & Evaluasi</h1>
-      <div class="w-20"></div>
-    </nav>
-
-    <br />
-
-    <!-- NOTES VIEW MODAL -->
-    <div
-      class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center"
-      id="notesModal"
-    >
-      <div
-        class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-3xl max-h-[80vh] overflow-y-auto"
-      >
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold">Detail Notes & Evaluasi</h2>
-          <button
-            id="closeNotesModal"
-            class="text-gray-500 hover:text-gray-700"
-          >
-            <svg
-              class="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
-            </svg>
-          </button>
+      <div class="bg-gray-50 p-3 md:p-4 rounded-lg mb-4 md:mb-6 space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 text-sm">
+          <div><span class="font-medium text-gray-600">No. Order:</span> <span class="text-gray-800 font-semibold" id="modalOrderId">-</span></div>
+          <div><span class="font-medium text-gray-600">Requester:</span> <span class="text-gray-800 font-semibold" id="modalOrderRequester">-</span></div>
+          <div><span class="font-medium text-gray-600">Device:</span> <span class="text-gray-800 font-semibold" id="modalOrderDevice">-</span></div>
+          <div><span class="font-medium text-gray-600">Location:</span> <span class="text-gray-800 font-semibold" id="modalOrderLocation">-</span></div>
+          <div><span class="font-medium text-gray-600">Priority:</span> <span class="inline-block" id="modalOrderPriority">-</span></div>
+          <div><span class="font-medium text-gray-600">Completed At:</span> <span class="text-gray-800 font-semibold" id="modalOrderCompletedAt">-</span></div>
         </div>
-
-        <div class="bg-gray-50 p-4 rounded-lg mb-6 space-y-2">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <span class="font-medium text-gray-600">No. Order:</span>
-              <span class="text-gray-800 font-semibold" id="modalOrderId"
-                >-</span
-              >
-            </div>
-            <div>
-              <span class="font-medium text-gray-600">Requester:</span>
-              <span class="text-gray-800 font-semibold" id="modalOrderRequester"
-                >-</span
-              >
-            </div>
-            <div>
-              <span class="font-medium text-gray-600">Device:</span>
-              <span class="text-gray-800 font-semibold" id="modalOrderDevice"
-                >-</span
-              >
-            </div>
-            <div>
-              <span class="font-medium text-gray-600">Location:</span>
-              <span class="text-gray-800 font-semibold" id="modalOrderLocation"
-                >-</span
-              >
-            </div>
-            <div>
-              <span class="font-medium text-gray-600">Priority:</span>
-              <span class="inline-block" id="modalOrderPriority">-</span>
-            </div>
-            <div>
-              <span class="font-medium text-gray-600">Completed At:</span>
-              <span
-                class="text-gray-800 font-semibold"
-                id="modalOrderCompletedAt"
-                >-</span
-              >
-            </div>
-          </div>
-          <div>
-            <span class="font-medium text-gray-600">Problem Description:</span>
-            <p class="text-gray-800 mt-1" id="modalOrderProblem">-</p>
-          </div>
-          <div>
-            <span class="font-medium text-gray-600">Executors:</span>
-            <span class="text-gray-800" id="modalOrderExecutors">-</span>
-          </div>
-          <div>
-            <span class="font-medium text-gray-600">Working Minutes:</span>
-            <span class="text-gray-800" id="modalOrderWorkingHours">-</span>
-          </div>
+        <div class="text-sm"><span class="font-medium text-gray-600">Problem:</span> <p class="text-gray-800 mt-1" id="modalOrderProblem">-</p></div>
+        <div class="text-sm"><span class="font-medium text-gray-600">Executors:</span> <span class="text-gray-800" id="modalOrderExecutors">-</span></div>
+        <div class="text-sm"><span class="font-medium text-gray-600">Working Time:</span> <span class="text-gray-800" id="modalOrderWorkingHours">-</span></div>
+      </div>
+      <div class="mb-4 md:mb-6">
+        <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">Notes & Evaluations</h3>
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-3 md:p-4 rounded-r-lg">
+          <p class="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm md:text-base" id="modalOrderNotes">No notes available</p>
         </div>
+      </div>
+      <div class="flex justify-end">
+        <button id="closeNotesModalBtn" class="px-5 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium">Tutup</button>
+      </div>
+    </div>
+  </div>
 
-        <div class="mb-6">
-          <h3 class="text-lg font-semibold mb-3">Notes & Evaluations</h3>
-          <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-            <p
-              class="text-gray-800 leading-relaxed whitespace-pre-wrap"
-              id="modalOrderNotes"
-            >
-              No notes available
-            </p>
-          </div>
+  <!-- FIX #13: margin-top CSS -->
+  <main class="px-4 md:px-10 mt-8 mb-12">
+
+    <!-- OVERVIEW STATS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Total Work Orders</p>
+        <p class="text-3xl md:text-4xl font-bold text-blue-600" id="totalOrders"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+      </div>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Completed</p>
+        <p class="text-3xl md:text-4xl font-bold text-green-600" id="completedOrders"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+      </div>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Completion Rate</p>
+        <p class="text-3xl md:text-4xl font-bold text-purple-600" id="completionRate"><span class="skeleton inline-block w-16 h-9 rounded">&nbsp;</span></p>
+        <div class="w-full bg-gray-200 rounded h-2 mt-2">
+          <div id="completionBar" class="bg-green-500 h-2 rounded transition-all duration-500" style="width: 0%"></div>
         </div>
+      </div>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Evaluasi</p>
+        <p class="text-3xl md:text-4xl font-bold text-orange-600" id="evaluationCount"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
+      </div>
+    </div>
 
-        <div class="flex justify-end">
-          <button
-            id="closeNotesModalBtn"
-            class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Close
-          </button>
+    <!-- PERFORMANCE EVALUATION -->
+    <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6 mb-6 md:mb-8">
+      <h2 class="text-base md:text-2xl font-semibold mb-3 md:mb-4">Evaluasi Performa</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
+        <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl">
+          <h3 class="text-sm md:text-lg font-semibold text-green-800">Current Rating</h3>
+          <p class="text-2xl md:text-3xl font-bold text-green-600 mt-1" id="currentRating">-</p>
+          <p class="text-xs md:text-sm text-green-700 mt-1" id="ratingSuggestion">-</p>
+        </div>
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl">
+          <h3 class="text-sm md:text-lg font-semibold text-blue-800">Avg Completion</h3>
+          <p class="text-2xl md:text-3xl font-bold text-blue-600 mt-1" id="avgCompletionTime">-</p>
+          <p class="text-xs md:text-sm text-blue-700 mt-1">Berdasarkan menit kerja</p>
+        </div>
+        <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-xl">
+          <h3 class="text-sm md:text-lg font-semibold text-purple-800">Notes Quality</h3>
+          <p class="text-2xl md:text-3xl font-bold text-purple-600 mt-1" id="notesQuality">-</p>
+          <p class="text-xs md:text-sm text-purple-700 mt-1" id="notesQualityDetail">-</p>
         </div>
       </div>
     </div>
 
-    <br />
-
-    <!-- MAIN CONTENT -->
-    <main class="px-10 mt-8">
-      <!-- OVERVIEW STATS -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-2xl shadow-xl p-6">
-          <p class="text-sm text-gray-600">Total Work Orders</p>
-          <p class="text-4xl font-bold text-blue-600" id="totalOrders">0</p>
+    <!-- FILTERS -->
+    <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6 mb-6 md:mb-8">
+      <h2 class="text-base md:text-xl font-semibold mb-3 md:mb-4">Filter & Search</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Requester</label>
+          <input type="text" id="searchRequester" placeholder="Cari nama requester..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
         </div>
-        <div class="bg-white rounded-2xl shadow-xl p-6">
-          <p class="text-sm text-gray-600">Completed</p>
-          <p class="text-4xl font-bold text-green-600" id="completedOrders">
-            0
-          </p>
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Device</label>
+          <input type="text" id="searchDevice" placeholder="Cari nama device..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
         </div>
-        <div class="bg-white rounded-2xl shadow-xl p-6">
-          <p class="text-sm text-gray-600">Completion Rate</p>
-          <p class="text-4xl font-bold text-purple-600" id="completionRate">
-            0%
-          </p>
-          <div class="w-full bg-gray-200 rounded h-2 mt-2">
-            <div
-              id="completionBar"
-              class="bg-green-500 h-2 rounded"
-              style="width: 0%"
-            ></div>
-          </div>
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Priority</label>
+          <select id="filterPriority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            <option value="">All Priorities</option>
+            <option value="high">High Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="low">Low Priority</option>
+          </select>
         </div>
-        <div class="bg-white rounded-2xl shadow-xl p-6">
-          <p class="text-sm text-gray-600">Evaluasi</p>
-          <p class="text-4xl font-bold text-orange-600" id="evaluationCount">
-            0
-          </p>
+        <div class="flex items-end">
+          <button id="clearFilters" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">Clear Filters</button>
         </div>
       </div>
+    </div>
 
-      <!-- PERFORMANCE EVALUATION -->
-      <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
-        <h2 class="text-2xl font-semibold mb-4">Evaluasi Performa</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div
-            class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg"
-          >
-            <h3 class="text-lg font-semibold text-green-800">Current Rating</h3>
-            <p class="text-3xl font-bold text-green-600" id="currentRating">
-              -
-            </p>
-            <p class="text-sm text-green-700" id="ratingSuggestion">-</p>
-          </div>
-          <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
-            <h3 class="text-lg font-semibold text-blue-800">
-              Average Completion Time
-            </h3>
-            <p class="text-3xl font-bold text-blue-600" id="avgCompletionTime">
-              -
-            </p>
+    <!-- TABLE (desktop) / CARDS (mobile) -->
+    <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+      <h2 class="text-lg md:text-2xl font-semibold mb-3 md:mb-4">Work Orders with Notes & Evaluations</h2>
 
-            <p class="text-sm text-blue-700">Berdasarkan menit kerja</p>
-          </div>
-          <div
-            class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg"
-          >
-            <h3 class="text-lg font-semibold text-purple-800">Notes Quality</h3>
-            <p class="text-3xl font-bold text-purple-600" id="notesQuality">
-              -
-            </p>
-            <p class="text-sm text-purple-700" id="notesQualityDetail">-</p>
-          </div>
-        </div>
+      <!-- Desktop table -->
+      <div class="table-section-desktop table-container overflow-x-auto">
+        <table class="w-full table">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="text-left py-3 px-4 font-semibold text-sm">No</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Prioritas</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Jam</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Requester</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Lokasi</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Device</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Masalah</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Pelaksana</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Working Time</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Waktu Selesai</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Catatan/Evaluasi</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody">
+            <tr><td colspan="12" class="text-center py-8 text-gray-400">
+              <div class="space-y-2 px-4">
+                <div class="skeleton w-full h-8 rounded"></div>
+                <div class="skeleton w-full h-8 rounded"></div>
+                <div class="skeleton w-3/4 h-8 rounded"></div>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
       </div>
 
-      <!-- FILTERS -->
-      <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">Filter & Search</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Search by Requester</label
-            >
-            <input
-              type="text"
-              id="searchRequester"
-              placeholder="Cari nama requester..."
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      <!-- Mobile cards -->
+      <div class="cards-section-mobile hidden" id="ordersCardBody"></div>
+    </div>
+  </main>
+
+  <script>
+    // FIX #4: Data dari API, bukan localStorage
+    let allWorkOrders = [];
+    let completedOrders = [];
+    let members = [];
+
+    async function fetchMembers() {
+      try {
+        const r = await fetch('/api/members');
+        if (!r.ok) throw new Error(r.statusText);
+        const json = await r.json();
+        members = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
+      } catch (e) {
+        console.error('Error fetching members:', e);
+        members = [];
+      }
+    }
+
+    async function fetchWorkOrders() {
+      try {
+        const r = await fetch('/api/workorders');
+        if (!r.ok) throw new Error(r.statusText);
+        const json = await r.json();
+        allWorkOrders  = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
+        completedOrders = allWorkOrders.filter(o => o.status === 'completed');
+      } catch (e) {
+        console.error('Error fetching work orders:', e);
+        allWorkOrders   = [];
+        completedOrders = [];
+      }
+    }
+
+    function getExecutorHtml(executors) {
+      if (!executors || executors.length === 0) return '<span class="text-gray-400">-</span>';
+      let html = '<div class="flex -space-x-1">';
+      executors.forEach(id => {
+        const m = members.find(m => m.id === id || m.id === parseInt(id));
+        if (m) html += `<img src="/static/public/${m.avatar}" alt="${m.name}" title="${m.name}" class="member-avatar-small border-2 border-white rounded-full w-8 h-8 object-cover shadow-sm">`;
+      });
+      return html + '</div>';
+    }
+
+    function convertWorkingTime(val) {
+      if (!val || val === '-') return '-';
+      if (String(val).includes('menit')) return val;
+      const n = parseFloat(String(val).replace(/[^0-9.]/g, '')) || 0;
+      const mins = Math.round(n * 60);
+      if (mins < 60) return mins + ' menit';
+      const h = Math.floor(mins / 60), m = mins % 60;
+      return m === 0 ? `${h} menit` : `${h}j ${m}m`;
+    }
+
+    function updateOverviewStats() {
+      const total = allWorkOrders.length;
+      const done  = completedOrders.length;
+      const rate  = total > 0 ? Math.round((done / total) * 100) : 0;
+      const evals = completedOrders.filter(o => o.notes && o.notes.trim()).length;
+
+      document.getElementById('totalOrders').textContent     = total;
+      document.getElementById('completedOrders').textContent = done;
+      document.getElementById('completionRate').textContent  = rate + '%';
+      document.getElementById('completionBar').style.width   = rate + '%';
+      document.getElementById('evaluationCount').textContent = evals;
+    }
+
+    function displayPerformanceEvaluation() {
+      const total = allWorkOrders.length;
+      const done  = completedOrders.length;
+      const rate  = total > 0 ? (done / total) * 100 : 0;
+
+      let rating = 'Belum ada review', suggestion = 'User belum menambahkan review atau catatan pada work order.';
+      if (rate >= 80)      { rating = 'Mantap';       suggestion = 'Performa tim sangat baik, pertahankan dan terus tingkatkan kualitas kerja.'; }
+      else if (rate >= 60) { rating = 'Ok';            suggestion = 'Performa baik, namun masih ada ruang untuk peningkatan.'; }
+      else if (rate >= 40) { rating = 'Kurang';        suggestion = 'Kinerja perlu ditingkatkan, identifikasi masalah dan cari solusi bersama.'; }
+      else if (rate > 10)  { rating = 'Sangat buruk';  suggestion = 'Kinerja tim sangat buruk, tindakan perbaikan segera diperlukan.'; }
+
+      document.getElementById('currentRating').textContent   = rating;
+      document.getElementById('ratingSuggestion').textContent = suggestion;
+
+      const withHours   = completedOrders.filter(o => o.workingHours && o.workingHours !== '-');
+      const avgEl       = document.getElementById('avgCompletionTime');
+      if (withHours.length > 0) {
+        const total = withHours.reduce((s, o) => {
+          const n = parseFloat(String(o.workingHours).replace(/[^0-9.]/g, '')) || 0;
+          return s + (String(o.workingHours).includes('menit') ? n : Math.round(n * 60));
+        }, 0);
+        const avg = total / withHours.length;
+        avgEl.textContent = avg < 60 ? Math.round(avg) + ' menit' : `${Math.floor(avg/60)}j ${Math.round(avg%60)}m`;
+      } else {
+        avgEl.textContent = '-';
+      }
+
+      const withNotes = completedOrders.filter(o => o.notes && o.notes.trim()).length;
+      const nq = completedOrders.length > 0 ? (withNotes / completedOrders.length) * 100 : 0;
+      document.getElementById('notesQuality').textContent    = Math.round(nq) + '%';
+      document.getElementById('notesQualityDetail').textContent =
+        nq >= 80 ? 'Dokumentasi sangat baik' :
+        nq >= 60 ? 'Dokumentasi baik' :
+        nq >= 40 ? 'Dokumentasi cukup' :
+        nq > 0   ? 'Perlu lebih banyak review' : 'Belum ada review.';
+    }
+
+    function renderTable(orders = completedOrders) {
+      const tbody = document.getElementById('ordersTableBody');
+      if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Tidak ada work order dengan catatan</td></tr>';
+        renderMobileCards(orders);
+        return;
+      }
+      tbody.innerHTML = orders.map((o, i) => `
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="py-3 px-4 text-sm">${i + 1}</td>
+          <td class="py-3 px-4 text-sm"><span class="priority-badge priority-${o.priority}">${o.priority.charAt(0).toUpperCase() + o.priority.slice(1)}</span></td>
+          <td class="py-3 px-4 text-sm">${o.time || '-'}</td>
+          <td class="py-3 px-4 text-sm">${typeof o.requester === 'object' ? o.requester.name : (o.requester || '-')}</td>
+          <td class="py-3 px-4 text-sm">${o.location || '-'}</td>
+          <td class="py-3 px-4 text-sm">${o.device || '-'}</td>
+          <td class="py-3 px-4 text-sm">${o.problem || '-'}</td>
+          <td class="py-3 px-4 text-sm">${getExecutorHtml(o.executors)}</td>
+          <td class="py-3 px-4 text-sm">${convertWorkingTime(o.workingHours)}</td>
+          <td class="py-3 px-4 text-sm text-green-600">${o.completedAt || 'N/A'}</td>
+          <td class="py-3 px-4 text-sm">
+            <div class="max-w-xs">
+              ${o.notes
+                ? `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" title="${o.notes}">${o.notes.length > 50 ? o.notes.substring(0,50)+'...' : o.notes}</span>`
+                : '<span class="text-gray-400 text-sm">No notes</span>'}
+            </div>
+          </td>
+          <td class="py-3 px-4 text-sm">
+            <button class="view-note-btn text-blue-500 hover:text-blue-700" data-order-id="${o.id}" title="View Notes">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </td>
+        </tr>`).join('');
+      renderMobileCards(orders);
+    }
+
+    function renderMobileCards(orders = completedOrders) {
+      const cardBody = document.getElementById('ordersCardBody');
+      if (!cardBody) return;
+      const priClass = { urgent:'badge-urgent', high:'badge-high', medium:'badge-medium', low:'badge-low' };
+      if (!orders || orders.length === 0) {
+        cardBody.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Tidak ada work order dengan catatan</p>';
+        return;
+      }
+      cardBody.innerHTML = orders.map((o, i) => {
+        const requester = typeof o.requester === 'object' ? o.requester.name : (o.requester || '-');
+        return `
+        <div class="data-card">
+          <div class="data-card-header">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-gray-400">#${i+1}</span>
+              <span class="badge-priority ${priClass[o.priority] || 'badge-low'}">${o.priority || '-'}</span>
+            </div>
+            <span class="text-xs text-green-600 font-medium">${o.completedAt || '-'}</span>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Search by Device</label
-            >
-            <input
-              type="text"
-              id="searchDevice"
-              placeholder="Cari nama device..."
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div class="data-card-row"><span class="data-card-label">Requester</span><span class="data-card-value">${requester}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Device</span><span class="data-card-value">${o.device || '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Lokasi</span><span class="data-card-value">${o.location || '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Masalah</span><span class="data-card-value" style="max-width:60%">${o.problem || '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${convertWorkingTime(o.workingHours)}</span></div>
+          <div class="data-card-row">
+            <span class="data-card-label">Catatan</span>
+            <span class="data-card-value" style="max-width:60%">
+              ${o.notes
+                ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">${o.notes.length>40?o.notes.substring(0,40)+'…':o.notes}</span>`
+                : '<span class="text-gray-400">No notes</span>'}
+            </span>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Priority</label
-            >
-            <select
-              id="filterPriority"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Priorities</option>
-              <option value="high">High Priority</option>
-              <option value="medium">Medium Priority</option>
-              <option value="low">Low Priority</option>
-            </select>
-          </div>
-          <div class="flex items-end">
-            <button
-              id="clearFilters"
-              class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              Clear Filters
+          <div class="data-card-actions">
+            <button class="view-note-btn flex items-center gap-1 text-xs text-blue-500 font-semibold px-3 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" data-order-id="${o.id}">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              Lihat Detail
             </button>
           </div>
-        </div>
-      </div>
+        </div>`;
+      }).join('');
+    }
 
-      <!-- WORK ORDERS WITH NOTES -->
-      <div class="bg-white rounded-2xl shadow-xl p-6">
-        <h2 class="text-2xl font-semibold mb-4">
-          Work Orders with Notes & Evaluations
-        </h2>
-        <div class="table-container overflow-x-auto">
-          <table class="w-full table">
-            <thead>
-              <tr class="border-b border-gray-200">
-                <th class="text-left py-3 px-4 font-semibold text-sm">No</th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">
-                  Prioritas
-                </th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">Jam</th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">
-                  Requester
-                </th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">
-                  Lokasi
-                </th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">
-                  Device
-                </th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">
-                  Masalah
-                </th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">
-                  Pelaksana
-                </th>
+    function filterTable() {
+      const req  = document.getElementById('searchRequester').value.toLowerCase();
+      const dev  = document.getElementById('searchDevice').value.toLowerCase();
+      const pri  = document.getElementById('filterPriority').value;
 
-                <th class="text-left py-3 px-4 font-semibold text-sm">
-                  Working Minutes
-                </th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">
-                  Waktu Selesai
-                </th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">
-                  Catatan/Evaluasi
-                </th>
-                <th class="text-left py-3 px-4 font-semibold text-sm">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="ordersTableBody">
-              <tr>
-                <td colspan="12" class="text-center py-8 text-gray-500">
-                  Tidak ada work order dengan catatan
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
+      renderTable(completedOrders.filter(o => {
+        const r = typeof o.requester === 'object' ? o.requester.name : (o.requester || '');
+        return r.toLowerCase().includes(req) &&
+               (o.device || '').toLowerCase().includes(dev) &&
+               (pri === '' || o.priority === pri);
+      }));
+    }
 
-    <br /><br />
+    function openNotesModal(orderId) {
+      const o = allWorkOrders.find(o => o.id === orderId);
+      if (!o) return;
+      document.getElementById('modalOrderId').textContent        = o.id;
+      document.getElementById('modalOrderRequester').textContent = typeof o.requester === 'object' ? o.requester.name : o.requester;
+      document.getElementById('modalOrderDevice').textContent    = o.device;
+      document.getElementById('modalOrderLocation').textContent  = o.location;
+      document.getElementById('modalOrderProblem').textContent   = o.problem;
+      document.getElementById('modalOrderExecutors').innerHTML   = getExecutorHtml(o.executors);
+      document.getElementById('modalOrderWorkingHours').textContent = convertWorkingTime(o.workingHours);
+      document.getElementById('modalOrderCompletedAt').textContent  = o.completedAt || 'N/A';
+      document.getElementById('modalOrderPriority').innerHTML = `<span class="priority-badge priority-${o.priority}">${o.priority.charAt(0).toUpperCase()+o.priority.slice(1)}</span>`;
+      const notesEl = document.getElementById('modalOrderNotes');
+      notesEl.textContent = (o.notes && o.notes.trim()) ? o.notes : 'No notes available for this work order.';
+      notesEl.classList.toggle('text-gray-500', !o.notes || !o.notes.trim());
+      document.getElementById('notesModal').classList.remove('hidden');
+    }
 
-    <script>
-      // All work orders data from localStorage
-      let allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || []
-      let completedOrders = allWorkOrders.filter(
-        (order) => order.status === 'completed'
-      )
-      let members = [] // Member data for displaying executor photos
+    function closeNotesModal() { document.getElementById('notesModal').classList.add('hidden'); }
 
-      // Function to fetch member data from Go API
-      async function fetchMembers() {
-        try {
-          const response = await fetch('http://localhost:8080/api/members')
-          if (!response.ok) {
-            throw new Error(
-              'Network response was not ok: ' + response.statusText
-            )
-          }
-          members = await response.json()
-          console.log('Data members berhasil di-fetch dari Go API:', members)
-        } catch (error) {
-          console.error('Error fetching members:', error)
-          // Fallback to empty array if API fails
-          members = []
-        }
+    // Event listeners
+    document.getElementById('searchRequester').addEventListener('input', filterTable);
+    document.getElementById('searchDevice').addEventListener('input', filterTable);
+    document.getElementById('filterPriority').addEventListener('change', filterTable);
+    document.getElementById('clearFilters').addEventListener('click', () => {
+      document.getElementById('searchRequester').value = '';
+      document.getElementById('searchDevice').value    = '';
+      document.getElementById('filterPriority').value  = '';
+      renderTable();
+    });
+    document.getElementById('closeNotesModal').addEventListener('click', closeNotesModal);
+    document.getElementById('closeNotesModalBtn').addEventListener('click', closeNotesModal);
+    document.getElementById('notesModal').addEventListener('click', e => { if (e.target === document.getElementById('notesModal')) closeNotesModal(); });
+
+    document.addEventListener('click', e => {
+      if (e.target.closest('.view-note-btn')) {
+        openNotesModal(parseInt(e.target.closest('.view-note-btn').dataset.orderId));
       }
+    });
 
-      // Function to get executor HTML with photos
-      function getExecutorHtml(executors) {
-        if (!executors || executors.length === 0) {
-          return '<span class="text-gray-400">-</span>'
-        }
-
-        let executorsHtml = '<div class="flex -space-x-1">'
-        executors.forEach((executorId) => {
-          const member = members.find((m) => m.id === executorId)
-          if (member) {
-            executorsHtml += `<img src="/static/public/${member.avatar}" alt="${member.name}" title="${member.name}" class="member-avatar-small border-2 border-white rounded-full w-8 h-8 object-cover shadow-sm">`
-          }
-        })
-        executorsHtml += '</div>'
-        return executorsHtml
-      }
-
-      // Function to convert working hours to smart time format
-      function convertToMinutes(hoursString) {
-        if (!hoursString || hoursString === '-') {
-          return '-'
-        }
-
-        // Extract number from string (handle both "2 jam" and "2" formats)
-        const hours =
-          parseFloat(hoursString.toString().replace(/[^0-9.]/g, '')) || 0
-        const totalMinutes = Math.round(hours * 60)
-
-        // Smart formatting: if less than 60 minutes, show in minutes
-        if (totalMinutes < 60) {
-          return totalMinutes + ' minutes'
-        }
-
-        // If 60 minutes or more, convert back to hours format
-        const totalHours = totalMinutes / 60
-
-        // If it's a whole number of hours
-        if (totalHours % 1 === 0) {
-          return totalHours + ' hours'
-        }
-
-        // If it's more than 1 hour with decimal
-        if (totalHours >= 1) {
-          const wholeHours = Math.floor(totalHours)
-          const remainingMinutes = totalMinutes % 60
-
-          if (remainingMinutes === 0) {
-            return totalHours + ' hours'
-          } else {
-            return `${wholeHours}h ${remainingMinutes}m`
-          }
-        }
-
-        // Fallback for very small values
-        return totalMinutes + ' minutes'
-      }
-
-      // Display overview stats
-      function updateOverviewStats() {
-        allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [] // Reload all work orders
-        completedOrders = allWorkOrders.filter(
-          (order) => order.status === 'completed'
-        ) // Filter for completed ones
-
-        const totalOrders = allWorkOrders.length // Use allWorkOrders for total
-        const completed = completedOrders.length
-        const completionRate =
-          totalOrders > 0 ? Math.round((completed / totalOrders) * 100) : 0
-        const evaluations = completedOrders.filter(
-          (order) => order.notes && order.notes.trim() !== ''
-        ).length
-
-        document.getElementById('totalOrders').textContent = totalOrders
-        document.getElementById('completedOrders').textContent = completed
-        document.getElementById('completionRate').textContent =
-          completionRate + '%'
-        document.getElementById('completionBar').style.width =
-          completionRate + '%'
-        document.getElementById('evaluationCount').textContent = evaluations
-      }
-
-      // Display performance evaluation
-      function displayPerformanceEvaluation() {
-        allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [] // Reload all work orders
-        completedOrders = allWorkOrders.filter(
-          (order) => order.status === 'completed'
-        ) // Filter for completed ones
-
-        const totalOrders = allWorkOrders.length // Use allWorkOrders for total
-        const completed = completedOrders.length
-        const completionRate =
-          totalOrders > 0 ? (completed / totalOrders) * 100 : 0
-
-        let rating = ''
-        let suggestion = ''
-
-        if (completionRate >= 80) {
-          rating = 'Mantap'
-          suggestion =
-            'Performa tim sangat baik, pertahankan dan terus tingkatkan kualitas kerja.'
-        } else if (completionRate >= 60) {
-          rating = 'Ok'
-          suggestion = 'Performa baik, namun masih ada ruang untuk peningkatan.'
-        } else if (completionRate >= 40) {
-          rating = 'Kurang'
-          suggestion =
-            'Kinerja perlu ditingkatkan, identifikasi masalah dan cari solusi bersama.'
-        } else if (completionRate > 10) {
-          rating = 'Sangat buruk'
-          suggestion =
-            'Kinerja tim sangat buruk, tindakan perbaikan segera diperlukan.'
-        } else {
-          rating = 'Belum ada review'
-          suggestion =
-            'User belum menambahkan review atau catatan pada work order.'
-        }
-
-        document.getElementById('currentRating').textContent = rating
-        document.getElementById('ratingSuggestion').textContent = suggestion
-
-        // Calculate average completion time in minutes
-        const ordersWithHours = completedOrders.filter(
-          (order) => order.workingHours && order.workingHours !== '0 jam'
-        )
-        let avgMinutes = 0
-        if (ordersWithHours.length > 0) {
-          const totalMinutes = ordersWithHours.reduce((sum, order) => {
-            const hours =
-              parseFloat(
-                order.workingHours.toString().replace(/[^0-9.]/g, '')
-              ) || 0
-            return sum + Math.round(hours * 60)
-          }, 0)
-          avgMinutes = totalMinutes / ordersWithHours.length
-
-          // Use smart formatting for average
-          const avgHours = avgMinutes / 60
-          if (avgMinutes < 60) {
-            document.getElementById('avgCompletionTime').textContent =
-              Math.round(avgMinutes) + ' minutes'
-          } else if (avgHours % 1 === 0) {
-            document.getElementById('avgCompletionTime').textContent =
-              avgHours + ' hours'
-          } else {
-            const wholeHours = Math.floor(avgHours)
-            const remainingMinutes = Math.round(avgMinutes % 60)
-            document.getElementById('avgCompletionTime').textContent =
-              `${wholeHours}h ${remainingMinutes}m`
-          }
-        } else {
-          document.getElementById('avgCompletionTime').textContent = '-'
-        }
-
-        // Calculate notes quality
-        const ordersWithNotes = completedOrders.filter(
-          (order) => order.notes && order.notes.trim() !== ''
-        ).length
-        const notesQuality =
-          completedOrders.length > 0
-            ? (ordersWithNotes / completedOrders.length) * 100
-            : 0
-
-        let qualityText = ''
-        if (notesQuality >= 80) {
-          qualityText = 'Dokumentasi sangat baik'
-        } else if (notesQuality >= 60) {
-          qualityText = 'Dokumentasi baik'
-        } else if (notesQuality >= 40) {
-          qualityText = 'Dokumentasi cukup'
-        } else if (notesQuality > 0) {
-          qualityText = 'Belum ada review.'
-        } else {
-          qualityText = 'Perlu lebih banyak review'
-        }
-
-        document.getElementById('notesQuality').textContent =
-          Math.round(notesQuality) + '%'
-        document.getElementById('notesQualityDetail').textContent = qualityText
-      }
-
-      // Display table
-      function renderTable(orders = completedOrders) {
-        allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [] // Reload all work orders
-        completedOrders = allWorkOrders.filter(
-          (order) => order.status === 'completed'
-        ) // Filter for completed ones
-
-        const tbody = document.getElementById('ordersTableBody')
-
-        if (orders.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="12" class="text-center py-8 text-gray-500">Tidak ada work order dengan catatan</td></tr>'
-          return
-        }
-
-        tbody.innerHTML = orders
-          .map(
-            (order, index) => `
-                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                    <td class="py-3 px-4 text-sm">${index + 1}</td>
-                    <td class="py-3 px-4 text-sm">
-                        <span class="priority-badge priority-${order.priority}">${order.priority.charAt(0).toUpperCase() + order.priority.slice(1)}</span>
-                    </td>
-                    <td class="py-3 px-4 text-sm">${order.time}</td>
-                    <td class="py-3 px-4 text-sm">${typeof order.requester === 'object' ? order.requester.name : order.requester}</td>
-                    <td class="py-3 px-4 text-sm">${order.location}</td>
-                    <td class="py-3 px-4 text-sm">${order.device}</td>
-                    <td class="py-3 px-4 text-sm">${order.problem}</td>
-
-                    <td class="py-3 px-4 text-sm">
-                        ${getExecutorHtml(order.executors)}
-                    </td>
-
-                    <td class="py-3 px-4 text-sm">${convertToMinutes(order.workingHours)}</td>
-
-                    <td class="py-3 px-4 text-sm text-green-600">${order.completedAt || 'N/A'}</td>
-                    <td class="py-3 px-4 text-sm">
-                        <div class="max-w-xs">
-                            ${
-                              order.notes
-                                ? `
-                                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" title="${order.notes}">
-                                    ${order.notes.length > 50 ? order.notes.substring(0, 50) + '...' : order.notes}
-                                </span>
-                            `
-                                : '<span class="text-gray-400 text-sm">No notes</span>'
-                            }
-                        </div>
-                    </td>
-                    <td class="py-3 px-4 text-sm">
-                        <button class="view-note-btn text-blue-500 hover:text-blue-700 transition-colors" data-order-id="${order.id}" title="View Full Notes">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </button>
-                    </td>
-                </tr>
-            `
-          )
-          .join('')
-      }
-
-      // Filter & Search functionality
-      function filterTable() {
-        allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [] // Reload all work orders
-        completedOrders = allWorkOrders.filter(
-          (order) => order.status === 'completed'
-        ) // Filter for completed ones
-
-        const requesterFilter = document
-          .getElementById('searchRequester')
-          .value.toLowerCase()
-        const deviceFilter = document
-          .getElementById('searchDevice')
-          .value.toLowerCase()
-        const priorityFilter = document.getElementById('filterPriority').value
-
-        let filtered = completedOrders.filter((order) => {
-          const requester =
-            typeof order.requester === 'object'
-              ? order.requester.name
-              : order.requester
-          const matchesRequester = requester
-            .toLowerCase()
-            .includes(requesterFilter)
-          const matchesDevice = order.device
-            .toLowerCase()
-            .includes(deviceFilter)
-          const matchesPriority =
-            priorityFilter === '' || order.priority === priorityFilter
-
-          return matchesRequester && matchesDevice && matchesPriority
-        })
-
-        renderTable(filtered)
-      }
-
-      // Event listeners
-      document
-        .getElementById('searchRequester')
-        .addEventListener('input', filterTable)
-      document
-        .getElementById('searchDevice')
-        .addEventListener('input', filterTable)
-      document
-        .getElementById('filterPriority')
-        .addEventListener('change', filterTable)
-
-      document
-        .getElementById('clearFilters')
-        .addEventListener('click', function () {
-          document.getElementById('searchRequester').value = ''
-          document.getElementById('searchDevice').value = ''
-          document.getElementById('filterPriority').value = ''
-          renderTable()
-        })
-
-      // Open notes modal functionality
-      function openNotesModal(orderId) {
-        allWorkOrders = JSON.parse(localStorage.getItem('workOrders')) || [] // Reload all work orders
-        completedOrders = allWorkOrders.filter(
-          (order) => order.status === 'completed'
-        ) // Filter for completed ones
-
-        const order = allWorkOrders.find((o) => o.id === orderId) // Find in all orders
-        if (!order) return
-
-        // Populate modal with order details
-        document.getElementById('modalOrderId').textContent = order.id
-        document.getElementById('modalOrderRequester').textContent =
-          typeof order.requester === 'object'
-            ? order.requester.name
-            : order.requester
-        document.getElementById('modalOrderDevice').textContent = order.device
-        document.getElementById('modalOrderLocation').textContent =
-          order.location
-        document.getElementById('modalOrderProblem').textContent = order.problem
-
-        document.getElementById('modalOrderExecutors').innerHTML =
-          getExecutorHtml(order.executors)
-
-        document.getElementById('modalOrderWorkingHours').textContent =
-          convertToMinutes(order.workingHours) + ' minutes'
-        document.getElementById('modalOrderCompletedAt').textContent =
-          order.completedAt || 'N/A'
-
-        // Set priority badge
-        const priorityElement = document.getElementById('modalOrderPriority')
-        priorityElement.innerHTML = `<span class="priority-badge priority-${order.priority}">${order.priority.charAt(0).toUpperCase() + order.priority.slice(1)}</span>`
-
-        // Set notes content
-        const notesElement = document.getElementById('modalOrderNotes')
-        if (order.notes && order.notes.trim() !== '') {
-          notesElement.textContent = order.notes
-        } else {
-          notesElement.textContent = 'No notes available for this work order.'
-          notesElement.classList.add('text-gray-500')
-        }
-
-        // Show modal
-        document.getElementById('notesModal').classList.remove('hidden')
-      }
-
-      // Close notes modal functionality
-      function closeNotesModal() {
-        document.getElementById('notesModal').classList.add('hidden')
-      }
-
-      // View note functionality - replaced alert with modal
-      document.addEventListener('click', function (e) {
-        if (e.target.closest('.view-note-btn')) {
-          const orderId = parseInt(
-            e.target.closest('.view-note-btn').dataset.orderId
-          )
-          openNotesModal(orderId)
-        }
-      })
-
-      // Modal event listeners
-      document
-        .getElementById('closeNotesModal')
-        .addEventListener('click', closeNotesModal)
-      document
-        .getElementById('closeNotesModalBtn')
-        .addEventListener('click', closeNotesModal)
-
-      // Close modal when clicking outside
-      document
-        .getElementById('notesModal')
-        .addEventListener('click', function (e) {
-          if (e.target === this) {
-            closeNotesModal()
-          }
-        })
-
-      // Load page
-      async function loadPage() {
-        await fetchMembers()
-        updateOverviewStats()
-        displayPerformanceEvaluation()
-        renderTable()
-      }
-
-      // Initialize page
-      loadPage()
-    </script>
-  </body>
+    // Init
+    async function loadPage() {
+      await Promise.all([fetchMembers(), fetchWorkOrders()]);
+      updateOverviewStats();
+      displayPerformanceEvaluation();
+      renderTable();
+    }
+    loadPage();
+  </script>
+</body>
 </html>

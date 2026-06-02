@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — Work Order ITMIVHS</title>
+  <title>Register — Work Order ITMIVHS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="static/assets/style.css" />
@@ -11,15 +11,13 @@
     body { font-family: 'Poppins', sans-serif; }
     .login-bg {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-      min-height: 100vh;
-      position: relative;
+      min-height: 100vh; position: relative;
     }
     .login-bg::before {
-      content: '';
-      position: absolute; inset: 0;
+      content: ''; position: absolute; inset: 0;
       background:
         radial-gradient(circle at 20% 30%, rgba(59,130,246,0.12) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(168,85,247,0.1) 0%, transparent 50%);
+        radial-gradient(circle at 80% 70%, rgba(16,185,129,0.1) 0%, transparent 50%);
       pointer-events: none;
     }
     .login-card {
@@ -28,44 +26,29 @@
       box-shadow: 0 25px 50px rgba(0,0,0,0.35);
     }
     .input-field {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 0.625rem;
-      font-size: 16px; /* prevent iOS zoom */
-      font-family: 'Poppins', sans-serif;
+      width: 100%; padding: 0.75rem 1rem;
+      border: 1.5px solid #e5e7eb; border-radius: 0.625rem;
+      font-size: 16px; font-family: 'Poppins', sans-serif;
       transition: border-color 0.2s, box-shadow 0.2s;
-      outline: none;
-      background: #f9fafb;
+      outline: none; background: #f9fafb;
     }
     .input-field:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
       background: #fff;
     }
+    .input-field.error { border-color: #ef4444; }
     .btn-primary {
       width: 100%; padding: 0.875rem 1rem;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      background: linear-gradient(135deg, #10b981, #059669);
       color: #fff; font-weight: 600; font-size: 0.95rem;
       border: none; border-radius: 0.75rem;
       cursor: pointer; transition: opacity 0.2s, transform 0.15s;
-      font-family: 'Poppins', sans-serif;
-      min-height: 48px;
+      font-family: 'Poppins', sans-serif; min-height: 48px;
     }
     .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
     .btn-primary:active { transform: scale(0.98); }
     .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    .btn-guest {
-      width: 100%; padding: 0.75rem 1rem;
-      background: transparent;
-      color: #64748b; font-weight: 500; font-size: 0.875rem;
-      border: 1.5px solid #e2e8f0; border-radius: 0.75rem;
-      cursor: pointer; transition: all 0.2s;
-      font-family: 'Poppins', sans-serif;
-      min-height: 48px;
-    }
-    .btn-guest:hover { background: #f8fafc; border-color: #cbd5e1; }
   </style>
 </head>
 <body class="login-bg flex items-center justify-center p-4">
@@ -74,56 +57,52 @@
     <!-- Logo & heading -->
     <div class="text-center mb-6">
       <img src="static/public/itlogo.png" alt="IT Logo" class="w-16 sm:w-20 mx-auto mb-4" />
-      <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Selamat Datang</h1>
-      <p class="text-sm text-gray-500 mt-1">Masuk ke Work Order ITMIVHS</p>
+      <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Buat Akun Baru</h1>
+      <p class="text-sm text-gray-500 mt-1">Daftar ke Work Order ITMIVHS</p>
     </div>
 
     <!-- Form -->
-    <form class="login-form space-y-4" novalidate>
+    <form class="register-form space-y-4" novalidate>
       <div>
         <label for="username" class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
-        <input type="text" id="username" name="username" required autocomplete="username"
-          placeholder="Masukkan username" class="input-field" />
+        <input type="text" id="username" name="username" required minlength="3" maxlength="50"
+          autocomplete="username" placeholder="Min. 3 karakter" class="input-field" />
       </div>
       <div>
         <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
         <div class="relative">
-          <input type="password" id="password" name="password" required autocomplete="current-password"
-            placeholder="Masukkan password" class="input-field pr-11" />
+          <input type="password" id="password" name="password" required minlength="8"
+            autocomplete="new-password" placeholder="Min. 8 karakter" class="input-field pr-11" />
           <button type="button" id="togglePassword"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
             aria-label="Tampilkan/sembunyikan password">
-            <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
           </button>
         </div>
+        <!-- Password strength -->
+        <div class="mt-2 flex gap-1" id="strengthBar">
+          <div class="h-1.5 flex-1 rounded-full bg-gray-200" id="ps1"></div>
+          <div class="h-1.5 flex-1 rounded-full bg-gray-200" id="ps2"></div>
+          <div class="h-1.5 flex-1 rounded-full bg-gray-200" id="ps3"></div>
+          <div class="h-1.5 flex-1 rounded-full bg-gray-200" id="ps4"></div>
+        </div>
+        <p class="text-xs text-gray-400 mt-1" id="strengthLabel">Harus ada huruf besar, huruf kecil, dan angka</p>
       </div>
-      <button type="submit" class="btn-primary mt-2">Masuk</button>
+      <button type="submit" class="btn-primary mt-2">Daftar</button>
     </form>
 
-    <!-- Divider -->
-    <div class="flex items-center gap-3 my-4">
-      <div class="flex-1 h-px bg-gray-200"></div>
-      <span class="text-xs text-gray-400 font-medium">atau</span>
-      <div class="flex-1 h-px bg-gray-200"></div>
-    </div>
-
-    <!-- Guest -->
-    <button type="button" id="guestLoginBtn" class="btn-guest">
-      Lanjut sebagai Guest
-    </button>
-
-    <!-- Register link -->
+    <!-- Login link -->
     <p class="text-center text-sm text-gray-500 mt-5">
-      Belum punya akun? <a href="register.html" class="text-blue-600 font-medium hover:underline">Daftar sekarang</a>
+      Sudah punya akun? <a href="login.html" class="text-blue-600 font-medium hover:underline">Masuk di sini</a>
     </p>
   </div>
 
   <!-- Modal -->
   <div id="myModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl relative animate-bounce-in">
+    <div class="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl relative">
       <button class="close absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none" aria-label="Tutup">&times;</button>
       <div id="modal-icon" class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"></div>
       <p id="modal-message" class="text-center text-sm text-gray-700 font-medium"></p>
@@ -131,9 +110,9 @@
   </div>
 
   <script>
-    const modal        = document.getElementById('myModal');
-    const modalMsg     = document.getElementById('modal-message');
-    const modalIcon    = document.getElementById('modal-icon');
+    const modal     = document.getElementById('myModal');
+    const modalMsg  = document.getElementById('modal-message');
+    const modalIcon = document.getElementById('modal-icon');
 
     function showModal(message, isError = false) {
       modalMsg.textContent = message;
@@ -149,57 +128,43 @@
     document.querySelector('.close').addEventListener('click', hideModal);
     modal.addEventListener('click', e => { if (e.target === modal) hideModal(); });
 
-    // Toggle password visibility
+    // Toggle password
     document.getElementById('togglePassword').addEventListener('click', function () {
       const input = document.getElementById('password');
       input.type = input.type === 'password' ? 'text' : 'password';
     });
 
-    // Guest login — pakai /api/login dengan akun guest permanen
-    // Tidak perlu endpoint baru, tidak perlu rebuild Docker
-    document.getElementById('guestLoginBtn').addEventListener('click', function () {
-      const btn = this;
-      btn.disabled = true;
-      btn.textContent = 'Memproses...';
-
-      fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'guest', password: 'guest123' })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.data && data.data.token) {
-          localStorage.setItem('userToken', data.data.token);
-          localStorage.setItem('isGuestUser', 'true');
-          localStorage.setItem('guestLoginTime', new Date().toISOString());
-          showModal('Welcome Guest! Kamu hanya bisa membuat work order.');
-          setTimeout(() => { window.location.href = 'index.html'; }, 1500);
-        } else {
-          // Fallback: akun guest belum ada di DB, arahkan untuk setup dulu
-          showModal('Akun guest belum tersedia. Hubungi Admin untuk setup.', true);
-          btn.disabled = false;
-          btn.textContent = 'Lanjut sebagai Guest';
-        }
-      })
-      .catch(() => {
-        showModal('Terjadi kesalahan. Coba lagi.', true);
-        btn.disabled = false;
-        btn.textContent = 'Lanjut sebagai Guest';
+    // Password strength
+    document.getElementById('password').addEventListener('input', function () {
+      const val   = this.value;
+      const bars  = ['ps1','ps2','ps3','ps4'].map(id => document.getElementById(id));
+      const label = document.getElementById('strengthLabel');
+      let score   = 0;
+      if (val.length >= 8)   score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[a-z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      const colors = ['bg-red-400','bg-orange-400','bg-yellow-400','bg-green-500'];
+      const labels = ['','Lemah','Cukup','Baik','Kuat'];
+      const tcolors = ['text-gray-400','text-red-500','text-orange-500','text-yellow-600','text-green-600'];
+      bars.forEach((b, i) => {
+        b.className = 'h-1.5 flex-1 rounded-full ' + (i < score ? colors[score-1] : 'bg-gray-200');
       });
+      label.textContent = val.length > 0 ? labels[score] : 'Harus ada huruf besar, huruf kecil, dan angka';
+      label.className   = 'text-xs mt-1 ' + (val.length > 0 ? tcolors[score] : 'text-gray-400');
     });
 
-    // Login form
-    document.querySelector('.login-form').addEventListener('submit', function (e) {
+    // Register form
+    document.querySelector('.register-form').addEventListener('submit', function (e) {
       e.preventDefault();
       const submitBtn = this.querySelector('[type="submit"]');
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Memproses...';
+      submitBtn.textContent = 'Mendaftar...';
 
       const name     = this.username.value.trim();
       const password = this.password.value;
 
-      fetch('/api/login', {
+      fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, password })
@@ -207,22 +172,18 @@
       .then(r => r.json())
       .then(data => {
         if (data.data && data.data.token) {
-          localStorage.removeItem('isGuestUser');
-          localStorage.removeItem('guestLoginTime');
-          localStorage.setItem('isAdmin', 'true');
-          localStorage.setItem('userToken', data.data.token);
-          showModal('Login berhasil! Mengalihkan...');
-          setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+          showModal('Pendaftaran berhasil! Silakan login.');
+          setTimeout(() => { window.location.href = 'login.html'; }, 2000);
         } else {
-          showModal(data.message || 'Login gagal. Periksa username & password.', true);
+          showModal(data.message || 'Pendaftaran gagal.', true);
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Masuk';
+          submitBtn.textContent = 'Daftar';
         }
       })
       .catch(() => {
         showModal('Terjadi kesalahan. Coba lagi.', true);
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Masuk';
+        submitBtn.textContent = 'Daftar';
       });
     });
   </script>

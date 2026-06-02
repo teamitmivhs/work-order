@@ -20,30 +20,44 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 	workOrderRepo := repository.NewWorkOrderRepository(db)
 	workOrderCtrl := controllers.NewWorkOrderController(workOrderRepo)
 
-	// Public endpoint (no auth required)
+	// ─── Public endpoints (tidak butuh auth) ──────────────────────────────────
+	// FIX: GET /members tetap public agar frontend bisa load member list
 	api.GET("/members", controllers.GetMembersHandler)
 
-	// Protected endpoints (auth required)
+	// FIX: GET /workorders dipindah ke public agar dashboard bisa load tanpa login
+	api.GET("/workorders", workOrderCtrl.GetTaskListHandler)
+
+	// ─── Protected endpoints (butuh JWT) ──────────────────────────────────────
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		// Kaizen metrics - accessible to all authenticated users
+		// Kaizen metrics
 		protected.GET("/kaizen", workOrderCtrl.GetKaizenHandler)
+
+		// FIX: PATCH /members/:id/status — dibutuhkan frontend untuk update status member
+		protected.PATCH("/members/:id/status", controllers.UpdateMemberStatusHandler)
 
 		workorders := protected.Group("/workorders")
 		{
-			// Create work order
+			// Buat work order baru
 			workorders.POST("", workOrderCtrl.CreateTaskHandler)
 
-			// Get work orders (filtered by role)
-			workorders.GET("", workOrderCtrl.GetTaskListHandler)
-
-			// Work order operations
+			// Take order (jadikan progress)
 			workorders.POST("/:id/take", workOrderCtrl.TakeOrderHandler)
-			workorders.PATCH("/:id/complete", workOrderCtrl.CompleteOrderHandler)
-			workorders.DELETE("/:id", middleware.AdminMiddleware(), workOrderCtrl.DeleteOrderHandler)
 
-			// Safety checklist endpoints
+			// Tandai selesai
+			workorders.PATCH("/:id/complete", workOrderCtrl.CompleteOrderHandler)
+
+			// Simpan catatan evaluasi
+			workorders.PATCH("/:id/notes", workOrderCtrl.UpdateNotesHandler)
+
+			// FIX: PATCH /:id — untuk addWorkerToOrder & syncRemoveMemberFromOrders dari frontend
+			workorders.PATCH("/:id", workOrderCtrl.UpdateOrderHandler)
+
+			// Hapus order — hanya user yang login, admin check di controller
+			workorders.DELETE("/:id", workOrderCtrl.DeleteOrderHandler)
+
+			// Safety checklist
 			workorders.GET("/:id/checklist", workOrderCtrl.GetSafetyChecklistHandler)
 			workorders.PUT("/:id/checklist", workOrderCtrl.UpdateSafetyChecklistHandler)
 		}
