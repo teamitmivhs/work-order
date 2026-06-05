@@ -147,5 +147,5 @@ Distributed under the **MIT License**. See `LICENSE` for more information.
 
 <p align="center">
   Developed with ❤️ by <b>IT MIVHS Team</b><br>
-  <i>"Efficiency through Engineering"</i>
+  <i>"Maintain tasks with ease and efficiency"</i>
 </p>
