@@ -17,7 +17,7 @@ pub async fn health_check(
         Ok(count) => Ok(Json(json!({
             "status": "healthy",
             "service": "time-tracker",
-            "active_timers": count
+            "active_timers": count 
         }))),
         Err(e) => {
             tracing::error!(error = %e, "Health check failed to get timer count");
