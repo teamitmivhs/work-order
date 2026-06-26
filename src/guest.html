@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guest Work Order — ITMIVHS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="/static/assets/style.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, #0f172a 0%, #1e293b 44%, #0f4c81 100%);
+      color: #0f172a;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.86), transparent 82%);
+    }
+    @keyframes guestIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .guest-shell { animation: guestIn 0.42s cubic-bezier(0.22,1,0.36,1) both; }
+    .guest-panel {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(226,232,240,0.9);
+      border-radius: 0.9rem;
+      box-shadow: 0 28px 80px rgba(2,6,23,0.34);
+      backdrop-filter: blur(18px);
+    }
+    .guest-input {
+      width: 100%;
+      min-height: 46px;
+      border: 1.5px solid #dbe3ee;
+      border-radius: 0.7rem;
+      background: #f8fafc;
+      padding: 0.75rem 0.9rem;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    }
+    .guest-input:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+      background: #fff;
+    }
+    .priority-card {
+      border: 1.5px solid #dbe3ee;
+      border-radius: 0.75rem;
+      background: #f8fafc;
+      padding: 0.85rem 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s, transform 0.18s;
+    }
+    .priority-card:hover { transform: translateY(-1px); }
+    .priority-opt input:checked + .priority-card {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+    .toast {
+      animation: guestIn 0.2s ease both;
+    }
+    @media (max-width: 640px) {
+      .guest-panel { border-radius: 0.8rem; }
+    }
+  </style>
+</head>
+<body class="relative">
+  <main class="guest-shell relative z-10 min-h-screen flex items-center justify-center px-4 py-6">
+    <section class="guest-panel w-full max-w-2xl overflow-hidden">
+      <header class="px-5 sm:px-6 py-5 bg-slate-950 text-white flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-blue-300 font-semibold">Guest Request</p>
+          <h1 class="text-xl sm:text-2xl font-bold mt-1">Buat Work Order</h1>
+        </div>
+        <button id="exitGuestBtn" type="button" class="text-sm font-semibold text-slate-300 hover:text-white border border-white/10 rounded-lg px-3 py-2">
+          Keluar
+        </button>
+      </header>
+
+      <form id="guestOrderForm" class="px-5 sm:px-6 py-5 sm:py-6 space-y-5">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Klasifikasi</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="priority-opt">
+              <input class="sr-only" type="radio" name="priority" value="low" />
+              <div class="priority-card">
+                <span class="block text-sm font-semibold text-green-700">Low</span>
+              </div>
+            </label>
+            <label class="priority-opt">
+              <input class="sr-only" type="radio" name="priority" value="medium" checked />
+              <div class="priority-card">
+                <span class="block text-sm font-semibold text-yellow-700">Medium</span>
+              </div>
+            </label>
+            <label class="priority-opt">
+              <input class="sr-only" type="radio" name="priority" value="high" />
+              <div class="priority-card">
+                <span class="block text-sm font-semibold text-red-700">High</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="guestRequester">Nama Requester</label>
+            <input id="guestRequester" class="guest-input" required autocomplete="name" placeholder="Nama lengkap" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="guestDevice">Nama Device</label>
+            <input id="guestDevice" class="guest-input" required placeholder="Contoh: Printer, laptop, proyektor" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="guestLocation">Lokasi</label>
+            <select id="guestLocation" class="guest-input" required>
+              <option value="">Pilih lokasi</option>
+              <option value="Gedung A">Gedung A</option>
+              <option value="Gedung B">Gedung B</option>
+              <option value="Gedung B Baru">Gedung B Baru</option>
+              <option value="Gedung C">Gedung C</option>
+              <option value="Gedung D">Gedung D</option>
+              <option value="Gedung TKI">Gedung TKI</option>
+              <option value="Gedung E">Gedung E</option>
+              <option value="Gedung F">Gedung F</option>
+              <option value="Gedung G">Gedung G</option>
+              <option value="Ruang Guru">Ruang Guru</option>
+              <option value="Ruang Yayasan">Ruang Yayasan</option>
+              <option value="Ruang Dar Al-Safwa">Ruang Dar Al-Safwa</option>
+              <option value="Ruang Arafah">Ruang Arafah</option>
+              <option value="Ruang Horenso">Ruang Horenso</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="guestSpecificLocation">Detail Lokasi</label>
+            <input id="guestSpecificLocation" class="guest-input" placeholder="Contoh: Lantai 2, ruang 201" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5" for="guestProblem">Deskripsi Masalah</label>
+          <textarea id="guestProblem" class="guest-input min-h-[120px] resize-none" required placeholder="Jelaskan masalah yang terjadi"></textarea>
+        </div>
+
+        <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+          <button id="clearGuestFormBtn" type="button" class="w-full sm:w-auto px-5 py-3 rounded-xl border border-gray-300 text-gray-600 font-semibold hover:bg-gray-50">
+            Reset
+          </button>
+          <button id="submitGuestOrderBtn" type="submit" class="w-full flex-1 px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-500/20">
+            Buat Work Order
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div id="guestToast" class="toast hidden fixed left-4 right-4 bottom-4 sm:left-auto sm:right-5 sm:max-w-sm rounded-xl bg-slate-950 text-white text-sm px-4 py-3 shadow-2xl z-50"></div>
+
+  <script>
+    const token = localStorage.getItem('userToken');
+    const isGuest = localStorage.getItem('isGuestUser') === 'true';
+
+    if (!token) window.location.replace('login.html');
+    if (token && !isGuest) window.location.replace('index.html');
+
+    const form = document.getElementById('guestOrderForm');
+    const toast = document.getElementById('guestToast');
+    const submitBtn = document.getElementById('submitGuestOrderBtn');
+
+    function showToast(message, isError = false) {
+      toast.textContent = message;
+      toast.className = 'toast fixed left-4 right-4 bottom-4 sm:left-auto sm:right-5 sm:max-w-sm rounded-xl text-white text-sm px-4 py-3 shadow-2xl z-50 ' + (isError ? 'bg-red-600' : 'bg-slate-950');
+      setTimeout(() => toast.classList.add('hidden'), 3200);
+    }
+
+    function setLoading(loading) {
+      submitBtn.disabled = loading;
+      submitBtn.textContent = loading ? 'Mengirim...' : 'Buat Work Order';
+    }
+
+    document.getElementById('exitGuestBtn').addEventListener('click', () => {
+      localStorage.removeItem('isGuestUser');
+      localStorage.removeItem('guestLoginTime');
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('isAdmin');
+      window.location.href = 'login.html';
+    });
+
+    document.getElementById('clearGuestFormBtn').addEventListener('click', () => form.reset());
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (submitBtn.disabled) return;
+
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const location = document.getElementById('guestLocation').value;
+      const specificLocation = document.getElementById('guestSpecificLocation').value.trim();
+
+      const payload = {
+        priority: form.querySelector('input[name="priority"]:checked').value,
+        time_display: `${hh}:${mm}`,
+        time_sort: `${hh}:${mm}:00`,
+        requester: document.getElementById('guestRequester').value.trim(),
+        location: specificLocation ? `${location} - ${specificLocation}` : location,
+        device: document.getElementById('guestDevice').value.trim(),
+        problem: document.getElementById('guestProblem').value.trim(),
+        working_hours: '0 menit',
+        status: 'pending',
+        executors: [],
+        safety_checklist: []
+      };
+
+      setLoading(true);
+      fetch('/api/workorders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token
+        },
+        body: JSON.stringify(payload)
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error('Gagal membuat work order');
+          return response.json();
+        })
+        .then((json) => {
+          const id = json.data && json.data.id ? json.data.id : '-';
+          form.reset();
+          showToast(`Work Order #${id} berhasil dibuat.`);
+        })
+        .catch((error) => {
+          console.error(error);
+          showToast('Terjadi kesalahan saat membuat work order.', true);
+        })
+        .finally(() => setLoading(false));
+    });
+  </script>
+</body>
+</html>
