@@ -25,7 +25,9 @@
       <span class="text-sm font-medium">Kembali</span>
     </a>
     <h1 class="text-white text-base sm:text-lg font-bold absolute left-1/2 -translate-x-1/2 whitespace-nowrap">Kaizen — Evaluasi</h1>
-    <div class="w-16"></div>
+    <button class="theme-toggle-btn" data-theme-toggle title="Toggle dark theme" aria-label="Toggle dark theme">
+      <span data-theme-icon>DK</span>
+    </button>
   </nav>
 
   <!-- NOTES VIEW MODAL -->
@@ -57,6 +59,12 @@
         <div class="bg-blue-50 border-l-4 border-blue-400 p-3 md:p-4 rounded-r-lg">
           <p class="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm md:text-base" id="modalOrderNotes">No notes available</p>
         </div>
+      </div>
+      <div class="mb-4 md:mb-6 hidden" id="modalPhotoWrap">
+        <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">Foto Operator</h3>
+        <button class="photo-preview-btn" id="modalPhotoBtn" type="button">
+          <img id="modalPhotoThumb" src="" alt="Foto dokumentasi work order" class="w-28 h-28 rounded-xl object-cover border border-gray-200 shadow-sm">
+        </button>
       </div>
       <div class="flex justify-end">
         <button id="closeNotesModalBtn" class="px-5 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium">Tutup</button>
@@ -97,7 +105,7 @@
         <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl">
           <h3 class="text-sm md:text-lg font-semibold text-green-800">Current Rating</h3>
           <p class="text-2xl md:text-3xl font-bold text-green-600 mt-1" id="currentRating">-</p>
-          <p class="text-xs md:text-sm text-green-700 mt-1" id="ratingSuggestion">-</p>
+          <p class="text-xs md:text-sm text-green-700 mt-1" id="ratingSuggestion">Rating manual dari Admin</p>
         </div>
         <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl">
           <h3 class="text-sm md:text-lg font-semibold text-blue-800">Avg Completion</h3>
@@ -161,11 +169,12 @@
               <th class="text-left py-3 px-4 font-semibold text-sm">Working Time</th>
               <th class="text-left py-3 px-4 font-semibold text-sm">Waktu Selesai</th>
               <th class="text-left py-3 px-4 font-semibold text-sm">Catatan/Evaluasi</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Foto</th>
               <th class="text-left py-3 px-4 font-semibold text-sm">Aksi</th>
             </tr>
           </thead>
           <tbody id="ordersTableBody">
-            <tr><td colspan="12" class="text-center py-8 text-gray-400">
+            <tr><td colspan="13" class="text-center py-8 text-gray-400">
               <div class="space-y-2 px-4">
                 <div class="skeleton w-full h-8 rounded"></div>
                 <div class="skeleton w-full h-8 rounded"></div>
@@ -181,11 +190,38 @@
     </div>
   </main>
 
+  <!-- PHOTO PREVIEW MODAL -->
+  <div class="fixed inset-0 bg-black bg-opacity-80 hidden z-[1300] flex items-center justify-center p-4" id="photoModal">
+    <div class="relative w-full max-w-4xl">
+      <button id="closePhotoModal" class="absolute -top-12 right-0 text-white hover:text-blue-200 min-h-[44px] px-2" aria-label="Tutup foto">
+        Tutup
+      </button>
+      <img id="photoModalImg" src="" alt="Foto dokumentasi work order" class="w-full max-h-[82vh] object-contain rounded-xl shadow-2xl bg-black" />
+    </div>
+  </div>
+
   <script>
+    function applySavedTheme() {
+      const theme = localStorage.getItem('woTheme') || 'light';
+      document.documentElement.dataset.theme = theme;
+      document.body.setAttribute('data-theme', theme);
+      document.querySelectorAll('[data-theme-icon]').forEach(el => { el.textContent = theme === 'dark' ? 'LT' : 'DK'; });
+    }
+    applySavedTheme();
+    document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        localStorage.setItem('woTheme', (localStorage.getItem('woTheme') || 'light') === 'dark' ? 'light' : 'dark');
+        applySavedTheme();
+      });
+    });
+
     // FIX #4: Data dari API, bukan localStorage
     let allWorkOrders = [];
     let completedOrders = [];
     let members = [];
+    const authToken = localStorage.getItem('userToken') || '';
+    if (!authToken) window.location.href = '/login.html';
+    if (localStorage.getItem('isGuestUser') === 'true') window.location.href = '/guest.html';
 
     async function fetchMembers() {
       try {
@@ -201,7 +237,7 @@
 
     async function fetchWorkOrders() {
       try {
-        const r = await fetch('/api/workorders');
+        const r = await fetch('/api/workorders', { headers: { Authorization: 'Bearer ' + authToken } });
         if (!r.ok) throw new Error(r.statusText);
         const json = await r.json();
         allWorkOrders  = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
@@ -223,14 +259,25 @@
       return html + '</div>';
     }
 
+    function minutesFromWorkingTime(value) {
+      if (value == null || value === '-') return null;
+      if (typeof value === 'number') return value;
+      const text = String(value).toLowerCase();
+      const n = parseFloat(text.replace(/[^0-9.]/g, ''));
+      if (Number.isNaN(n)) return null;
+      if (text.includes('hour') || text.includes('jam')) return Math.round(n * 60);
+      return Math.round(n);
+    }
+
     function convertWorkingTime(val) {
-      if (!val || val === '-') return '-';
-      if (String(val).includes('menit')) return val;
-      const n = parseFloat(String(val).replace(/[^0-9.]/g, '')) || 0;
-      const mins = Math.round(n * 60);
-      if (mins < 60) return mins + ' menit';
+      const mins = minutesFromWorkingTime(val);
+      if (mins == null) return '-';
+      if (mins < 1) return 'Less than 1 minute';
+      if (mins < 60) return mins === 1 ? '1 minute' : `${mins} minutes`;
       const h = Math.floor(mins / 60), m = mins % 60;
-      return m === 0 ? `${h} menit` : `${h}j ${m}m`;
+      const hourText = h === 1 ? '1 hour' : `${h} hours`;
+      const minuteText = m === 1 ? '1 minute' : `${m} minutes`;
+      return m === 0 ? hourText : `${hourText} ${minuteText}`;
     }
 
     function updateOverviewStats() {
@@ -247,36 +294,37 @@
     }
 
     function displayPerformanceEvaluation() {
-      const total = allWorkOrders.length;
-      const done  = completedOrders.length;
-      const rate  = total > 0 ? (done / total) * 100 : 0;
-
-      let rating = 'Belum ada review', suggestion = 'User belum menambahkan review atau catatan pada work order.';
-      if (rate >= 80)      { rating = 'Mantap';       suggestion = 'Performa tim sangat baik, pertahankan dan terus tingkatkan kualitas kerja.'; }
-      else if (rate >= 60) { rating = 'Ok';            suggestion = 'Performa baik, namun masih ada ruang untuk peningkatan.'; }
-      else if (rate >= 40) { rating = 'Kurang';        suggestion = 'Kinerja perlu ditingkatkan, identifikasi masalah dan cari solusi bersama.'; }
-      else if (rate > 10)  { rating = 'Sangat buruk';  suggestion = 'Kinerja tim sangat buruk, tindakan perbaikan segera diperlukan.'; }
+      const ratedOrders = completedOrders.filter(o => typeof o.rating === 'number');
+      const avgRating = ratedOrders.length ? ratedOrders.reduce((sum, o) => sum + o.rating, 0) / ratedOrders.length : null;
+      let rating = 'Belum ada rating', suggestion = 'Admin belum memberikan rating pada work order selesai.';
+      if (avgRating != null) {
+        rating = `${avgRating.toFixed(1)}/5`;
+        suggestion =
+          avgRating >= 4.5 ? 'Kualitas penyelesaian sangat baik menurut rating admin.' :
+          avgRating >= 3.5 ? 'Kualitas penyelesaian baik, tetap jaga konsistensi.' :
+          avgRating >= 2.5 ? 'Kualitas cukup, masih perlu evaluasi rutin.' :
+          'Kualitas perlu perhatian admin dan tim.';
+      }
 
       document.getElementById('currentRating').textContent   = rating;
       document.getElementById('ratingSuggestion').textContent = suggestion;
 
-      const withHours   = completedOrders.filter(o => o.workingHours && o.workingHours !== '-');
+      const withHours   = completedOrders.map(o => minutesFromWorkingTime(o.workingHours)).filter(v => v != null);
       const avgEl       = document.getElementById('avgCompletionTime');
       if (withHours.length > 0) {
-        const total = withHours.reduce((s, o) => {
-          const n = parseFloat(String(o.workingHours).replace(/[^0-9.]/g, '')) || 0;
-          return s + (String(o.workingHours).includes('menit') ? n : Math.round(n * 60));
-        }, 0);
+        const total = withHours.reduce((s, minutes) => s + minutes, 0);
         const avg = total / withHours.length;
-        avgEl.textContent = avg < 60 ? Math.round(avg) + ' menit' : `${Math.floor(avg/60)}j ${Math.round(avg%60)}m`;
+        avgEl.textContent = convertWorkingTime(Math.round(avg));
       } else {
         avgEl.textContent = '-';
       }
 
-      const withNotes = completedOrders.filter(o => o.notes && o.notes.trim()).length;
-      const nq = completedOrders.length > 0 ? (withNotes / completedOrders.length) * 100 : 0;
-      document.getElementById('notesQuality').textContent    = Math.round(nq) + '%';
+      const qualityOrders = completedOrders.filter(o => typeof o.notesQuality === 'number');
+      const avgNotesQuality = qualityOrders.length ? qualityOrders.reduce((sum, o) => sum + o.notesQuality, 0) / qualityOrders.length : null;
+      const nq = avgNotesQuality == null ? null : Math.round((avgNotesQuality / 5) * 100);
+      document.getElementById('notesQuality').textContent    = nq == null ? '-' : Math.round(nq) + '%';
       document.getElementById('notesQualityDetail').textContent =
+        nq == null ? 'Belum ada penilaian kualitas catatan' :
         nq >= 80 ? 'Dokumentasi sangat baik' :
         nq >= 60 ? 'Dokumentasi baik' :
         nq >= 40 ? 'Dokumentasi cukup' :
@@ -286,7 +334,7 @@
     function renderTable(orders = completedOrders) {
       const tbody = document.getElementById('ordersTableBody');
       if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Tidak ada work order dengan catatan</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center py-8 text-gray-500">Tidak ada work order dengan catatan</td></tr>';
         renderMobileCards(orders);
         return;
       }
@@ -307,7 +355,15 @@
               ${o.notes
                 ? `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" title="${o.notes}">${o.notes.length > 50 ? o.notes.substring(0,50)+'...' : o.notes}</span>`
                 : '<span class="text-gray-400 text-sm">No notes</span>'}
+              <div class="text-xs text-amber-600 mt-1">${o.rating ? `Rating ${o.rating}/5` : 'Belum dirating'}</div>
+              <div class="text-xs text-purple-600 mt-1">${o.notesQuality ? `Notes ${o.notesQuality}/5` : 'Notes belum dinilai'}</div>
             </div>
+          </td>
+          <td class="py-3 px-4 text-sm">
+            ${o.documentationPhoto ? `
+              <button class="photo-preview-btn" data-photo="/static/public/${o.documentationPhoto}" type="button">
+                <img src="/static/public/${o.documentationPhoto}" alt="Foto bukti order #${o.id}" class="w-12 h-12 rounded-lg object-cover border border-gray-200 shadow-sm">
+              </button>` : '<span class="text-gray-400">-</span>'}
           </td>
           <td class="py-3 px-4 text-sm">
             <button class="view-note-btn text-blue-500 hover:text-blue-700" data-order-id="${o.id}" title="View Notes">
@@ -353,6 +409,9 @@
                 : '<span class="text-gray-400">No notes</span>'}
             </span>
           </div>
+          <div class="data-card-row"><span class="data-card-label">Rating</span><span class="data-card-value">${o.rating ? `${o.rating}/5` : '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Notes Quality</span><span class="data-card-value">${o.notesQuality ? `${o.notesQuality}/5` : '-'}</span></div>
+          ${o.documentationPhoto ? `<div class="data-card-row"><span class="data-card-label">Foto</span><button class="photo-preview-btn data-card-value" data-photo="/static/public/${o.documentationPhoto}" type="button"><img src="/static/public/${o.documentationPhoto}" alt="Foto bukti order #${o.id}" class="w-16 h-16 rounded-lg object-cover border border-gray-200 shadow-sm ml-auto"></button></div>` : ''}
           <div class="data-card-actions">
             <button class="view-note-btn flex items-center gap-1 text-xs text-blue-500 font-semibold px-3 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" data-order-id="${o.id}">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -392,12 +451,34 @@
       document.getElementById('modalOrderCompletedAt').textContent  = o.completedAt || 'N/A';
       document.getElementById('modalOrderPriority').innerHTML = `<span class="priority-badge priority-${o.priority}">${o.priority.charAt(0).toUpperCase()+o.priority.slice(1)}</span>`;
       const notesEl = document.getElementById('modalOrderNotes');
-      notesEl.textContent = (o.notes && o.notes.trim()) ? o.notes : 'No notes available for this work order.';
+      notesEl.textContent = `${o.rating ? `Rating Admin: ${o.rating}/5\n` : 'Rating Admin: belum dirating\n'}${o.notesQuality ? `Notes Quality: ${o.notesQuality}/5\n\n` : 'Notes Quality: belum dinilai\n\n'}${(o.notes && o.notes.trim()) ? o.notes : 'No notes available for this work order.'}`;
       notesEl.classList.toggle('text-gray-500', !o.notes || !o.notes.trim());
+      const photoWrap = document.getElementById('modalPhotoWrap');
+      const photoThumb = document.getElementById('modalPhotoThumb');
+      const photoBtn = document.getElementById('modalPhotoBtn');
+      if (o.documentationPhoto) {
+        const src = `/static/public/${o.documentationPhoto}`;
+        photoThumb.src = src;
+        photoBtn.dataset.photo = src;
+        photoWrap.classList.remove('hidden');
+      } else {
+        photoThumb.src = '';
+        photoBtn.dataset.photo = '';
+        photoWrap.classList.add('hidden');
+      }
       document.getElementById('notesModal').classList.remove('hidden');
     }
 
     function closeNotesModal() { document.getElementById('notesModal').classList.add('hidden'); }
+    function openPhotoModal(src) {
+      if (!src) return;
+      document.getElementById('photoModalImg').src = src;
+      document.getElementById('photoModal').classList.remove('hidden');
+    }
+    function closePhotoModal() {
+      document.getElementById('photoModal').classList.add('hidden');
+      document.getElementById('photoModalImg').src = '';
+    }
 
     // Event listeners
     document.getElementById('searchRequester').addEventListener('input', filterTable);
@@ -417,7 +498,11 @@
       if (e.target.closest('.view-note-btn')) {
         openNotesModal(parseInt(e.target.closest('.view-note-btn').dataset.orderId));
       }
+      const photoBtn = e.target.closest('.photo-preview-btn');
+      if (photoBtn) openPhotoModal(photoBtn.dataset.photo);
     });
+    document.getElementById('closePhotoModal').addEventListener('click', closePhotoModal);
+    document.getElementById('photoModal').addEventListener('click', e => { if (e.target === document.getElementById('photoModal')) closePhotoModal(); });
 
     // Init
     async function loadPage() {
