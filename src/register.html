@@ -10,45 +10,72 @@
   <style>
     body { font-family: 'Poppins', sans-serif; }
     .login-bg {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-      min-height: 100vh; position: relative;
+      background:
+        linear-gradient(135deg, #0f172a 0%, #1e293b 52%, #0f172a 100%);
+      min-height: 100vh; position: relative; overflow: hidden;
     }
     .login-bg::before {
       content: ''; position: absolute; inset: 0;
       background:
-        radial-gradient(circle at 20% 30%, rgba(59,130,246,0.12) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(16,185,129,0.1) 0%, transparent 50%);
+        linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent 82%);
       pointer-events: none;
     }
+    @keyframes authIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
     .login-card {
-      background: rgba(255,255,255,0.98);
-      border-radius: 1.25rem;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.35);
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(226,232,240,0.86);
+      border-radius: 1rem;
+      box-shadow: 0 30px 80px rgba(2,6,23,0.36);
+      backdrop-filter: blur(18px);
+      animation: authIn 0.44s cubic-bezier(0.22,1,0.36,1) both;
     }
     .input-field {
       width: 100%; padding: 0.75rem 1rem;
-      border: 1.5px solid #e5e7eb; border-radius: 0.625rem;
+      border: 1.5px solid #dbe3ee; border-radius: 0.7rem;
       font-size: 16px; font-family: 'Poppins', sans-serif;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      outline: none; background: #f9fafb;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s, transform 0.18s;
+      outline: none; background: #f8fafc;
     }
     .input-field:focus {
       border-color: #10b981;
-      box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
+      box-shadow: 0 0 0 4px rgba(16,185,129,0.12);
       background: #fff;
+    }
+    .select-field {
+      appearance: none;
+      padding-right: 2.75rem;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #64748b 50%),
+        linear-gradient(135deg, #64748b 50%, transparent 50%);
+      background-position:
+        calc(100% - 1.15rem) 52%,
+        calc(100% - 0.85rem) 52%;
+      background-size: 0.32rem 0.32rem, 0.32rem 0.32rem;
+      background-repeat: no-repeat;
     }
     .input-field.error { border-color: #ef4444; }
     .btn-primary {
       width: 100%; padding: 0.875rem 1rem;
       background: linear-gradient(135deg, #10b981, #059669);
       color: #fff; font-weight: 600; font-size: 0.95rem;
-      border: none; border-radius: 0.75rem;
-      cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+      border: none; border-radius: 0.7rem;
+      cursor: pointer; transition: opacity 0.18s, transform 0.16s, box-shadow 0.18s;
       font-family: 'Poppins', sans-serif; min-height: 48px;
+      box-shadow: 0 14px 28px rgba(5,150,105,0.22);
     }
-    .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 18px 34px rgba(5,150,105,0.26); }
     .btn-primary:active { transform: scale(0.98); }
     .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .login-card { animation: none; }
+      .btn-primary, .input-field { transition: none; }
+    }
   </style>
 </head>
 <body class="login-bg flex items-center justify-center p-4">
@@ -67,6 +94,21 @@
         <label for="username" class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
         <input type="text" id="username" name="username" required minlength="3" maxlength="50"
           autocomplete="username" placeholder="Min. 3 karakter" class="input-field" />
+      </div>
+      <div>
+        <label for="batchYear" class="block text-sm font-medium text-gray-700 mb-1.5">Angkatan</label>
+        <input type="number" id="batchYear" name="batchYear" required min="1" max="99" inputmode="numeric"
+          placeholder="Contoh: 13 atau 14" class="input-field" />
+      </div>
+      <div>
+        <label for="division" class="block text-sm font-medium text-gray-700 mb-1.5">Divisi</label>
+        <select id="division" name="division" required class="input-field select-field">
+          <option value="" disabled selected>Pilih divisi</option>
+          <option value="Soundman">Soundman</option>
+          <option value="Programmer">Programmer</option>
+          <option value="Maintenance">Maintenance</option>
+          <option value="Data Analyst">Data Analyst</option>
+        </select>
       </div>
       <div>
         <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
@@ -161,19 +203,21 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Mendaftar...';
 
-      const name     = this.username.value.trim();
-      const password = this.password.value;
+      const name      = this.username.value.trim();
+      const batchYear = this.batchYear.value.trim();
+      const division  = this.division.value;
+      const password  = this.password.value;
 
       fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, password })
+        body: JSON.stringify({ name, password, batchYear, division })
       })
       .then(r => r.json())
       .then(data => {
-        if (data.data && data.data.token) {
-          showModal('Pendaftaran berhasil! Silakan login.');
-          setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+        if (data.data && data.data.member) {
+          showModal(data.message || 'Pendaftaran terkirim. Tunggu approval admin sebelum login.');
+          setTimeout(() => { window.location.href = 'login.html'; }, 2400);
         } else {
           showModal(data.message || 'Pendaftaran gagal.', true);
           submitBtn.disabled = false;
