@@ -9,12 +9,15 @@
   <link href="/static/assets/style.css" rel="stylesheet" />
   <style>
     .settings-card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 1rem;
+      background: rgba(255,255,255,0.94);
+      border: 1px solid rgba(226,232,240,0.9);
+      border-radius: 0.85rem;
       padding: 1.5rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      box-shadow: 0 12px 32px rgba(15,23,42,0.07);
+      backdrop-filter: blur(14px);
+      transition: box-shadow 0.18s ease, transform 0.18s ease;
     }
+    .settings-card:hover { box-shadow: 0 18px 46px rgba(15,23,42,0.09); }
     .settings-section-title {
       font-size: 0.7rem;
       font-weight: 700;
@@ -36,6 +39,10 @@
     .settings-row-desc  { font-size: 0.75rem; color: #9ca3af; margin-top: 0.1rem; }
     input[type="text"], input[type="password"], input[type="email"] {
       font-size: 16px; /* Cegah zoom di iOS */
+    }
+    @media (max-width: 640px) {
+      .settings-card { padding: 1.1rem; border-radius: 0.75rem; }
+      .settings-row { align-items: flex-start; }
     }
   </style>
 </head>
@@ -97,6 +104,7 @@
             class="mt-2 text-xs text-red-400 hover:text-red-600 transition-colors hidden">
             Hapus foto
           </button>
+          <div id="avatarFeedback" class="hidden mt-3 p-3 rounded-lg text-sm text-center font-medium"></div>
         </div>
       </div>
 
@@ -113,9 +121,18 @@
       <div class="settings-row">
         <div>
           <p class="settings-row-label">Role</p>
-          <p class="settings-row-desc">Ditentukan oleh Admin</p>
+          <p class="settings-row-desc">Akses sistem: Admin atau Operator</p>
         </div>
         <span class="text-sm text-gray-500 font-medium" id="settingsRoleDisplay">—</span>
+      </div>
+
+      <!-- Division -->
+      <div class="settings-row">
+        <div>
+          <p class="settings-row-label">Divisi</p>
+          <p class="settings-row-desc">Bidang kerja teknis kamu</p>
+        </div>
+        <span class="text-sm text-gray-500 font-medium" id="settingsDivisionDisplay">—</span>
       </div>
 
       <!-- Status -->
@@ -167,25 +184,6 @@
       <div id="passwordFeedback" class="hidden mt-3 p-3 rounded-lg text-sm text-center font-medium"></div>
     </div>
 
-    <!-- Notifikasi / Preferensi (placeholder future) -->
-    <div class="settings-card opacity-60">
-      <p class="settings-section-title">Preferensi <span class="ml-2 bg-gray-200 text-gray-500 text-xs px-2 py-0.5 rounded-full">Segera Hadir</span></p>
-      <div class="settings-row">
-        <div>
-          <p class="settings-row-label">Notifikasi Order Baru</p>
-          <p class="settings-row-desc">Terima notifikasi saat ada work order masuk</p>
-        </div>
-        <div class="w-10 h-6 bg-gray-300 rounded-full cursor-not-allowed"></div>
-      </div>
-      <div class="settings-row">
-        <div>
-          <p class="settings-row-label">Tema Gelap</p>
-          <p class="settings-row-desc">Tampilan dark mode</p>
-        </div>
-        <div class="w-10 h-6 bg-gray-300 rounded-full cursor-not-allowed"></div>
-      </div>
-    </div>
-
     <!-- Danger Zone -->
     <div class="settings-card border border-red-200">
       <p class="settings-section-title text-red-400">Akun</p>
@@ -216,6 +214,15 @@
     const DEFAULT_AVATAR = '/static/public/default-avatar.png';
     let pendingAvatarFile = null; // File yang sedang ditunggu disimpan
     let originalAvatarSrc = DEFAULT_AVATAR; // Simpan foto asli untuk restore
+
+    function unwrapProfileResponse(response) {
+      return response && response.data ? response.data : response;
+    }
+
+    function avatarUrl(avatar) {
+      if (!avatar || avatar === 'no avatar' || avatar === 'default-avatar.png') return DEFAULT_AVATAR;
+      return '/static/public/' + avatar + '?t=' + Date.now();
+    }
 
     // Klik tombol kamera ATAU gambar avatar → buka file explorer
     changeAvatarBtn.addEventListener('click', () => avatarFileInput.click());
@@ -285,8 +292,10 @@
         // Update gambar dengan URL dari server
         const avatarFile = data.data?.avatar || data.avatar;
         if (avatarFile) {
-          const newUrl = '/static/public/' + avatarFile + '?t=' + Date.now();
+          const newUrl = avatarUrl(avatarFile);
           avatarImg.src = newUrl;
+          originalAvatarSrc = newUrl;
+          localStorage.setItem('userAvatar', avatarFile);
           // Update navbar profile photo juga
           const navImg = document.getElementById('navProfileImg');
           if (navImg) {
@@ -294,7 +303,7 @@
           }
         }
         removeAvatarBtn.classList.remove('hidden');
-        showAvatarFeedback('Foto profil berhasil diperbarui!', false);
+        showAvatarFeedback('Foto profil berhasil di update', false);
         avatarActionButtons.classList.add('hidden');
         pendingAvatarFile = null;
 
@@ -348,7 +357,7 @@
     });
 
     function showAvatarFeedback(msg, isError) {
-      const fb = document.getElementById('passwordFeedback');
+      const fb = document.getElementById('avatarFeedback');
       fb.textContent = msg;
       fb.className = 'mt-3 p-3 rounded-lg text-sm text-center font-medium ' +
         (isError ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700');
@@ -376,18 +385,21 @@
       const updateProfileStatus = () => {
         fetch('/api/profile', { headers: { Authorization: 'Bearer ' + token } })
           .then(r => r.ok ? r.json() : null)
-          .then(data => {
+          .then(raw => {
+            const data = unwrapProfileResponse(raw);
             if (!data) return;
-            if (data.avatar) {
-              const avatarUrl = '/static/public/' + data.avatar;
-              document.getElementById('settingsAvatar').src = avatarUrl;
-              originalAvatarSrc = avatarUrl; // Update foto asli reference
-              // Tampilkan tombol hapus jika punya avatar yang bukan default
-              if (data.avatar && data.avatar !== 'no avatar') {
-                removeAvatarBtn.classList.remove('hidden');
-              }
+            const nextAvatarUrl = avatarUrl(data.avatar);
+            document.getElementById('settingsAvatar').src = nextAvatarUrl;
+            originalAvatarSrc = nextAvatarUrl; // Update foto asli reference
+            // Tampilkan tombol hapus jika punya avatar yang bukan default
+            if (data.avatar && data.avatar !== 'no avatar' && data.avatar !== 'default-avatar.png') {
+              removeAvatarBtn.classList.remove('hidden');
+            } else {
+              removeAvatarBtn.classList.add('hidden');
             }
             const statusEl = document.getElementById('settingsStatusDisplay');
+            const divisionEl = document.getElementById('settingsDivisionDisplay');
+            if (divisionEl) divisionEl.textContent = data.division || '—';
             const statusMap = {
               standby: { label: 'Stand By', color: 'text-green-600' },
               onjob:   { label: 'On Job',   color: 'text-blue-600'  },
