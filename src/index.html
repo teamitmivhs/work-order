@@ -50,11 +50,6 @@
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.05); }
     }
-    @keyframes shimmer {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-
     .hero-blob {
       position: absolute;
       border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
@@ -114,14 +109,7 @@
     }
 
     .hero-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255,255,255,0.2);
-      animation: shimmer 0.6s infinite;
+      display: none;
     }
 
     .hero-button:hover {
@@ -338,25 +326,52 @@
        NAVBAR — redesign: 3-column grid, pill nav, glassmorphism card
        ═══════════════════════════════════════════════════════════════ -->
   <style>
+    .main-nav {
+      min-height: 68px;
+      background:
+        linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.96));
+      border-bottom: 1px solid rgba(148,163,184,0.14);
+      backdrop-filter: blur(18px);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      position: relative;
+      min-height: 44px;
+      gap: 16px;
+    }
+    @media (min-width: 768px) {
+      #navMenu {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: max-content;
+        max-width: calc(100vw - 660px);
+        gap: 12px !important;
+      }
+    }
     .nav-pill {
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 7px 14px;
+      padding: 8px 13px;
       border-radius: 999px;
       font-size: 0.8rem;
-      font-weight: 500;
-      color: rgba(255,255,255,0.75);
-      transition: background 0.2s, color 0.2s, transform 0.15s;
+      font-weight: 600;
+      color: rgba(226,232,240,0.82);
+      transition: background 0.2s, color 0.2s, transform 0.15s, border-color 0.2s, box-shadow 0.2s;
       white-space: nowrap;
       position: relative;
-      border: none;
-      background: transparent;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.02);
       cursor: pointer;
       text-decoration: none;
+      min-height: 40px;
     }
     .nav-pill:hover {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.1);
       color: #fff;
       transform: translateY(-1px);
     }
@@ -369,14 +384,25 @@
 
     /* Create order — aksen biru */
     .nav-pill-create {
-      background: rgba(59,130,246,0.2);
-      color: #93c5fd;
-      border: 1px solid rgba(59,130,246,0.35);
+      background: rgba(37,99,235,0.18);
+      color: #bfdbfe;
+      border: 1px solid rgba(96,165,250,0.34);
     }
     .nav-pill-create:hover {
-      background: rgba(59,130,246,0.35);
-      color: #bfdbfe;
+      background: rgba(37,99,235,0.28);
+      color: #dbeafe;
       transform: translateY(-1px);
+    }
+    .nav-pill-staff {
+      background: linear-gradient(135deg, rgba(37,99,235,0.26), rgba(14,165,233,0.16));
+      border-color: rgba(125,211,252,0.32);
+      color: #dbeafe;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 28px rgba(37,99,235,0.12);
+    }
+    .nav-pill-staff:hover {
+      background: linear-gradient(135deg, rgba(37,99,235,0.38), rgba(14,165,233,0.24));
+      border-color: rgba(147,197,253,0.5);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 14px 32px rgba(37,99,235,0.18);
     }
 
     /* Profile card */
@@ -384,17 +410,43 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 6px 12px 6px 6px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
+      min-width: 220px;
+      max-width: 260px;
+      padding: 7px 12px 7px 7px;
+      border-radius: 18px;
+      background: rgba(15,23,42,0.82);
+      border: 1px solid rgba(148,163,184,0.24);
       cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.16s;
       position: relative;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 12px 26px rgba(2,6,23,0.18);
+      z-index: 1001;
     }
     .nav-profile-card:hover {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.2);
+      background: rgba(30,41,59,0.92);
+      border-color: rgba(147,197,253,0.42);
+      transform: translateY(-1px);
+    }
+    .nav-profile-text {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .nav-profile-name {
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .nav-profile-role {
+      color: rgba(186,230,253,0.78);
+      font-size: 0.68rem;
+      font-weight: 500;
+      line-height: 1;
     }
 
     /* Dropdown */
@@ -402,13 +454,14 @@
       position: absolute;
       top: calc(100% + 8px);
       left: 0;
-      min-width: 200px;
-      background: #1e293b;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
+      min-width: 220px;
+      background: rgba(15,23,42,0.98);
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      z-index: 99;
+      box-shadow: 0 18px 48px rgba(0,0,0,0.45);
+      z-index: 1002;
+      backdrop-filter: blur(18px);
     }
     .nav-dropdown a,
     .nav-dropdown button {
@@ -429,6 +482,25 @@
     .nav-dropdown a:hover { background: rgba(59,130,246,0.2); color: #93c5fd; }
     .nav-dropdown button:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
     .nav-dropdown .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
+    .profile-status-row {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+    }
+    .profile-status-copy { min-width: 0; }
+    #dropdownStatus {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #setStatusBtn {
+      min-width: 84px;
+      white-space: nowrap;
+    }
 
     /* Separator dot */
     .nav-sep {
@@ -446,41 +518,66 @@
 
     /* Mobile menu */
     @media (max-width: 767px) {
+      .nav-inner {
+        display: flex;
+        position: static;
+        gap: 10px;
+      }
       #navMenu { display: none; }
       #navMenu.mobile-menu-active {
         display: flex !important;
         flex-direction: column;
         /* Reset inline style desktop (absolute center transform) */
         position: fixed !important;
-        top: 60px !important;
-        left: 0 !important;
-        right: 0 !important;
+        top: 68px !important;
+        left: 10px !important;
+        right: 10px !important;
         transform: none !important;
-        width: 100% !important;
-        background: #0f172a;
+        width: auto !important;
+        background: rgba(15,23,42,0.98);
         padding: 12px;
-        gap: 4px;
-        z-index: 49;
-        border-top: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+        gap: 8px;
+        z-index: 999;
+        border: 1px solid rgba(148,163,184,0.18);
+        border-radius: 18px;
+        box-shadow: 0 18px 48px rgba(0,0,0,0.48);
+        backdrop-filter: blur(18px);
       }
       #navMenu.mobile-menu-active .nav-pill {
-        border-radius: 10px;
-        padding: 10px 14px;
+        border-radius: 12px;
+        padding: 12px 14px;
         font-size: 0.85rem;
         justify-content: flex-start;
         width: 100%;
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(255,255,255,0.08);
       }
+      #navMenu.mobile-menu-active .nav-pill-create,
+      #navMenu.mobile-menu-active .nav-pill-staff { background: rgba(37,99,235,0.2); }
       #navMenu.mobile-menu-active .nav-sep { display: none; }
+      .nav-profile-card {
+        min-width: 0;
+        max-width: calc(100vw - 112px);
+        flex: 1 1 auto;
+        border-radius: 16px;
+      }
+      .nav-profile-text { display: flex !important; }
+      .nav-profile-role { display: none; }
+      .nav-dropdown {
+        position: fixed;
+        top: 68px;
+        left: 10px;
+        right: 10px;
+        min-width: 0;
+        z-index: 999;
+      }
     }
   </style>
 
-  <nav style="background: linear-gradient(to right, #0f172a, #1e293b); border-bottom: 1px solid rgba(255,255,255,0.07);"
-    class="w-full px-4 md:px-6 py-3 shadow-2xl relative"
-    style="min-height: 60px;">
+  <nav class="main-nav w-full px-3 md:px-6 py-3 shadow-2xl relative" style="position:sticky;top:0;z-index:1000;">
 
     <!-- 3-column grid: profile | nav center | actions -->
-    <div class="flex items-center" style="gap: 0;">
+    <div class="nav-inner">
 
       <!-- ── KIRI: Profile card ───────────────────────────────── -->
       <div class="nav-profile-card" id="profileDropdownContainer" style="flex-shrink:0;">
@@ -488,9 +585,9 @@
           class="rounded-full object-cover"
           style="width:34px;height:34px;border:2px solid rgba(59,130,246,0.6);"
           id="navProfileImg" src="/static/public/default-avatar.png" />
-        <div class="hidden sm:flex flex-col" style="gap:1px;">
-          <span style="color:#fff;font-size:0.78rem;font-weight:600;line-height:1;" id="navProfileName">...</span>
-          <span style="color:rgba(148,163,184,1);font-size:0.68rem;line-height:1;" id="navProfileRole">...</span>
+        <div class="nav-profile-text">
+          <span class="nav-profile-name" id="navProfileName">...</span>
+          <span class="nav-profile-role" id="navProfileRole">...</span>
         </div>
         <svg style="width:14px;height:14px;color:rgba(148,163,184,0.7);margin-left:2px;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -505,8 +602,8 @@
             <p style="color:#fff;font-size:0.82rem;font-weight:600;margin:0;" id="dropdownName">...</p>
             <p style="color:rgba(148,163,184,0.8);font-size:0.72rem;margin:2px 0 0;" id="dropdownRole">...</p>
             <!-- Status Display & Update Button -->
-            <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;gap:8px;">
-              <div>
+            <div class="profile-status-row">
+              <div class="profile-status-copy">
                 <p style="color:rgba(148,163,184,0.8);font-size:0.68rem;margin:0;" id="statusLabel">Status:</p>
                 <p style="color:#fff;font-size:0.78rem;font-weight:500;margin:2px 0 0;" id="dropdownStatus">—</p>
               </div>
@@ -525,6 +622,13 @@
             </svg>
             Settings
           </a>
+          <a href="/staff.html" class="hidden" id="adminStaffDropdownLink">
+            <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a4 4 0 0 0-5.9-3.53M9 20H4v-2a4 4 0 0 1 5.9-3.53M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+            </svg>
+            Staff Management
+          </a>
           <div class="divider"></div>
           <button id="logoutBtn">
             <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -536,9 +640,9 @@
         </div>
       </div>
 
-      <!-- ── TENGAH: Nav links (absolute center, desktop only) ── -->
-      <div class="hidden md:flex items-center"
-        style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);gap:4px;"
+      <!-- ── TENGAH: Nav links (desktop center flex, mobile hidden) ── -->
+      <div class="hidden md:flex items-center justify-center"
+        style="gap:10px;min-width:0;"
         id="navMenu">
         <a href="/kaizen.html" class="nav-pill">
           <svg style="width:15px;height:15px;" fill="currentColor" viewBox="0 0 24 24">
@@ -566,6 +670,14 @@
           </svg>
           Summary
         </a>
+        <div class="nav-sep hidden" id="adminStaffNavSep"></div>
+        <a href="/staff.html" class="nav-pill nav-pill-staff hidden" id="adminStaffNavLink" title="Staff Management">
+          <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a4 4 0 0 0-5.9-3.53M9 20H4v-2a4 4 0 0 1 5.9-3.53M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"/>
+          </svg>
+          Staff
+        </a>
         <div class="nav-sep"></div>
         <button class="nav-pill nav-pill-create" id="createOrderBtn">
           <svg style="width:15px;height:15px;" fill="currentColor" viewBox="0 0 24 24">
@@ -577,7 +689,10 @@
       </div>
 
       <!-- ── KANAN: Refresh + Hamburger ─────────────────────── -->
-      <div class="flex items-center" style="margin-left:auto;gap:6px;flex-shrink:0;">
+      <div class="flex items-center justify-end" style="gap:8px;flex-shrink:0;">
+        <button class="theme-toggle-btn" data-theme-toggle title="Toggle dark theme" aria-label="Toggle dark theme">
+          <span data-theme-icon>DK</span>
+        </button>
         <button class="nav-pill" id="refreshBtn" aria-label="Refresh" title="Refresh"
           style="padding:8px;">
           <svg style="width:16px;height:16px;transition:transform 0.5s;" id="refreshIcon"
@@ -742,8 +857,8 @@
   </div>
 
   <!-- MEMBER STATUS POPUP -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-2 md:p-0" id="memberStatusPopup">
-    <div class="popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-lg max-h-[90vh] md:max-h-[80vh] overflow-y-auto">
+  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-[1200] flex items-start md:items-center justify-center overflow-y-auto p-3 pt-[84px] pb-4 md:p-4" id="memberStatusPopup">
+    <div class="popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-lg max-h-[calc(100dvh-104px)] md:max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3 md:mb-4">
         <h2 class="popup-title text-lg md:text-2xl font-bold">Member Status</h2>
         <button class="text-gray-500 hover:text-gray-700 p-1" id="closePopup" aria-label="Close popup">
@@ -766,8 +881,8 @@
   </div>
 
   <!-- TAKE ORDER POPUP -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-2 md:p-0" id="takeOrderPopup">
-    <div class="popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-2xl max-h-[90vh] md:max-h-[85vh] overflow-y-auto">
+  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-[1200] flex items-start md:items-center justify-center overflow-y-auto p-3 pt-[84px] pb-4 md:p-4" id="takeOrderPopup">
+    <div class="popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-2xl max-h-[calc(100dvh-104px)] md:max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4 md:mb-6">
         <h2 class="popup-title text-lg md:text-2xl font-bold">Ambil Work Order</h2>
         <button class="text-gray-500 hover:text-gray-700 p-1" id="closeTakeOrderPopup" aria-label="Close take order popup">
@@ -813,8 +928,8 @@
   </div>
 
   <!-- SELECT HELPER OPERATOR POPUP -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-2 md:p-0" id="selectHelperOperatorModal">
-    <div class="popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-md max-h-[85vh] overflow-y-auto">
+  <div class="fixed inset-0 bg-black bg-opacity-50 hidden z-[1210] flex items-start md:items-center justify-center overflow-y-auto p-3 pt-[84px] pb-4 md:p-4" id="selectHelperOperatorModal">
+    <div class="popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-md max-h-[calc(100dvh-104px)] md:max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4 md:mb-6">
         <h2 class="popup-title text-lg md:text-2xl font-bold">Pilih Operator Bantuan</h2>
         <button class="text-gray-500 hover:text-gray-700 p-1" id="closeSelectHelperOperatorModalBtn" aria-label="Tutup">
@@ -828,7 +943,7 @@
   </div>
 
   <!-- CREATE ORDER POPUP -->
-  <div class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" id="createOrderPopup">
+  <div class="fixed inset-0 bg-black bg-opacity-60 hidden z-[1200] flex items-end sm:items-center justify-center p-0 sm:p-4" id="createOrderPopup">
     <div class="popup-inner bg-white w-full sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col">
 
       <!-- Header gradient -->
@@ -1023,35 +1138,35 @@
   </div>
 
   <!-- OPERATOR PROFILE MODAL (dari search bar) -->
-  <div class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] flex items-center justify-center p-4" id="operatorProfileModal">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+  <div class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] flex items-center justify-center p-3 sm:p-4" id="operatorProfileModal" role="dialog" aria-modal="true" aria-labelledby="opModalName">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[calc(100vh-1.5rem)] overflow-hidden">
       <!-- Header gradient -->
-      <div id="opModalHeader" style="background:linear-gradient(135deg,#1e293b,#0f172a);" class="px-6 pt-6 pb-16 relative">
+      <div id="opModalHeader" style="background:linear-gradient(135deg,#1e293b,#0f172a);" class="px-4 sm:px-6 py-4 sm:py-5 relative min-h-[64px]">
         <button id="closeOperatorProfileModal"
-          class="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white hover:bg-opacity-10 transition-all">
+          class="absolute top-3 right-3 sm:top-4 sm:right-4 w-9 h-9 rounded-xl flex items-center justify-center text-slate-200 hover:text-white hover:bg-white hover:bg-opacity-10 transition-all">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
       </div>
-      <!-- Avatar overlapping header -->
-      <div class="px-6 -mt-10 flex items-end gap-4 mb-4">
+      <!-- Profile identity -->
+      <div class="px-4 sm:px-6 py-4 flex items-center gap-3 sm:gap-4 border-b border-gray-100">
         <img id="opModalAvatar" src="/static/public/default-avatar.png" alt="Avatar"
-          class="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-lg" />
-        <div class="pb-1">
-          <h3 id="opModalName" class="font-bold text-gray-900 text-lg leading-tight"></h3>
-          <span id="opModalRole" class="text-sm text-gray-500"></span>
+          class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-4 border-white shadow-lg shrink-0" />
+        <div class="min-w-0">
+          <h3 id="opModalName" class="font-bold text-gray-900 text-base sm:text-lg leading-tight break-words"></h3>
+          <span id="opModalRole" class="text-sm text-gray-500 break-words"></span>
         </div>
       </div>
       <!-- Info rows -->
-      <div class="px-6 pb-6 space-y-3">
-        <div class="flex items-center justify-between py-3 border-t border-gray-100">
+      <div class="px-4 sm:px-6 py-4 sm:pb-6 space-y-3">
+        <div class="flex items-center justify-between gap-3 py-2">
           <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</span>
-          <span id="opModalStatus" class="text-sm font-semibold px-3 py-1 rounded-full"></span>
+          <span id="opModalStatus" class="text-sm font-semibold px-3 py-1 rounded-full whitespace-nowrap"></span>
         </div>
-        <div class="flex items-center justify-between py-3 border-t border-gray-100">
-          <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Role</span>
-          <span id="opModalRoleDetail" class="text-sm font-medium text-gray-700"></span>
+        <div class="flex items-center justify-between gap-3 py-3 border-t border-gray-100">
+          <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Divisi</span>
+          <span id="opModalRoleDetail" class="text-sm font-medium text-gray-700 text-right break-words"></span>
         </div>
       </div>
     </div>
@@ -1138,6 +1253,18 @@
   <!-- FIX #7: Script load profil user dari JWT token -->
   <script>
     (function loadUserProfile() {
+      const DEFAULT_AVATAR = '/static/public/default-avatar.png';
+      function unwrapProfileResponse(response) {
+        return response && response.data ? response.data : response;
+      }
+      function avatarUrl(avatar) {
+        if (!avatar || avatar === 'no avatar' || avatar === 'default-avatar.png') return DEFAULT_AVATAR;
+        return '/static/public/' + avatar + '?t=' + Date.now();
+      }
+      function statusText(status) {
+        const map = { standby: 'Stand By', onjob: 'On Job', support: 'Support', nextshift: 'Next Shift', offduty: 'Off Duty' };
+        return map[status] || status || '-';
+      }
       const token = localStorage.getItem('userToken');
       const isGuest = localStorage.getItem('isGuestUser') === 'true';
       
@@ -1147,8 +1274,11 @@
         return;
       }
       
-      // Skip profile loading jika guest user
-      if (isGuest) return;
+      // Guest diarahkan ke halaman khusus create order, tidak masuk dashboard internal.
+      if (isGuest) {
+        window.location.replace('/guest.html');
+        return;
+      }
       
       try {
         // Decode JWT payload (base64) tanpa verifikasi — hanya untuk display
@@ -1162,20 +1292,23 @@
           document.getElementById('navProfileRole').textContent = payload.role;
           const dr = document.getElementById('dropdownRole');
           if (dr) dr.textContent = payload.role;
+          if (payload.role === 'Admin') {
+            document.getElementById('adminStaffNavLink')?.classList.remove('hidden');
+            document.getElementById('adminStaffNavSep')?.classList.remove('hidden');
+            document.getElementById('adminStaffDropdownLink')?.classList.remove('hidden');
+          }
         }
         // Avatar dan Status dari API /api/profile
         fetch('/api/profile', { headers: { Authorization: 'Bearer ' + token } })
           .then(r => r.ok ? r.json() : null)
-          .then(data => {
+          .then(raw => {
+            const data = unwrapProfileResponse(raw);
             if (data) {
-              // Update avatar
-              if (data.avatar) {
-                document.getElementById('navProfileImg').src = '/static/public/' + data.avatar;
-              }
+              document.getElementById('navProfileImg').src = avatarUrl(data.avatar);
               // Update status di dropdown
               if (data.status) {
                 const statusEl = document.getElementById('dropdownStatus');
-                if (statusEl) statusEl.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                if (statusEl) statusEl.textContent = statusText(data.status);
                 // Store status untuk settings page juga
                 localStorage.setItem('userStatus', data.status);
               }
@@ -1189,9 +1322,15 @@
           if (!token) return;
           fetch('/api/profile', { headers: { Authorization: 'Bearer ' + token } })
             .then(r => r.ok ? r.json() : null)
-            .then(data => {
-              if (data && data.avatar) {
-                document.getElementById('navProfileImg').src = '/static/public/' + data.avatar;
+            .then(raw => {
+              const data = unwrapProfileResponse(raw);
+              if (data) {
+                document.getElementById('navProfileImg').src = avatarUrl(data.avatar);
+                if (data.status) {
+                  const statusEl = document.getElementById('dropdownStatus');
+                  if (statusEl) statusEl.textContent = statusText(data.status);
+                  localStorage.setItem('userStatus', data.status);
+                }
               }
             })
             .catch(() => {});
@@ -1217,19 +1356,23 @@
               body: JSON.stringify({ status: 'standby' })
             })
             .then(r => r.json())
-            .then(data => {
-              if (data.member && data.member.status) {
+            .then(raw => {
+              const data = raw && raw.data ? raw.data : raw;
+              const member = data && data.member ? data.member : null;
+              if (member && member.status) {
                 // Update tampilan status
                 const statusEl = document.getElementById('dropdownStatus');
-                if (statusEl) statusEl.textContent = data.member.status.charAt(0).toUpperCase() + data.member.status.slice(1);
+                if (statusEl) statusEl.textContent = statusText(member.status);
                 // Store ke localStorage
-                localStorage.setItem('userStatus', data.member.status);
+                localStorage.setItem('userStatus', member.status);
                 // Show success feedback
                 setStatusBtn.textContent = '✓ Updated';
                 setTimeout(() => {
                   setStatusBtn.textContent = 'Standby';
                   setStatusBtn.disabled = false;
                 }, 1500);
+              } else {
+                throw new Error(raw.message || 'Status update failed');
               }
             })
             .catch(err => {
@@ -1267,6 +1410,38 @@
       const priorityClass = { urgent: 'badge-urgent', high: 'badge-high', medium: 'badge-medium', low: 'badge-low' };
       const statusClass   = { pending: 'badge-status-pending', progress: 'badge-status-progress', completed: 'badge-status-completed' };
 
+      function getLocalClaims() {
+        try {
+          const token = localStorage.getItem('userToken') || '';
+          const payload = token.split('.')[1];
+          return payload ? JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) : {};
+        } catch (e) {
+          return {};
+        }
+      }
+      function canCurrentUserAct(order) {
+        const claims = getLocalClaims();
+        if (claims.role === 'Admin') return true;
+        const userID = Number(claims.id);
+        return Array.isArray(order.executors) && order.executors.map(Number).includes(userID);
+      }
+      function elapsedFromStartedAt(order) {
+        if (!order || !order.startedAt || order.status !== 'progress') return null;
+        const parts = String(order.startedAt).split(':').map(Number);
+        if (parts.length < 2 || parts.some(Number.isNaN)) return null;
+        const started = new Date();
+        started.setHours(parts[0] || 0, parts[1] || 0, parts[2] || 0, 0);
+        let elapsed = Math.floor((Date.now() - started.getTime()) / 1000);
+        if (elapsed < 0) elapsed += 24 * 60 * 60;
+        return Math.max(0, elapsed);
+      }
+      function formatElapsedLocal(elapsed) {
+        const h = Math.floor(elapsed / 3600);
+        const m = Math.floor((elapsed % 3600) / 60);
+        const s = elapsed % 60;
+        return String(h).padStart(2,'0') + '.' + String(m).padStart(2,'0') + '.' + String(s).padStart(2,'0');
+      }
+
       // renderWorkingHours — logika sama dengan desktop di script.js
       function getWorkingHoursHtml(order) {
         if (order.status === 'completed') {
@@ -1275,6 +1450,8 @@
           return order.workingHours != null ? order.workingHours + ' mnt' : '-';
         }
         if (order.status === 'progress') {
+          const serverElapsed = elapsedFromStartedAt(order);
+          if (serverElapsed != null) return formatElapsedLocal(serverElapsed);
           const startedAt = localStorage.getItem('order_timer_' + order.id);
           if (startedAt) {
             const elapsed = Math.floor((Date.now() - parseInt(startedAt)) / 1000);
@@ -1302,6 +1479,7 @@
 
       // action buttons — logika sama persis dengan desktop
       function getActionButtonsHtml(order) {
+        const canActOnProgressOrder = canCurrentUserAct(order);
         let btns = '';
         if (order.status === 'pending') {
           if ((order.executors || []).length > 0) {
@@ -1310,9 +1488,14 @@
             btns += `<button class="mc-take-btn bg-blue-500 text-white hover:bg-blue-600 transition-colors" data-order-id="${order.id}">Ambil</button>`;
           }
         } else if (order.status === 'progress') {
-          btns += `<button class="mc-done-btn bg-green-500 text-white hover:bg-green-600 transition-colors" data-order-id="${order.id}">Selesai</button>`;
+          if (canActOnProgressOrder) {
+            btns += `<button class="mc-documentation-btn bg-sky-500 text-white hover:bg-sky-600 transition-colors" data-order-id="${order.id}">${order.documentationPhoto ? 'Ganti Foto' : 'Foto Bukti'}</button>`;
+            btns += `<button class="mc-done-btn bg-green-500 text-white hover:bg-green-600 transition-colors" data-order-id="${order.id}">Selesai</button>`;
+          }
         }
-        btns += `<button class="mc-delete-btn bg-red-100 text-red-600 hover:bg-red-200 transition-colors" data-order-id="${order.id}">Hapus</button>`;
+        if (getLocalClaims().role === 'Admin') {
+          btns += `<button class="mc-delete-btn bg-red-100 text-red-600 hover:bg-red-200 transition-colors" data-order-id="${order.id}">Hapus</button>`;
+        }
         return btns;
       }
 
@@ -1367,6 +1550,12 @@
           if (typeof markOrderDone === 'function') markOrderDone(parseInt(this.dataset.orderId));
         });
       });
+      cardBody.querySelectorAll('.mc-documentation-btn').forEach(b => {
+        b.addEventListener('click', function() {
+          if (typeof checkGuestRestriction === 'function' && checkGuestRestriction('Uploading documentation')) return;
+          if (typeof requestDocumentationPhoto === 'function') requestDocumentationPhoto(parseInt(this.dataset.orderId), false);
+        });
+      });
       cardBody.querySelectorAll('.mc-delete-btn').forEach(b => {
         b.addEventListener('click', function() {
           if (typeof checkGuestRestriction === 'function' && checkGuestRestriction('Deleting orders')) return;
@@ -1416,27 +1605,6 @@
         });
       }
 
-      // Button ripple effect
-      const heroButtons = document.querySelectorAll('.hero-button');
-      heroButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-          const ripple = document.createElement('span');
-          const rect = this.getBoundingClientRect();
-          const size = Math.max(rect.width, rect.height);
-          const x = e.clientX - rect.left - size / 2;
-          const y = e.clientY - rect.top - size / 2;
-          
-          ripple.style.width = ripple.style.height = size + 'px';
-          ripple.style.left = x + 'px';
-          ripple.style.top = y + 'px';
-          ripple.classList.add('ripple');
-          
-          this.appendChild(ripple);
-          
-          setTimeout(() => ripple.remove(), 600);
-        });
-      });
-
       // Scroll animation for hero elements
       const observerOptions = {
         threshold: 0.1,
@@ -1457,24 +1625,6 @@
       });
     });
   </script>
-
-  <style>
-    .ripple {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.6);
-      transform: scale(0);
-      animation: ripple-animation 0.6s ease-out;
-      pointer-events: none;
-    }
-    
-    @keyframes ripple-animation {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-  </style>
 
   <script src="/static/assets/script.js"></script>
 </body>
