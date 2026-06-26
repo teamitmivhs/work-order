@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Management — Work Order ITMIVHS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="/static/assets/style.css" rel="stylesheet" />
+  <style>
+    :root {
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --panel: rgba(255,255,255,0.94);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, #f8fafc 0%, #eef2f7 44%, #f8fafc 100%);
+      color: var(--ink);
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(15,23,42,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15,23,42,0.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent 72%);
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes softScale {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes slideToast {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(255,255,255,0.86);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(226,232,240,0.86);
+    }
+    .page-shell { position: relative; animation: fadeUp 0.42s ease both; }
+    .content-panel {
+      background: var(--panel);
+      border: 1px solid rgba(226,232,240,0.9);
+      border-radius: 0.75rem;
+      box-shadow: 0 18px 50px rgba(15,23,42,0.08);
+      overflow: hidden;
+      animation: softScale 0.42s ease both;
+    }
+    .header-actions { align-items: center; }
+    .action-btn {
+      border-radius: 0.55rem;
+      padding: 0.55rem 0.8rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.15s ease, background 0.16s ease;
+    }
+    .action-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+    }
+    .action-btn:active { transform: translateY(0); }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .tab-btn {
+      color: var(--muted);
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 0.58rem 0.85rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    }
+    .tab-btn:hover { color: var(--blue); background: #f8fafc; }
+    .tab-btn.active {
+      color: #1d4ed8;
+      background: var(--blue-soft);
+      border-color: #bfdbfe;
+      transform: translateY(-1px);
+    }
+    .search-field {
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      background: rgba(248,250,252,0.9);
+    }
+    .search-field:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.08);
+      background: #fff;
+    }
+    .status-pill {
+      border-radius: 999px;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 1.65rem;
+    }
+    .table-row {
+      animation: fadeUp 0.34s ease both;
+      transition: background 0.16s ease, transform 0.16s ease;
+    }
+    .table-row:hover {
+      background: #f8fafc;
+      transform: translateX(2px);
+    }
+    .mobile-card {
+      border: 1px solid rgba(226,232,240,0.95);
+      border-radius: 0.75rem;
+      background: rgba(255,255,255,0.96);
+      padding: 1rem;
+      box-shadow: 0 12px 28px rgba(15,23,42,0.06);
+      animation: fadeUp 0.34s ease both;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+    .mobile-card:active { transform: scale(0.99); }
+    .field-label { font-size: 0.66rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.02em; }
+    .field-value { font-size: 0.88rem; color: #111827; font-weight: 650; margin-top: 0.1rem; }
+    .modal-panel {
+      animation: softScale 0.2s ease both;
+      border-radius: 0.85rem;
+      border: 1px solid rgba(226,232,240,0.9);
+    }
+    #toast { animation: slideToast 0.18s ease both; }
+    @media (max-width: 767px) {
+      .page-header { position: sticky; top: 0; z-index: 30; }
+      .header-actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      .header-actions .action-btn { min-height: 42px; text-align: center; display: flex; align-items: center; justify-content: center; }
+      .header-actions #graduateBatchBtn { grid-column: 1 / -1; }
+      .tab-scroll { gap: 0.55rem; padding: 0.15rem 0 0.85rem; }
+      .tab-btn { background: #fff; font-size: 0.78rem; padding: 0.7rem 0.9rem; line-height: 1.2; }
+      .action-btn { min-height: 40px; }
+      .mobile-actions .action-btn { width: 100%; }
+      .modal-panel { max-height: calc(100vh - 2rem); overflow-y: auto; }
+      #toast { left: 1rem; right: 1rem; bottom: 1rem; max-width: none; }
+      .content-panel { border-radius: 0.7rem; box-shadow: 0 12px 32px rgba(15,23,42,0.07); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <p class="text-xs uppercase tracking-wide text-blue-600 font-semibold">Admin Console</p>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Staff Management</h1>
+      </div>
+      <div class="header-actions flex flex-wrap gap-2">
+        <a href="index.html" class="action-btn bg-white border border-gray-300 text-gray-700">Dashboard</a>
+        <button id="graduateBatchBtn" class="action-btn bg-gray-900 text-white">Graduate Batch</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+    <section class="content-panel">
+      <div class="px-4 sm:px-5 pt-4 border-b border-gray-200/80">
+        <div class="tab-scroll flex overflow-x-auto gap-5">
+          <button class="tab-btn active" data-filter="active">Active Staff</button>
+          <button class="tab-btn" data-filter="pending">Pending Approval</button>
+          <button class="tab-btn" data-filter="alumni">Alumni</button>
+          <button class="tab-btn" data-filter="disabled">Disabled</button>
+          <button class="tab-btn" data-filter="rejected">Rejected</button>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+        <input id="searchInput" class="search-field w-full md:max-w-sm px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none" placeholder="Cari nama atau angkatan..." />
+        <div id="summaryText" class="text-sm text-gray-500 font-medium"></div>
+      </div>
+
+      <div class="hidden md:block overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50 text-left text-gray-500">
+            <tr>
+              <th class="px-5 py-3 font-semibold">Nama</th>
+              <th class="px-5 py-3 font-semibold">Role</th>
+              <th class="px-5 py-3 font-semibold">Divisi</th>
+              <th class="px-5 py-3 font-semibold">Angkatan</th>
+              <th class="px-5 py-3 font-semibold">Status Akun</th>
+              <th class="px-5 py-3 font-semibold">Lifecycle</th>
+              <th class="px-5 py-3 font-semibold text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="staffRows" class="divide-y divide-gray-100 bg-white"></tbody>
+        </table>
+      </div>
+      <div id="staffCards" class="md:hidden space-y-3 px-4 pb-4"></div>
+      <div id="emptyState" class="hidden p-10 text-center text-gray-500">Tidak ada data staff untuk filter ini.</div>
+    </section>
+  </main>
+
+  <div id="approveModal" class="fixed inset-0 hidden bg-black/50 z-50 items-center justify-center p-4">
+    <form id="approveForm" class="modal-panel bg-white rounded-lg w-full max-w-md p-5 shadow-xl">
+      <h2 class="text-lg font-bold text-gray-900 mb-1">Approve Staff</h2>
+      <p id="approveName" class="text-sm text-gray-500 mb-4"></p>
+      <input type="hidden" id="approveMemberId" />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+          <select id="approveRole" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+            <option value="Operator">Operator</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
+          <select id="approveDivision" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+            <option value="Soundman">Soundman</option>
+            <option value="Programmer">Programmer</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Data Analyst">Data Analyst</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Angkatan</label>
+          <input id="approveBatchYear" type="number" min="1" max="99" inputmode="numeric" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Contoh: 13 atau 14" />
+        </div>
+        <label class="flex items-center gap-2 text-sm text-gray-700">
+          <input id="approveCanHandle" type="checkbox" checked class="rounded border-gray-300" />
+          Bisa handle work order
+        </label>
+      </div>
+      <div class="mt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+        <button type="button" data-close-modal class="action-btn bg-white border border-gray-300 text-gray-700">Cancel</button>
+        <button type="submit" class="action-btn bg-blue-600 text-white">Approve</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="graduateModal" class="fixed inset-0 hidden bg-black/50 z-50 items-center justify-center p-4">
+    <form id="graduateForm" class="modal-panel bg-white rounded-lg w-full max-w-md p-5 shadow-xl">
+      <h2 class="text-lg font-bold text-gray-900 mb-1">Graduate Batch</h2>
+      <p class="text-sm text-gray-500 mb-4">Anggota aktif pada angkatan ini akan dipindahkan ke Alumni dan akunnya dinonaktifkan.</p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Angkatan</label>
+          <input id="graduateBatchYear" required type="number" min="1" max="99" inputmode="numeric" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Contoh: 13 atau 14" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Lulus</label>
+          <input id="graduateYear" required type="number" min="2000" max="2100" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+        </div>
+      </div>
+      <div class="mt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+        <button type="button" data-close-modal class="action-btn bg-white border border-gray-300 text-gray-700">Cancel</button>
+        <button type="submit" class="action-btn bg-gray-900 text-white">Confirm</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Change Role Modal -->
+  <div id="changeRoleModal" class="fixed inset-0 hidden bg-black/50 z-50 items-center justify-center p-4">
+    <form id="changeRoleForm" class="modal-panel bg-white rounded-lg w-full max-w-sm p-5 shadow-xl">
+      <h2 class="text-lg font-bold text-gray-900 mb-1">Ubah Role Sistem</h2>
+      <p id="changeRoleName" class="text-sm text-gray-500 mb-1"></p>
+      <p class="text-xs text-gray-400 mb-4">Role saat ini: <span id="changeRoleCurrent" class="font-semibold text-gray-600"></span></p>
+      <input type="hidden" id="changeRoleMemberId" />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Role Baru</label>
+          <select id="changeRoleSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200">
+            <option value="Admin">Admin</option>
+            <option value="Operator">Operator</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+        <button type="button" data-close-modal class="action-btn bg-white border border-gray-300 text-gray-700">Cancel</button>
+        <button type="submit" class="action-btn bg-indigo-600 text-white">Simpan Role</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="toast" class="fixed right-4 bottom-4 hidden max-w-sm rounded-lg bg-gray-900 text-white text-sm px-4 py-3 shadow-lg"></div>
+
+  <script>
+    const token = localStorage.getItem('userToken');
+    const rowsEl = document.getElementById('staffRows');
+    const cardsEl = document.getElementById('staffCards');
+    const emptyState = document.getElementById('emptyState');
+    const summaryText = document.getElementById('summaryText');
+    const searchInput = document.getElementById('searchInput');
+    const approveModal = document.getElementById('approveModal');
+    const graduateModal = document.getElementById('graduateModal');
+    const toast = document.getElementById('toast');
+    let activeFilter = 'active';
+    let staff = [];
+
+    if (!token) window.location.href = 'login.html';
+
+    function showToast(message, isError = false) {
+      toast.textContent = message;
+      toast.className = 'fixed right-4 bottom-4 max-w-sm rounded-lg text-white text-sm px-4 py-3 shadow-lg ' + (isError ? 'bg-red-600' : 'bg-gray-900');
+      setTimeout(() => toast.classList.add('hidden'), 2600);
+    }
+
+    async function api(path, options = {}) {
+      const res = await fetch(path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token,
+          ...(options.headers || {})
+        }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || 'Request failed');
+      return data;
+    }
+
+    function statusPill(value) {
+      const colors = {
+        pending: 'bg-amber-100 text-amber-700',
+        active: 'bg-green-100 text-green-700',
+        rejected: 'bg-red-100 text-red-700',
+        disabled: 'bg-gray-200 text-gray-700',
+        alumni: 'bg-blue-100 text-blue-700',
+        inactive: 'bg-gray-200 text-gray-700'
+      };
+      return `<span class="status-pill ${colors[value] || 'bg-gray-100 text-gray-700'}">${value || '-'}</span>`;
+    }
+
+    function displayDivision(member) {
+      return member.division || '-';
+    }
+
+    function renderActions(member) {
+      if (activeFilter === 'pending') {
+        return `
+          <button class="action-btn bg-blue-600 text-white" data-action="approve" data-id="${member.id}">Approve</button>
+          <button class="action-btn bg-white border border-red-200 text-red-600" data-action="reject" data-id="${member.id}">Reject</button>
+        `;
+      }
+      if (activeFilter === 'active') {
+        return `
+          <button class="action-btn bg-white border border-indigo-200 text-indigo-700" data-action="changerole" data-id="${member.id}" title="Ubah role sistem">Role</button>
+          <button class="action-btn bg-white border border-blue-200 text-blue-700" data-action="alumni" data-id="${member.id}">Alumni</button>
+          <button class="action-btn bg-white border border-gray-300 text-gray-700" data-action="disable" data-id="${member.id}">Disable</button>
+        `;
+      }
+      return `<span class="text-gray-400">-</span>`;
+    }
+
+    function renderMobileActions(member) {
+      if (activeFilter === 'pending') {
+        return `
+          <button class="action-btn bg-blue-600 text-white" data-action="approve" data-id="${member.id}">Approve</button>
+          <button class="action-btn bg-white border border-red-200 text-red-600" data-action="reject" data-id="${member.id}">Reject</button>
+        `;
+      }
+      if (activeFilter === 'active') {
+        return `
+          <button class="action-btn bg-white border border-indigo-200 text-indigo-700" data-action="changerole" data-id="${member.id}">Ubah Role</button>
+          <button class="action-btn bg-white border border-blue-200 text-blue-700" data-action="alumni" data-id="${member.id}">Move to Alumni</button>
+          <button class="action-btn bg-white border border-gray-300 text-gray-700" data-action="disable" data-id="${member.id}">Disable</button>
+        `;
+      }
+      return `<span class="text-sm text-gray-400">Tidak ada aksi</span>`;
+    }
+
+    function render() {
+      const q = searchInput.value.trim().toLowerCase();
+      const filtered = staff.filter(m => {
+        const haystack = `${m.name || ''} ${m.role || ''} ${m.division || ''} ${m.batchYear || ''}`.toLowerCase();
+        return haystack.includes(q);
+      });
+
+      rowsEl.innerHTML = '';
+      cardsEl.innerHTML = '';
+      emptyState.classList.toggle('hidden', filtered.length > 0);
+      summaryText.textContent = `${filtered.length} staff`;
+
+      filtered.forEach((member, index) => {
+        const row = document.createElement('tr');
+        row.className = 'table-row';
+        row.style.animationDelay = `${Math.min(index * 25, 180)}ms`;
+        row.innerHTML = `
+          <td class="px-5 py-4">
+            <div class="font-semibold text-gray-900">${member.name}</div>
+            <div class="text-xs text-gray-500">Registered: ${member.registeredAt || '-'}</div>
+          </td>
+          <td class="px-5 py-4 text-gray-700">${member.role || '-'}</td>
+          <td class="px-5 py-4 text-gray-700">${displayDivision(member)}</td>
+          <td class="px-5 py-4 text-gray-700">${member.batchYear || '-'}</td>
+          <td class="px-5 py-4">${statusPill(member.accountStatus)}</td>
+          <td class="px-5 py-4">${statusPill(member.membershipStatus)}</td>
+          <td class="px-5 py-4 text-right whitespace-nowrap space-x-2">${renderActions(member)}</td>
+        `;
+        rowsEl.appendChild(row);
+
+        const card = document.createElement('article');
+        card.className = 'mobile-card';
+        card.style.animationDelay = `${Math.min(index * 28, 180)}ms`;
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h2 class="text-base font-bold text-gray-900 leading-snug break-words">${member.name}</h2>
+              <p class="text-xs text-gray-500 mt-1">Registered: ${member.registeredAt || '-'}</p>
+            </div>
+            <div class="shrink-0">${statusPill(member.accountStatus)}</div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-4">
+            <div>
+              <div class="field-label">Role</div>
+              <div class="field-value">${member.role || '-'}</div>
+            </div>
+            <div>
+              <div class="field-label">Divisi</div>
+              <div class="field-value">${displayDivision(member)}</div>
+            </div>
+            <div>
+              <div class="field-label">Angkatan</div>
+              <div class="field-value">${member.batchYear || '-'}</div>
+            </div>
+            <div>
+              <div class="field-label">Lifecycle</div>
+              <div class="mt-1">${statusPill(member.membershipStatus)}</div>
+            </div>
+            <div>
+              <div class="field-label">Handle WO</div>
+              <div class="field-value">${member.canHandleWorkOrder ? 'Yes' : 'No'}</div>
+            </div>
+          </div>
+          <div class="mobile-actions grid grid-cols-1 gap-2 mt-4">
+            ${renderMobileActions(member)}
+          </div>
+        `;
+        cardsEl.appendChild(card);
+      });
+    }
+
+    async function loadStaff() {
+      try {
+        const data = await api(`/api/admin/members?status=${encodeURIComponent(activeFilter)}`);
+        staff = Array.isArray(data.data) ? data.data : [];
+        render();
+      } catch (err) {
+        showToast(err.message, true);
+        if (/Admin access|required|Invalid|expired/i.test(err.message)) {
+          setTimeout(() => window.location.href = 'index.html', 1200);
+        }
+      }
+    }
+
+    function openApprove(member) {
+      document.getElementById('approveMemberId').value = member.id;
+      document.getElementById('approveName').textContent = member.name;
+      document.getElementById('approveRole').value = member.role === 'Admin' ? 'Admin' : 'Operator';
+      document.getElementById('approveDivision').value = member.division || 'Programmer';
+      document.getElementById('approveBatchYear').value = member.batchYear || '';
+      document.getElementById('approveCanHandle').checked = member.canHandleWorkOrder !== false;
+      approveModal.classList.remove('hidden');
+      approveModal.classList.add('flex');
+    }
+
+    const changeRoleModal = document.getElementById('changeRoleModal');
+
+    function openChangeRole(member) {
+      document.getElementById('changeRoleMemberId').value = member.id;
+      document.getElementById('changeRoleName').textContent = member.name;
+      document.getElementById('changeRoleCurrent').textContent = member.role || 'Operator';
+      document.getElementById('changeRoleSelect').value = member.role === 'Admin' ? 'Operator' : 'Admin';
+      changeRoleModal.classList.remove('hidden');
+      changeRoleModal.classList.add('flex');
+    }
+
+    function closeModals() {
+      [approveModal, graduateModal, changeRoleModal].forEach(modal => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        loadStaff();
+      });
+    });
+
+    function handleStaffActionClick(e) {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return null;
+      const id = Number(btn.dataset.id);
+      const member = staff.find(m => m.id === id);
+      if (!member) return null;
+      return { btn, id, member };
+    }
+
+    async function runStaffAction(e) {
+      const action = handleStaffActionClick(e);
+      if (!action) return;
+      const { btn, id, member } = action;
+
+      if (btn.dataset.action === 'approve') {
+        openApprove(member);
+        return;
+      }
+
+      try {
+        if (btn.dataset.action === 'reject') {
+          await api(`/api/admin/members/${id}/reject`, { method: 'PATCH', body: '{}' });
+          showToast('Staff rejected.');
+        }
+        if (btn.dataset.action === 'disable') {
+          await api(`/api/admin/members/${id}/disable`, { method: 'PATCH', body: '{}' });
+          showToast('Staff disabled.');
+        }
+        if (btn.dataset.action === 'alumni') {
+          const year = Number(prompt('Tahun lulus?', new Date().getFullYear()));
+          if (!year) return;
+          await api(`/api/admin/members/${id}/alumni`, { method: 'PATCH', body: JSON.stringify({ graduationYear: year }) });
+          showToast('Staff moved to alumni.');
+        }
+        if (btn.dataset.action === 'changerole') {
+          openChangeRole(member);
+          return;
+        }
+        loadStaff();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    rowsEl.addEventListener('click', runStaffAction);
+    cardsEl.addEventListener('click', runStaffAction);
+
+    document.getElementById('approveForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('approveMemberId').value;
+      try {
+        await api(`/api/admin/members/${id}/approve`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            role: document.getElementById('approveRole').value,
+            division: document.getElementById('approveDivision').value,
+            batchYear: document.getElementById('approveBatchYear').value.trim(),
+            canHandleWorkOrder: document.getElementById('approveCanHandle').checked
+          })
+        });
+        closeModals();
+        showToast('Staff approved.');
+        loadStaff();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    document.getElementById('graduateBatchBtn').addEventListener('click', () => {
+      document.getElementById('graduateYear').value = new Date().getFullYear();
+      graduateModal.classList.remove('hidden');
+      graduateModal.classList.add('flex');
+    });
+
+    document.getElementById('graduateForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      try {
+        const data = await api('/api/admin/members/graduate', {
+          method: 'POST',
+          body: JSON.stringify({
+            batchYear: document.getElementById('graduateBatchYear').value.trim(),
+            graduationYear: Number(document.getElementById('graduateYear').value)
+          })
+        });
+        closeModals();
+        showToast(`${data.data?.affected || 0} staff moved to alumni.`);
+        loadStaff();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+
+    document.getElementById('changeRoleForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('changeRoleMemberId').value;
+      const role = document.getElementById('changeRoleSelect').value;
+      try {
+        await api(`/api/admin/members/${id}/role`, {
+          method: 'PATCH',
+          body: JSON.stringify({ role })
+        });
+        closeModals();
+        showToast(`Role berhasil diubah ke ${role}.`);
+        loadStaff();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+
+    document.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', closeModals));
+
+    searchInput.addEventListener('input', render);
+    loadStaff();
+  </script>
+</body>
+</html>
