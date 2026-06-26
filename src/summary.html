@@ -20,7 +20,9 @@
       <span class="text-sm font-medium">Kembali</span>
     </a>
     <h1 class="text-white text-base sm:text-lg font-bold absolute left-1/2 -translate-x-1/2">Work Order Summary</h1>
-    <div class="w-16"></div>
+    <button class="theme-toggle-btn" data-theme-toggle title="Toggle dark theme" aria-label="Toggle dark theme">
+      <span data-theme-icon>DK</span>
+    </button>
   </nav>
 
   <!-- FIX #13: margin-top CSS, bukan <br> -->
@@ -75,6 +77,25 @@
       </div>
     </div>
 
+    <!-- QUALITY / RATING -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Current Rating</p>
+        <p class="text-2xl md:text-3xl font-bold text-green-600 mt-1" id="summaryRating">-</p>
+        <p class="text-xs text-gray-500 mt-1" id="summaryRatingDetail">-</p>
+      </div>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Notes Quality</p>
+        <p class="text-2xl md:text-3xl font-bold text-purple-600 mt-1" id="summaryNotesQuality">-</p>
+        <p class="text-xs text-gray-500 mt-1" id="summaryNotesDetail">-</p>
+      </div>
+      <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
+        <p class="text-xs md:text-sm text-gray-600">Average Work Time</p>
+        <p class="text-2xl md:text-3xl font-bold text-blue-600 mt-1" id="summaryAvgTime">-</p>
+        <p class="text-xs text-gray-500 mt-1">Dari work order selesai</p>
+      </div>
+    </div>
+
     <!-- TABLE (desktop) / CARDS (mobile) -->
     <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
       <h2 class="text-lg md:text-2xl font-semibold mb-3 md:mb-4">Riwayat Work Order Selesai</h2>
@@ -92,14 +113,15 @@
               <th class="text-left py-3 px-4 font-semibold text-sm">Device</th>
               <th class="text-left py-3 px-4 font-semibold text-sm">Masalah</th>
               <th class="text-left py-3 px-4 font-semibold text-sm">Pelaksana</th>
-              <th class="text-left py-3 px-4 font-semibold text-sm">Working Minutes</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Working Time</th>
               <th class="text-left py-3 px-4 font-semibold text-sm">Waktu Selesai</th>
               <th class="text-left py-3 px-4 font-semibold text-sm">Catatan</th>
+              <th class="text-left py-3 px-4 font-semibold text-sm">Foto Operator</th>
               <th class="text-left py-3 px-4 font-semibold text-sm">Aksi</th>
             </tr>
           </thead>
           <tbody id="completedTableBody">
-            <tr><td colspan="12" class="text-center py-8 text-gray-400">
+            <tr><td colspan="13" class="text-center py-8 text-gray-400">
               <div class="flex flex-col items-center gap-2">
                 <div class="skeleton w-full h-8 rounded mb-2"></div>
                 <div class="skeleton w-full h-8 rounded mb-2"></div>
@@ -136,6 +158,29 @@
         <textarea id="noteText" rows="5" placeholder="Tambahkan catatan evaluasi..."
           class="w-full px-3 md:px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
         <p class="text-xs text-gray-500 mt-2">Catatan ini akan tersimpan untuk referensi dan evaluasi ke depannya.</p>
+      </div>
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Rating Admin</label>
+        <select id="noteRating" class="w-full px-3 md:px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+          <option value="">Belum diberi rating</option>
+          <option value="5">5 - Sangat baik</option>
+          <option value="4">4 - Baik</option>
+          <option value="3">3 - Cukup</option>
+          <option value="2">2 - Perlu perbaikan</option>
+          <option value="1">1 - Buruk</option>
+        </select>
+      </div>
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Kualitas Catatan</label>
+        <select id="noteQuality" class="w-full px-3 md:px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+          <option value="">Belum dinilai</option>
+          <option value="5">5 - Sangat jelas dan bisa ditindaklanjuti</option>
+          <option value="4">4 - Jelas</option>
+          <option value="3">3 - Cukup</option>
+          <option value="2">2 - Kurang detail</option>
+          <option value="1">1 - Tidak informatif</option>
+        </select>
+        <p class="text-xs text-gray-500 mt-2">Notes Quality diukur dari penilaian admin terhadap kejelasan catatan, bukan dari panjang teks.</p>
       </div>
       <div class="mt-4 md:mt-6 flex justify-end gap-2 md:gap-3">
         <button id="cancelNoteBtn" class="px-4 md:px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm">Batal</button>
@@ -191,11 +236,40 @@
     </div>
   </div>
 
+  <!-- PHOTO PREVIEW MODAL -->
+  <div class="fixed inset-0 bg-black bg-opacity-80 hidden z-[1300] flex items-center justify-center p-4" id="photoModal">
+    <div class="relative w-full max-w-4xl">
+      <button id="closePhotoModal" class="absolute -top-12 right-0 text-white hover:text-blue-200 min-h-[44px] px-2" aria-label="Tutup foto">
+        Tutup
+      </button>
+      <img id="photoModalImg" src="" alt="Foto dokumentasi work order" class="w-full max-h-[82vh] object-contain rounded-xl shadow-2xl bg-black" />
+    </div>
+  </div>
+
   <script>
+    function applySavedTheme() {
+      const theme = localStorage.getItem('woTheme') || 'light';
+      document.documentElement.dataset.theme = theme;
+      document.body.setAttribute('data-theme', theme);
+      document.querySelectorAll('[data-theme-icon]').forEach(el => { el.textContent = theme === 'dark' ? 'LT' : 'DK'; });
+    }
+    applySavedTheme();
+    document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        localStorage.setItem('woTheme', (localStorage.getItem('woTheme') || 'light') === 'dark' ? 'light' : 'dark');
+        applySavedTheme();
+      });
+    });
+
     // FIX #4: Data diambil dari API, bukan localStorage
     let allWorkOrders = [];
     let completedOrders = [];
     let members = [];
+    const authToken = localStorage.getItem('userToken') || '';
+    const tokenPayload = authToken ? JSON.parse(atob(authToken.split('.')[1])) : {};
+    const isAdmin = tokenPayload.role === 'Admin';
+    if (!authToken) window.location.href = '/login.html';
+    if (localStorage.getItem('isGuestUser') === 'true') window.location.href = '/guest.html';
 
     async function fetchMembers() {
       try {
@@ -211,7 +285,7 @@
 
     async function fetchWorkOrders() {
       try {
-        const r = await fetch('/api/workorders');
+        const r = await fetch('/api/workorders', { headers: { Authorization: 'Bearer ' + authToken } });
         if (!r.ok) throw new Error(r.statusText);
         const json = await r.json();
         allWorkOrders = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
@@ -233,16 +307,26 @@
       return html + '</div>';
     }
 
-    function convertToMinutes(hoursString) {
-      if (!hoursString || hoursString === '-') return '-';
-      const num = parseFloat(hoursString.toString().replace(/[^0-9.]/g, '')) || 0;
-      // Backend sekarang menyimpan dalam format "X menit" — langsung tampilkan
-      if (hoursString.includes('menit')) return num + ' menit';
-      // Fallback untuk format lama "X jam"
-      const totalMinutes = Math.round(num * 60);
-      if (totalMinutes < 60) return totalMinutes + ' menit';
-      const h = Math.floor(totalMinutes / 60), m = totalMinutes % 60;
-      return m === 0 ? `${h} jam` : `${h}j ${m}m`;
+    function minutesFromWorkingTime(value) {
+      if (value == null || value === '-') return null;
+      if (typeof value === 'number') return value;
+      const text = String(value).toLowerCase();
+      const n = parseFloat(text.replace(/[^0-9.]/g, ''));
+      if (Number.isNaN(n)) return null;
+      if (text.includes('hour') || text.includes('jam')) return Math.round(n * 60);
+      return Math.round(n);
+    }
+
+    function formatWorkingTime(value) {
+      const minutes = minutesFromWorkingTime(value);
+      if (minutes == null) return '-';
+      if (minutes < 1) return 'Less than 1 minute';
+      if (minutes < 60) return minutes === 1 ? '1 minute' : `${minutes} minutes`;
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      const hourText = h === 1 ? '1 hour' : `${h} hours`;
+      const minuteText = m === 1 ? '1 minute' : `${m} minutes`;
+      return m === 0 ? hourText : `${hourText} ${minuteText}`;
     }
 
     function updateStats() {
@@ -250,12 +334,36 @@
       document.getElementById('highPriority').textContent   = completedOrders.filter(o => o.priority === 'high').length;
       document.getElementById('mediumPriority').textContent = completedOrders.filter(o => o.priority === 'medium').length;
       document.getElementById('lowPriority').textContent    = completedOrders.filter(o => o.priority === 'low').length;
+      updateRatingStats();
+    }
+
+    function updateRatingStats() {
+      const total = completedOrders.length;
+      const qualityOrders = completedOrders.filter(o => typeof o.notesQuality === 'number');
+      const avgNotesQuality = qualityOrders.length ? qualityOrders.reduce((sum, o) => sum + o.notesQuality, 0) / qualityOrders.length : null;
+      const noteQuality = avgNotesQuality == null ? 0 : Math.round((avgNotesQuality / 5) * 100);
+      const ratedOrders = completedOrders.filter(o => typeof o.rating === 'number');
+      const avgRating = ratedOrders.length ? ratedOrders.reduce((sum, o) => sum + o.rating, 0) / ratedOrders.length : null;
+      const durations = completedOrders.map(o => minutesFromWorkingTime(o.workingHours)).filter(v => v != null);
+      const avgMinutes = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : null;
+      const ratingScore = avgRating == null ? 0 : Math.round((avgRating / 5) * 100);
+      const rating =
+        ratingScore >= 85 ? 'Excellent' :
+        ratingScore >= 70 ? 'Good' :
+        ratingScore >= 50 ? 'Needs Review' :
+        avgRating != null ? 'Needs Attention' : '-';
+
+      document.getElementById('summaryRating').textContent = rating;
+      document.getElementById('summaryRatingDetail').textContent = avgRating == null ? 'Belum ada rating admin' : `${avgRating.toFixed(1)}/5 dari ${ratedOrders.length} rating admin`;
+      document.getElementById('summaryNotesQuality').textContent = avgNotesQuality == null ? '-' : `${noteQuality}%`;
+      document.getElementById('summaryNotesDetail').textContent = avgNotesQuality == null ? 'Belum ada penilaian kualitas catatan' : `${avgNotesQuality.toFixed(1)}/5 dari ${qualityOrders.length} penilaian admin`;
+      document.getElementById('summaryAvgTime').textContent = avgMinutes == null ? '-' : formatWorkingTime(avgMinutes);
     }
 
     function renderTable(orders = completedOrders) {
       const tbody = document.getElementById('completedTableBody');
       if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">Tidak ada work order yang selesai</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center py-8 text-gray-500">Tidak ada work order yang selesai</td></tr>';
         renderMobileCards(orders);
         return;
       }
@@ -269,17 +377,26 @@
           <td class="py-3 px-4 text-sm">${order.device || '-'}</td>
           <td class="py-3 px-4 text-sm">${order.problem || '-'}</td>
           <td class="py-3 px-4 text-sm">${getExecutorHtml(order.executors)}</td>
-          <td class="py-3 px-4 text-sm">${convertToMinutes(order.workingHours)}</td>
+          <td class="py-3 px-4 text-sm">${formatWorkingTime(order.workingHours)}</td>
           <td class="py-3 px-4 text-sm text-green-600">${order.completedAt || 'N/A'}</td>
           <td class="py-3 px-4 text-sm">
             <span class="inline-block max-w-xs truncate" title="${order.notes || '-'}">${order.notes ? order.notes.substring(0, 20) + '...' : '-'}</span>
+            <div class="text-xs text-amber-600 mt-1">${order.rating ? `Rating ${order.rating}/5` : 'Belum dirating'}</div>
+            <div class="text-xs text-purple-600 mt-1">${order.notesQuality ? `Notes ${order.notesQuality}/5` : 'Notes belum dinilai'}</div>
           </td>
           <td class="py-3 px-4 text-sm">
+            ${order.documentationPhoto ? `
+              <button class="photo-preview-btn inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold" data-photo="/static/public/${order.documentationPhoto}" type="button">
+                <img src="/static/public/${order.documentationPhoto}" alt="Foto bukti order #${order.id}" class="w-12 h-12 rounded-lg object-cover border border-gray-200 shadow-sm">
+              </button>` : '<span class="text-gray-400">-</span>'}
+          </td>
+          <td class="py-3 px-4 text-sm">
+            ${isAdmin ? `
             <button class="edit-note-btn text-blue-500 hover:text-blue-700" data-order-id="${order.id}" title="Edit Catatan">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
               </svg>
-            </button>
+            </button>` : '<span class="text-gray-400">Admin only</span>'}
           </td>
         </tr>`).join('');
       renderMobileCards(orders);
@@ -308,13 +425,17 @@
           <div class="data-card-row"><span class="data-card-label">Device</span><span class="data-card-value">${o.device || '-'}</span></div>
           <div class="data-card-row"><span class="data-card-label">Lokasi</span><span class="data-card-value">${o.location || '-'}</span></div>
           <div class="data-card-row"><span class="data-card-label">Masalah</span><span class="data-card-value" style="max-width:60%">${o.problem || '-'}</span></div>
-          <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${convertToMinutes(o.workingHours)}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${formatWorkingTime(o.workingHours)}</span></div>
           ${o.notes ? `<div class="data-card-row"><span class="data-card-label">Catatan</span><span class="data-card-value text-blue-700" style="max-width:60%">${o.notes.substring(0,40)}${o.notes.length>40?'…':''}</span></div>` : ''}
+          ${o.documentationPhoto ? `<div class="data-card-row"><span class="data-card-label">Foto Operator</span><button class="photo-preview-btn data-card-value" data-photo="/static/public/${o.documentationPhoto}" type="button"><img src="/static/public/${o.documentationPhoto}" alt="Foto bukti order #${o.id}" class="w-16 h-16 rounded-lg object-cover border border-gray-200 shadow-sm ml-auto"></button></div>` : ''}
+          <div class="data-card-row"><span class="data-card-label">Rating</span><span class="data-card-value">${o.rating ? `${o.rating}/5` : '-'}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Notes Quality</span><span class="data-card-value">${o.notesQuality ? `${o.notesQuality}/5` : '-'}</span></div>
           <div class="data-card-actions">
+            ${isAdmin ? `
             <button class="edit-note-btn flex items-center gap-1 text-xs text-blue-500 font-semibold px-3 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" data-order-id="${o.id}">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               Edit Catatan
-            </button>
+            </button>` : '<span class="text-xs text-gray-400">Admin only</span>'}
           </div>
         </div>`;
       }).join('');
@@ -345,6 +466,8 @@
       document.getElementById('noteOrderDevice').textContent    = order.device;
       document.getElementById('noteOrderRequester').textContent = typeof order.requester === 'object' ? order.requester.name : order.requester;
       document.getElementById('noteText').value = order.notes || '';
+      document.getElementById('noteRating').value = order.rating || '';
+      document.getElementById('noteQuality').value = order.notesQuality || '';
       document.getElementById('noteModal').dataset.orderId = orderId;
       document.getElementById('noteModal').classList.remove('hidden');
     }
@@ -352,19 +475,25 @@
     function closeNoteModal() {
       document.getElementById('noteModal').classList.add('hidden');
       document.getElementById('noteText').value = '';
+      document.getElementById('noteRating').value = '';
+      document.getElementById('noteQuality').value = '';
       delete document.getElementById('noteModal').dataset.orderId;
     }
 
     async function saveNote() {
       const orderId = parseInt(document.getElementById('noteModal').dataset.orderId);
       const notes   = document.getElementById('noteText').value.trim();
+      const ratingValue = document.getElementById('noteRating').value;
+      const qualityValue = document.getElementById('noteQuality').value;
+      const rating = ratingValue ? Number(ratingValue) : null;
+      const notesQuality = qualityValue ? Number(qualityValue) : null;
       const token   = localStorage.getItem('userToken') || '';
 
       try {
         const r = await fetch(`/api/workorders/${orderId}/notes`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-          body: JSON.stringify({ notes })
+          body: JSON.stringify({ notes, rating, notesQuality })
         });
         if (!r.ok) throw new Error('Status: ' + r.status);
         await fetchWorkOrders();
@@ -380,6 +509,16 @@
     function showErrorModal(msg) {
       document.getElementById('errorMessage').textContent = msg;
       document.getElementById('errorModal').classList.remove('hidden');
+    }
+
+    function openPhotoModal(src) {
+      document.getElementById('photoModalImg').src = src;
+      document.getElementById('photoModal').classList.remove('hidden');
+    }
+
+    function closePhotoModal() {
+      document.getElementById('photoModal').classList.add('hidden');
+      document.getElementById('photoModalImg').src = '';
     }
 
     // Event listeners
@@ -407,7 +546,11 @@
       if (e.target.closest('.edit-note-btn')) {
         openNoteModal(parseInt(e.target.closest('.edit-note-btn').dataset.orderId));
       }
+      const photoBtn = e.target.closest('.photo-preview-btn');
+      if (photoBtn) openPhotoModal(photoBtn.dataset.photo);
     });
+    document.getElementById('closePhotoModal').addEventListener('click', closePhotoModal);
+    document.getElementById('photoModal').addEventListener('click', e => { if (e.target === document.getElementById('photoModal')) closePhotoModal(); });
 
     // Init
     async function loadPage() {
