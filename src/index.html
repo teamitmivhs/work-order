@@ -691,7 +691,21 @@
       <!-- ── KANAN: Refresh + Hamburger ─────────────────────── -->
       <div class="flex items-center justify-end" style="gap:8px;flex-shrink:0;">
         <button class="theme-toggle-btn" data-theme-toggle title="Toggle dark theme" aria-label="Toggle dark theme">
-          <span data-theme-icon>DK</span>
+          <!-- Hidden span kept so script.js can still write to it without error -->
+          <span data-theme-icon style="display:none;position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true"></span>
+          <!-- Moon: shown in light mode → click to go dark -->
+          <span class="theme-icon-moon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646z"/>
+            </svg>
+          </span>
+          <!-- Sun: shown in dark mode → click to go light -->
+          <span class="theme-icon-sun" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          </span>
         </button>
         <button class="nav-pill" id="refreshBtn" aria-label="Refresh" title="Refresh"
           style="padding:8px;">
