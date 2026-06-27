@@ -1,41 +1,60 @@
 <p align="center">
-  <img src="src/static/public/itlogo.png" alt="IT MIVHS Logo" width="180" /><br>
-  <b>IT Work Order System – MIVHS</b><br>
-  <i>Empowering the IT MIVHS Team with a high-performance, microservices-driven work order and helpdesk management solution.</i>
+  <img src="src/static/public/itlogo.png" alt="IT MIVHS Logo" width="160" />
+</p>
+
+<h1 align="center">IT Work Order System (MIVHS)</h1>
+
+<p align="center">
+  <b>A High-Performance, Microservices-Driven Helpdesk & Work Order Management Solution</b>
 </p>
 
 <p align="center">
-  <a href="https://golang.org"><img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=for-the-badge&logo=go" alt="Go Version" /></a>
-  <a href="https://www.rust-lang.org"><img src="https://img.shields.io/badge/Rust-1.70+-000000?style=for-the-badge&logo=rust" alt="Rust Version" /></a>
-  <a href="https://www.docker.com"><img src="https://img.shields.io/badge/Docker-24.0+-2496ED?style=for-the-badge&logo=docker" alt="Docker" /></a>
+  <a href="https://golang.org"><img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go Version" /></a>
+  <a href="https://www.rust-lang.org"><img src="https://img.shields.io/badge/Rust-1.70+-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust Version" /></a>
+  <a href="https://www.mysql.com"><img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" /></a>
+  <a href="https://www.nginx.com"><img src="https://img.shields.io/badge/Nginx-1.25-009639?style=for-the-badge&logo=nginx&logoColor=white" alt="Nginx" /></a>
+  <a href="https://www.docker.com"><img src="https://img.shields.io/badge/Docker-24.0+-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT" /></a>
 </p>
 
 ---
 
-## 🌟 Overview
-
-The **IT Work Order System** is a professional-grade platform designed to streamline IT support requests at **SMK MITRA INDUSTRI MM2100**. It combines the rapid development of **Go**, the safety and performance of **Rust**, and a modern, interactive frontend to deliver a seamless experience for both requesters and technicians.
-
-### 🎯 Why This Project?
-- **Speed**: Sub-millisecond time-tracking with our Rust engine.
-- **Reliability**: Microservices architecture ensures the system stays up even if one component fails.
-- **Transparency**: Real-time status tracking for every IT request.
-- **Improvement**: Integrated **Kaizen** analytics to help the team grow.
+## Table of Contents
+* [Overview](#overview)
+* [System Architecture](#system-architecture)
+* [Key Features](#key-features)
+* [System Workflow](#system-workflow)
+* [Quick Start (Docker)](#quick-start-docker)
+* [Project Structure](#project-structure)
+* [Manual Development Setup](#manual-development-setup)
+* [Database & Security](#database--security)
+* [Contributing](#contributing)
+* [License](#license)
 
 ---
 
-## 🏗️ Architecture
+## Overview
 
-The system follows a modern microservices architecture to segregate concerns and optimize performance:
+The **IT Work Order System** is a professional-grade platform designed to streamline IT support requests at **SMK MITRA INDUSTRI MM2100**. By combining the concurrency of **Go (Gin)**, the microsecond precision of **Rust (Axum)**, and a highly responsive frontend powered by **GSAP** and **TailwindCSS**, it delivers an unmatched tracking and resolution experience.
 
-| Service | Technology | Role |
-| :--- | :--- | :--- |
-| **API Gateway** | Nginx | Reverse proxy, SSL termination, & static file serving. |
-| **Core Backend** | Go (Gin) | Orchestrates business logic, authentication, and database interactions. |
-| **Rust Engine** | Rust (Axum) | Dedicated high-performance service for precise time tracking. |
-| **Storage** | MySQL 8.0 | Persistent data storage with automatic health monitoring. |
+> [!NOTE]
+> This project implements a modern microservices architecture. The core application logic, database operations, and high-precision tracking are separated into distinct services communicating over secure channels.
 
+---
+
+## System Architecture
+
+### Service Orchestration
+The frontend, backend, database, and timer services are orchestrated seamlessly:
+
+| Service | Stack | Role | Port |
+| :--- | :--- | :--- | :--- |
+| **API Gateway** | `Nginx` | Reverse proxy, static file serving, and endpoint routing | `80` (Host) |
+| **Core Backend** | `Go` / `Gin` | Business logic, JWT session security, and API endpoints | `8080` (Internal) |
+| **Rust Engine** | `Rust` / `Axum` | High-efficiency microsecond work-timer tracking | `9000` (Internal) |
+| **Storage** | `MySQL 8.0` | Relational application schema and performance state | `3306` (Internal) |
+
+### Communication Flow
 ```mermaid
 graph TD
     Client[Web Browser] -->|Port 80| Nginx[Nginx Proxy]
@@ -47,287 +66,216 @@ graph TD
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🔧 For Technicians
-- **Instant Assignment**: Take orders with a single click.
-- **Safety First**: Integrated safety checklist requirements before starting any job.
-- **Live Timers**: Automated work duration tracking powered by Rust.
-- **Kaizen Notes**: Submit solutions and improvement ideas upon completion.
+### For Technicians
+* **One-Click Assignment**: Instantly claim pending orders.
+* **Safety Protocol Checklist**: Mandatory location-based checks before starting tasks.
+* **Live Precision Timers**: Automatic job duration recording managed by the Rust tracking service.
+* **Kaizen Integration**: Enter solutions and improvement metrics immediately upon completion.
 
-### 👤 For Requesters
-- **Quick Submission**: Simplified forms for location, device, and problem description.
-- **Priority Levels**: Flag urgent issues (High/Urgent) for immediate attention.
-- **Real-time Status**: See exactly when your request moves from "Pending" to "On Progress".
+### For Requesters
+* **Simplified Submission**: Quickly report issues with specified locations and devices.
+* **Priority Escalation**: Categorize requests (Low, Medium, High) for urgent dispatch.
+* **Real-time Status Feed**: Visually track requests from *Pending* to *Completed*.
 
-### 📊 For Management
-- **Summary Dashboard**: Full history of all completed work orders.
-- **Performance Metrics**: Automated calculation of completion rates and response times.
-- **Team Monitoring**: Real-time view of which team members are "Stand By" vs "On Job".
+### For Administrators
+* **Centralized Dashboard**: Live telemetry of "Stand By" vs "On Job" operators.
+* **Kaizen Analytics**: Automatic calculation of completion rates and performance ratings.
+* **Audit Logs**: Maintain structured histories of all work orders.
 
-### ⚙️ Technical Highlights
-- **Microservices Orchestration**: Fully containerized setup with health checks.
-- **JWT Authentication**: Secure, state-managed sessions for administrators and operators.
-- **Failure Resilience**: Automatic connection retry and validation loops.
-
----
-
-## 🔄 Work Flow
-
-This system follows a structured workflow to handle work orders efficiently:
-
-### **1. Create Work Order (Requests from helpdesk)**
-```
-Requester/User
-  ↓
-  Click "Create Orders" button
-  ↓
-  Fill form:
-    - Fill the requester name
-    - Priority (High, Medium, Low)
-    - Location (Gedung A, B, C, etc)
-    - Device (Printer, PC, CCTV, etc)
-    - Problem description
-  ↓
-  Submit → Order enters table with status "Pending"
-```
-
-### **2. Take Order (Assign Work)**
-```
-Technician
-  ↓
-  View work orders in main table
-  ↓
-  Click empty slot or order ID
-  ↓
-  - Select available operators (status: Stand By)
-  - Review & approve safety checklist per location
-  - Click "Confirm"
-  ↓
-  Status changes: "Pending" → "On Progress"
-  IT Team status: "Stand By" → "On Job"
-```
-
-### **3. Work in Progress (Executing Job)**
-```
-Order status: "On Progress"
-  ↓
-  Technician executes the work
-  ↓
-  Working hours are recorded by Rust time tracker service
-  ↓
-  Can update team member status (Support, etc) if needed
-```
-
-### **4. Mark as Done (Complete Job)**
-```
-Technician
-  ↓
-  Click "Done" button in table row
-  ↓
-  (Optional) Fill evaluation notes:
-    - What was done
-    - Solution applied
-    - Notes for improvement
-  ↓
-  Submit
-  ↓
-  Status changes: "On Progress" → "Completed"
-  Technician status: "On Job" → "Stand By"
-  Order enters Summary page
-```
-
-### **5. Review Summary (View History)**
-```
-IT Teacher/Admin
-  ↓
-  Click "Summary" hyperlink in navbar
-  ↓
-  View table: Completed work orders with:
-    - Order ID, Priority, Time, Requester
-    - Location, Device, Problem
-    - Completion timestamp
-    - Evaluation notes
-  ↓
-  Can edit notes for additional feedback
-  ↓
-  Analyze data for Kaizen improvement
-```
-
-### **6. Kaizen Activity (Performance Evaluation)**
-```
-Manager can view metrics:
-  - Total work orders
-  - Pending orders
-  - On progress orders
-  - Completed orders
-  
-Completion Rate = (Completed / Total) × 100%
-
-Rating based on completion rate:
-  - Excellent (80%+) → "Keep up the good work"
-  - Good (60-79%) → "Focus on reducing pending"
-  - Fair (40-59%) → "Consider process improvements"
-  - Needs Improvement (<40%) → "Investigate bottlenecks"
-```
+### Technical Highlights
+* **Microservices Orchestration**: Fully containerized setup with health checks.
+* **JWT Authentication**: Secure, state-managed sessions for administrators and operators.
+* **Failure Resilience**: Automatic connection retry and validation loops.
 
 ---
 
-## 🐳 Docker Services
+## System Workflow
 
-The system consists of four main Docker services structured for isolation:
+```
+[Requester] Creates Work Order
+      ↓
+[System] Adds to Queue as "Pending"
+      ↓
+[Technician] Takes Order (Approves Safety Checklist)
+      ↓
+[System] Status: "On Progress" | Start Rust Live Timer
+      ↓
+[Technician] Executes Job & Marks as Done
+      ↓
+[System] Status: "Completed" | Stop Rust Live Timer | Log Working Hours & Kaizen Notes
+      ↓
+[Dashboard] Performance Summary Updated
+```
 
-### Database Service (`db`)
-- **Image**: `mysql:8.0`
-- **Auto-initialization**: Runs SQL scripts from the `/db` directory on startup.
-- **Health Check**: Configured health validation before dependent services start.
-- **Volumes**: Persistent local MySQL data storage.
+<details>
+<summary><b>Expand Detailed Step-by-Step Workflow</b></summary>
 
-### Time Tracker Service (`time-tracker`)
-- **Built from**: `./src/rust-engine` directory.
-- **Framework**: Rust with Axum.
-- **Purpose**: High-speed, microsecond-accurate time tracking microservice.
-- **Port**: 9000 (Internal auth protected).
+### 1. Create Work Order
+- **Action**: User fills form (Requester name, Priority, Location, Device, and Problem description).
+- **Result**: Order enters table in Nginx dashboard with status `Pending`.
 
-### Backend Service (`backend`)
-- **Built from**: `./src/backend` directory.
-- **Framework**: Go with Gin.
-- **Dependencies**: Startup sequencing waits for `db` and `time-tracker` to be healthy.
-- **Port**: 8080 (Proxied via Nginx).
+### 2. Take Order (Assign)
+- **Action**: Technician clicks order ID, assigns operators (who must be in `Stand By` status), reads and approves location safety checklist, and confirms.
+- **Result**: Order moves to `On Progress`. Assigned technicians' status changes from `Stand By` to `On Job`.
 
-### Nginx Service (`nginx`)
-- **Image**: `nginx:1.25-alpine`
-- **Purpose**: Unified entry point acting as a reverse proxy and static file server.
-- **Port**: 80 (mapped to host) / 443.
+### 3. Work in Progress
+- **Action**: Rust time-tracker service initializes and records start timestamp.
+- **Result**: Live timer is displayed and tracked.
+
+### 4. Mark as Done
+- **Action**: Technician completes work, clicks `Done`, and inputs optional evaluation/solution notes.
+- **Result**: Order moves to `Completed`, technician status returns to `Stand By`, and Rust service computes elapsed time.
+
+### 5. Review & Kaizen Analytics
+- **Action**: Admins view performance metrics in the Kaizen page.
+- **Result**: Auto-calculated Completion Rates and actionable feedback ratings.
+</details>
 
 ---
 
-## 🚀 Quick Start
+## Quick Start (Docker)
 
-### 🐳 Using Docker (Recommended)
-The fastest way to get started is using our pre-configured Docker Compose setup.
-
+### 1. Prepare Environment
+Clone the repository and create your configuration file:
 ```bash
-# 1. Clone the repository
 git clone https://github.com/parothegreat/work-order.git
 cd work-order
-
-# 2. Setup your environment variables
 cp src/.env.example src/.env
-
-# 3. Fire up the engines
-docker-compose up -d --build
 ```
 
-**Access points:**
-- 🏠 **Dashboard**: [http://localhost](http://localhost)
-- 📊 **Summary**: [http://localhost/summary](http://localhost/summary)
-- 💡 **Kaizen**: [http://localhost/kaizen](http://localhost/kaizen)
-- 📖 **TechGuide**: [http://localhost/techguide](http://localhost/techguide)
+### 2. Spin Up Containers
+Launch the stack using Docker Compose:
+```bash
+docker-compose -f src/docker-compose.yml up -d --build
+```
+
+### 3. Access the Platforms
+> [!TIP]
+> Use the following URLs to access the application after containers start:
+> - **Main Dashboard**: [http://localhost](http://localhost)
+> - **Order Summary**: [http://localhost/summary](http://localhost/summary)
+> - **Kaizen Analytics**: [http://localhost/kaizen](http://localhost/kaizen)
+> - **Technical Guide**: [http://localhost/techguide](http://localhost/techguide)
 
 ---
 
-## 🔧 Development
+## Tech Stack
 
-### Prerequisites
-- Docker and Docker Compose
-- Go 1.21+ (for backend development)
-- Rust 1.70+ (for time tracker development)
+<p align="center">
+  <a href="https://golang.org"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/go/go-original.svg" alt="Go" width="40" height="40"/></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.rust-lang.org"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/rust/rust-original.svg" alt="Rust" width="40" height="40"/></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.mysql.com"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mysql/mysql-original.svg" alt="MySQL" width="40" height="40"/></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.nginx.com"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nginx/nginx-original.svg" alt="Nginx" width="40" height="40"/></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.docker.com"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original.svg" alt="Docker" width="40" height="40"/></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg" alt="JavaScript" width="40" height="40"/></a>&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://tailwindcss.com"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/tailwindcss/tailwindcss-original.svg" alt="TailwindCSS" width="40" height="40"/></a>
+</p>
 
-### Manual Development Setup
+---
 
-#### Backend Development (Go)
+## Project Structure
+
+```text
+work-order/
+├── src/
+│   ├── backend/        # Go API Microservice (Gin Framework)
+│   ├── rust-engine/    # Rust Time-Tracker Service (Axum)
+│   ├── db/             # SQL Schema & Migration scripts
+│   ├── nginx/          # Nginx Reverse Proxy Config
+│   ├── static/         # Frontend Assets (JS, CSS, Images, Logos)
+│   └── *.html          # Static HTML Templates
+├── package.json        # Frontend dependencies & configurations
+└── docker-compose.yml  # Orchestration configuration
+```
+
+---
+
+## Manual Development Setup
+
+If you prefer running services outside of Docker for development, use the following guides:
+
+<details>
+<summary><b>Go Backend Setup</b></summary>
+<br>
+
+<p align="left">
+  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/go/go-original.svg" alt="Go" width="24" height="24"/>
+</p>
+
 ```bash
 cd src/backend
 go mod tidy
 go run main.go
 ```
+Make sure you have Go 1.21+ installed and access to a running MySQL instance.
+</details>
 
-#### Time Tracker Development (Rust)
+<details>
+<summary><b>Rust Time-Tracker Setup</b></summary>
+<br>
+
+<p align="left">
+  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/rust/rust-original.svg" alt="Rust" width="24" height="24"/>
+</p>
+
 ```bash
 cd src/rust-engine
-cargo build
+cargo build --release
 cargo run
 ```
+Requires Rust 1.70+. Service listens on port `9000` by default.
+</details>
 
-#### Database Setup
-MySQL database with auto-initialization scripts are located in `src/db/`.
-- `complete_db.sql`
+<details>
+<summary><b>Database Setup</b></summary>
+<br>
 
----
+<p align="left">
+  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mysql/mysql-original.svg" alt="MySQL" width="24" height="24"/>
+</p>
 
-## 📊 Database Schema
-
-The system uses MySQL with the following main tables:
-- **orders**: Work order records (ID, priority, location, device, requester, status, working hours, etc.).
-- **members**: Team member credentials, roles, and status tracking (Stand By / On Job).
-- **executors**: Mapping of operators assigned to specific work orders.
-- **safety_checklist**: Safety compliance records required per order per location.
-
----
-
-## 🔐 Authentication
-
-The system includes secure user authentication with:
-- **Registration**: Direct operator account creation with role validation.
-- **Login**: Token generation via JWT.
-- **Session Management**: Secure headers and authorization token storage in `localStorage`.
-- **Role-based Access**: Custom permission layers for administrators (full control) and operators.
-
----
-
-## 📱 Mobile Support & Health Checks
-
-- **Collapsible Navigation**: Smooth mobile drawer menu.
-- **Responsive Layout**: Fluid tables with horizontal scrolling and card-based items.
-- **Failover Logic**: Graceful error handling in the UI if backend services are temporarily down.
-
----
-
-## 📈 Kaizen Philosophy
-
-We don't just fix devices; we improve processes. The system automatically calculates:
-- **Completion Rate**: `%` of orders successfully resolved.
-- **Efficiency Rating**: Based on resolution time vs. priority.
-- **Feedback Loop**: Encouraging technicians to leave "Improvement Notes" for every task.
-
----
-
-## 📂 Project Structure
-
-```text
-.
-├── src/
-│   ├── backend/        # Go API Microservice
-│   ├── rust-engine/    # Rust Time-Tracker Service
-│   ├── db/             # SQL Initialization Scripts
-│   ├── nginx/          # Proxy Configuration
-│   ├── static/         # Frontend Assets (JS, CSS, Images, Logos)
-│   └── *.html          # Main Application Pages
-├── package.json        # Frontend Dependencies
-└── docker-compose.yml  # Orchestration Config
+Restore the schema to a local MySQL instance:
+```bash
+mysql -u <user> -p <database_name> < src/db/complete_db.sql
 ```
+</details>
 
 ---
 
-## 🤝 Contributing
+## Database & Security
 
-We welcome contributions! Please feel free to:
-1. Fork the project.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
+### Schema Tables
+* `orders`: Work order parameters (requester, device, location, working hours, notes).
+* `members`: Operator login details, password hashes, and statuses.
+* `executors`: Mapping assignments linking operators to specific tasks.
+* `safety_checklist`: Safety compliance checklist responses.
+
+### Security Configurations
+* **Stateless Session Management**: Powered by JWT.
+* **Rate Limiting**: Integrated client rate-limiting on login/registration pages (max 10 req/min).
+* **Internal Authentication**: Shared key header (`X-Internal-Key`) secures calls between the Go backend and Rust engine.
 
 ---
 
-## 📝 License
+## Contributing
+
+1. Fork the repository.
+2. Create your feature branch: `git checkout -b feature/AmazingFeature`.
+3. Commit your changes: `git commit -m 'feat: Add some AmazingFeature'`.
+4. Push to the branch: `git push origin feature/AmazingFeature`.
+5. Open a **Pull Request**.
+
+---
+
+## License
 
 Distributed under the **MIT License**. See `LICENSE` for more information.
 
 ---
 
 <p align="center">
-  Developed with ❤️ by <b>IT MIVHS Team</b><br>
+  Developed with ❤️ by the <b>IT MIVHS Team</b><br>
   <i>"Maintain tasks with ease and efficiency"</i>
 </p>
