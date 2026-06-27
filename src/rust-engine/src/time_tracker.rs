@@ -109,8 +109,7 @@ impl TimeTracker {
         }))
     }
 
-    /// Get semua timer yang sedang aktif beserta info lengkapnya
-    /// FIX: fungsi baru untuk endpoint list — menggantikan active_count() yang tidak diekspos
+
     pub async fn list_active(&self) -> Result<Vec<(u64, u64, i64, i64)>, String> {
         let now = Self::now()?;
         let timers = self.state.timers.lock().await;
