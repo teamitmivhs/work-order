@@ -142,9 +142,11 @@
     #toast { animation: slideToast 0.18s ease both; }
     @media (max-width: 767px) {
       .page-header { position: sticky; top: 0; z-index: 30; }
-      .header-actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      .header-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; width: 100%; }
+      .header-actions .action-btn:not(#graduateBatchBtn) { flex: 1; }
+      .header-actions #graduateBatchBtn { width: 100%; order: 10; }
+      .header-actions .theme-toggle-btn { flex: 0 0 44px; order: 5; }
       .header-actions .action-btn { min-height: 42px; text-align: center; display: flex; align-items: center; justify-content: center; }
-      .header-actions #graduateBatchBtn { grid-column: 1 / -1; }
       .tab-scroll { gap: 0.55rem; padding: 0.15rem 0 0.85rem; }
       .tab-btn { background: #fff; font-size: 0.78rem; padding: 0.7rem 0.9rem; line-height: 1.2; }
       .action-btn { min-height: 40px; }
@@ -160,7 +162,147 @@
         scroll-behavior: auto !important;
       }
     }
+
+    /* ══ DARK MODE — staff.html local overrides ════════════════════════ */
+    [data-theme="dark"] body {
+      background: var(--wo-bg, #0b1220) !important;
+      color: var(--wo-text, #e5e7eb) !important;
+    }
+    [data-theme="dark"] body::before {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    }
+    /* Page header */
+    [data-theme="dark"] .page-header {
+      background: rgba(11, 18, 32, 0.94) !important;
+      border-color: rgba(51, 65, 85, 0.8) !important;
+    }
+    [data-theme="dark"] .page-header .theme-toggle-btn {
+      border-color: rgba(148, 163, 184, 0.24);
+      background: rgba(255, 255, 255, 0.06);
+      color: #e5e7eb;
+    }
+    /* Content panel */
+    [data-theme="dark"] .content-panel {
+      background: var(--wo-surface, #111827) !important;
+      border-color: var(--wo-border, #334155) !important;
+    }
+    /* Tab bar border */
+    [data-theme="dark"] .border-b,
+    [data-theme="dark"] .border-gray-200\/80 {
+      border-color: var(--wo-border, #334155) !important;
+    }
+    /* Tabs */
+    [data-theme="dark"] .tab-btn {
+      color: var(--wo-muted, #94a3b8) !important;
+    }
+    [data-theme="dark"] .tab-btn:hover {
+      color: #93c5fd !important;
+      background: rgba(37, 99, 235, 0.12) !important;
+    }
+    [data-theme="dark"] .tab-btn.active {
+      color: #93c5fd !important;
+      background: rgba(37, 99, 235, 0.15) !important;
+      border-color: rgba(96, 165, 250, 0.3) !important;
+    }
+    /* Search */
+    [data-theme="dark"] .search-field {
+      background: #0f172a !important;
+      border-color: var(--wo-border, #334155) !important;
+      color: var(--wo-text, #e5e7eb) !important;
+    }
+    [data-theme="dark"] .search-field:focus {
+      background: #0b1220 !important;
+      border-color: #93c5fd !important;
+    }
+    [data-theme="dark"] .search-field::placeholder { color: #64748b; }
+    /* Table */
+    [data-theme="dark"] thead.bg-gray-50,
+    [data-theme="dark"] .bg-gray-50 {
+      background: var(--wo-surface-soft, #1f2937) !important;
+    }
+    [data-theme="dark"] thead th {
+      color: var(--wo-muted, #94a3b8) !important;
+    }
+    [data-theme="dark"] .table-row:hover {
+      background: var(--wo-surface-soft, #1f2937) !important;
+    }
+    [data-theme="dark"] tbody.divide-y.divide-gray-100 > tr {
+      border-color: var(--wo-border, #334155) !important;
+    }
+    [data-theme="dark"] .bg-white.tbody,
+    [data-theme="dark"] tbody.bg-white {
+      background: var(--wo-surface, #111827) !important;
+    }
+    [data-theme="dark"] td.px-5 {
+      color: var(--wo-text, #e5e7eb);
+    }
+    /* Mobile cards */
+    [data-theme="dark"] .mobile-card {
+      background: var(--wo-surface, #111827) !important;
+      border-color: var(--wo-border, #334155) !important;
+    }
+    [data-theme="dark"] .field-value { color: var(--wo-text, #e5e7eb) !important; }
+    /* Modals */
+    [data-theme="dark"] .modal-panel,
+    [data-theme="dark"] .modal-panel.bg-white {
+      background: var(--wo-surface, #111827) !important;
+      border-color: var(--wo-border, #334155) !important;
+    }
+    [data-theme="dark"] .modal-panel h2 { color: var(--wo-text, #e5e7eb) !important; }
+    [data-theme="dark"] .modal-panel label { color: var(--wo-text, #e5e7eb) !important; }
+    [data-theme="dark"] .modal-panel select,
+    [data-theme="dark"] .modal-panel input[type="number"],
+    [data-theme="dark"] .modal-panel input[type="text"] {
+      background: #0f172a !important;
+      color: var(--wo-text, #e5e7eb) !important;
+      border-color: var(--wo-border, #334155) !important;
+    }
+    /* Action buttons with white bg */
+    [data-theme="dark"] .action-btn.bg-white {
+      background: var(--wo-surface-soft, #1f2937) !important;
+      border-color: var(--wo-border, #334155) !important;
+      color: var(--wo-text, #e5e7eb) !important;
+    }
+    /* Specific colored action btn borders */
+    [data-theme="dark"] .action-btn.border-red-200   { border-color: rgba(239,68,68,0.35) !important; color: #fca5a5 !important; }
+    [data-theme="dark"] .action-btn.border-blue-200  { border-color: rgba(59,130,246,0.35) !important; color: #93c5fd !important; }
+    [data-theme="dark"] .action-btn.border-indigo-200 { border-color: rgba(99,102,241,0.35) !important; color: #a5b4fc !important; }
+    /* Graduate batch button */
+    [data-theme="dark"] #graduateBatchBtn {
+      background: #1e293b !important;
+      border: 1px solid var(--wo-border, #334155) !important;
+    }
+    /* Status pills (generated by JS) */
+    [data-theme="dark"] .status-pill.bg-amber-100 { background: rgba(245,158,11,0.18) !important; color: #fcd34d !important; }
+    [data-theme="dark"] .status-pill.bg-green-100 { background: rgba(34,197,94,0.18) !important;  color: #86efac !important; }
+    [data-theme="dark"] .status-pill.bg-red-100   { background: rgba(239,68,68,0.18) !important;  color: #fca5a5 !important; }
+    [data-theme="dark"] .status-pill.bg-blue-100  { background: rgba(59,130,246,0.18) !important; color: #93c5fd !important; }
+    [data-theme="dark"] .status-pill.bg-gray-200,
+    [data-theme="dark"] .status-pill.bg-gray-100  { background: rgba(107,114,128,0.2) !important; color: #9ca3af !important; }
+    /* Summary text */
+    [data-theme="dark"] #summaryText { color: var(--wo-muted, #94a3b8) !important; }
+    /* Toast */
+    [data-theme="dark"] #toast.bg-gray-900 { background: #1e293b !important; }
+    /* Header text */
+    [data-theme="dark"] .text-gray-900 { color: var(--wo-text, #e5e7eb) !important; }
+    [data-theme="dark"] .text-gray-500 { color: var(--wo-muted, #94a3b8) !important; }
+    [data-theme="dark"] .text-gray-400 { color: #64748b !important; }
+    [data-theme="dark"] .text-gray-600 { color: var(--wo-muted, #94a3b8) !important; }
+    [data-theme="dark"] .text-blue-600 { color: #60a5fa !important; }
+    /* ════════════════════════════════════════════════════════════════════ */
   </style>
+  <script>
+    /* Dark mode: init immediately from localStorage to avoid flash */
+    (function () {
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    }());
+  </script>
 </head>
 <body>
   <header class="page-header">
@@ -172,6 +314,20 @@
       <div class="header-actions flex flex-wrap gap-2">
         <a href="index.html" class="action-btn bg-white border border-gray-300 text-gray-700">Dashboard</a>
         <button id="graduateBatchBtn" class="action-btn bg-gray-900 text-white">Graduate Batch</button>
+        <button class="theme-toggle-btn" data-theme-toggle title="Toggle dark mode" aria-label="Toggle dark mode">
+          <span data-theme-icon style="display:none;position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true"></span>
+          <span class="theme-icon-moon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646z"/>
+            </svg>
+          </span>
+          <span class="theme-icon-sun" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          </span>
+        </button>
       </div>
     </div>
   </header>
@@ -618,6 +774,21 @@
     document.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', closeModals));
 
     searchInput.addEventListener('input', render);
+
+    // Theme toggle — sync dengan localStorage (sama seperti index.html / script.js)
+    document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+        }
+      });
+    });
+
     loadStaff();
   </script>
 </body>
