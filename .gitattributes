@@ -1,0 +1,6 @@
+# Exclude HTML files from GitHub language statistics
+*.html linguist-detectable=false
+
+# Alternatively, mark them as vendored/documentation
+# *.html linguist-vendored
+# *.html linguist-documentation
