@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RegisterWorkorderRoutes mendaftarkan semua endpoint yang berhubungan dengan Work Order
+//register workorder routes
 func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 	db := config.GetDB()
 	if db == nil {
@@ -20,44 +20,45 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 	workOrderRepo := repository.NewWorkOrderRepository(db)
 	workOrderCtrl := controllers.NewWorkOrderController(workOrderRepo)
 
-	// ─── Public endpoints (tidak butuh auth) ──────────────────────────────────
-	// FIX: GET /members tetap public agar frontend bisa load member list
-	api.GET("/members", controllers.GetMembersHandler)
-
-	// FIX: GET /workorders dipindah ke public agar dashboard bisa load tanpa login
-	api.GET("/workorders", workOrderCtrl.GetTaskListHandler)
-
-	// ─── Protected endpoints (butuh JWT) ──────────────────────────────────────
+	//protected routes
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		// Kaizen metrics
-		protected.GET("/kaizen", workOrderCtrl.GetKaizenHandler)
-
-		// FIX: PATCH /members/:id/status — dibutuhkan frontend untuk update status member
+		//members
+		protected.GET("/members", controllers.GetMembersHandler)
 		protected.PATCH("/members/:id/status", controllers.UpdateMemberStatusHandler)
 
+		//kaizen
+		protected.GET("/kaizen", workOrderCtrl.GetKaizenHandler)
+
+		//workorders
 		workorders := protected.Group("/workorders")
 		{
-			// Buat work order baru
+			//list
+			workorders.GET("", workOrderCtrl.GetTaskListHandler)
+
+			//create
 			workorders.POST("", workOrderCtrl.CreateTaskHandler)
 
-			// Take order (jadikan progress)
+			//take
 			workorders.POST("/:id/take", workOrderCtrl.TakeOrderHandler)
 
-			// Tandai selesai
+			//complete
 			workorders.PATCH("/:id/complete", workOrderCtrl.CompleteOrderHandler)
 
-			// Simpan catatan evaluasi
+			//documentation
+			workorders.POST("/:id/documentation", workOrderCtrl.UploadDocumentationPhotoHandler)
+
+			//notes
 			workorders.PATCH("/:id/notes", workOrderCtrl.UpdateNotesHandler)
 
-			// FIX: PATCH /:id — untuk addWorkerToOrder & syncRemoveMemberFromOrders dari frontend
+			//update
 			workorders.PATCH("/:id", workOrderCtrl.UpdateOrderHandler)
 
-			// Hapus order — hanya user yang login, admin check di controller
+			//delete
 			workorders.DELETE("/:id", workOrderCtrl.DeleteOrderHandler)
 
-			// Safety checklist
+			//checklist
 			workorders.GET("/:id/checklist", workOrderCtrl.GetSafetyChecklistHandler)
 			workorders.PUT("/:id/checklist", workOrderCtrl.UpdateSafetyChecklistHandler)
 		}
