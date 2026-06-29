@@ -669,3 +669,257 @@ If backend code changed but Rust time-tracker has unrelated local syntax errors,
 - `src/docker-compose.persistent.yml` -> `[fix] share static upload mount in persistent compose`
 - `src/docker-compose.external-db.yml` -> `[fix] share static upload mount in external db compose`
 - `CODEX_SERVER_HANDOFF.md` -> `[docs] document ui logic fix batch`
+
+## Latest Handoff: Admin Rating And Mobile Member Preview
+
+## What Changed
+
+- `summary.html` notes/evaluation is now admin-only and supports manual rating.
+- `kaizen.html` Current Rating now uses admin manual ratings instead of automatic heuristic.
+- Work order notes update API now rejects non-admin users and validates rating values from 1 to 5.
+- Orders table now supports nullable `Rating` through DB migration and backend model/repository scan.
+- Dashboard member preview modal on mobile no longer overlaps avatar/name under the dark header.
+- Member preview modal now uses a compact mobile-safe layout with fixed header, profile row, and info rows.
+
+## Changed Files
+
+- `src/index.html`
+- `src/summary.html`
+- `src/kaizen.html`
+- `src/backend/config/db.go`
+- `src/backend/controllers/workorder_controller.go`
+- `src/backend/models/workorder_struct.go`
+- `src/backend/repository/workorder_repository.go`
+- `src/db/complete_db.sql`
+- `src/db/migrations/20260625_member_lifecycle.sql`
+- `CODEX_SERVER_HANDOFF.md`
+
+## Verification Done Locally
+
+- `node --check src/static/assets/script.js` passed.
+- Backend `go test ./...` passed after rating changes.
+- Backend image `src-backend` rebuilt after rating changes.
+- Backend and Nginx recreated with `podman compose up -d --no-build --force-recreate backend nginx`.
+- Verified `orders.Rating` exists in local MySQL.
+
+## Server Steps After Git Push
+
+1. `cd /home/it/work-order`
+2. `git pull`
+3. `cd src/backend && go test ./...`
+4. `cd /home/it/work-order/src`
+5. `docker compose up -d --build backend nginx`
+6. Browser smoke test:
+   - Open dashboard on mobile viewport.
+   - Tap a member/operator preview.
+   - Confirm avatar, name, status, and division are visible without overlap.
+   - Login as admin and update summary notes/rating.
+   - Confirm Kaizen Current Rating follows saved admin ratings.
+
+## Per-File Commit Messages
+
+- `src/index.html` -> `[fix] stabilize mobile member preview modal`
+- `src/summary.html` -> `[feat] add admin manual work order rating`
+- `src/kaizen.html` -> `[fix] use manual ratings in kaizen evaluation`
+- `src/backend/config/db.go` -> `[feat] migrate work order ratings`
+- `src/backend/controllers/workorder_controller.go` -> `[fix] restrict work order evaluations to admin`
+- `src/backend/models/workorder_struct.go` -> `[feat] add work order rating field`
+- `src/backend/repository/workorder_repository.go` -> `[feat] persist work order ratings`
+- `src/db/complete_db.sql` -> `[feat] add rating column to order schema`
+- `src/db/migrations/20260625_member_lifecycle.sql` -> `[feat] migrate rating column`
+- `CODEX_SERVER_HANDOFF.md` -> `[docs] document rating and modal fixes`
+
+## Latest Handoff: Work Order Documentation Photo
+
+## What Changed
+
+- Work orders now support operator documentation photos through `orders.DocumentationPhoto`.
+- New protected endpoint: `POST /api/workorders/:id/documentation`.
+- Documentation upload accepts `photo` multipart field and stores files under `/static/public/workorder-docs/`.
+- Only admins or operators assigned to that work order can upload documentation photos.
+- Completing a work order now requires a documentation photo first.
+- Dashboard action buttons now include a camera/photo button for progress orders.
+- If an assigned operator taps `Selesai` without a photo, the browser opens the phone camera first, uploads the photo, then automatically completes the order.
+- Summary now shows the operator documentation photo below/near the notes column.
+- Delete work order is now enforced as admin-only in backend and hidden from non-admin dashboard actions.
+
+## Changed Files
+
+- `src/backend/config/db.go`
+- `src/backend/controllers/workorder_controller.go`
+- `src/backend/models/workorder_struct.go`
+- `src/backend/repository/workorder_repository.go`
+- `src/backend/routes/workorder_routes.go`
+- `src/db/complete_db.sql`
+- `src/db/migrations/20260625_member_lifecycle.sql`
+- `src/index.html`
+- `src/static/assets/script.js`
+- `src/summary.html`
+- `CODEX_SERVER_HANDOFF.md`
+
+## Verification Done Locally
+
+- `node --check src/static/assets/script.js` passed.
+- `GOCACHE=/tmp/go-build-cache go test ./...` passed in `src/backend`.
+- `podman build -t src-backend -f Dockerfile .` passed.
+- `podman compose up -d --no-build --force-recreate backend nginx` passed.
+- Verified local MySQL has `orders.DocumentationPhoto`.
+- Verified `POST /api/workorders/1/documentation` without auth returns `401 Missing authorization header`.
+
+## Server Steps After Git Push
+
+1. `cd /home/it/work-order`
+2. `git pull`
+3. `cd src/backend && go test ./...`
+4. `cd /home/it/work-order/src`
+5. `docker compose up -d --build backend nginx`
+6. Confirm migration:
+   - `SHOW COLUMNS FROM orders LIKE 'DocumentationPhoto';`
+7. Browser/mobile smoke test:
+   - Assign/take a work order.
+   - Tap `Selesai` as assigned operator.
+   - Confirm the phone camera opens.
+   - Capture/upload photo.
+   - Confirm order completes automatically.
+   - Open Summary and confirm `Foto Operator` is visible.
+
+## Per-File Commit Messages
+
+- `src/backend/config/db.go` -> `[feat] migrate work order documentation photo`
+- `src/backend/controllers/workorder_controller.go` -> `[feat] require documentation photo before completion`
+- `src/backend/models/workorder_struct.go` -> `[feat] add work order documentation photo field`
+- `src/backend/repository/workorder_repository.go` -> `[feat] persist work order documentation photo`
+- `src/backend/routes/workorder_routes.go` -> `[feat] add work order documentation upload route`
+- `src/db/complete_db.sql` -> `[feat] add documentation photo to order schema`
+- `src/db/migrations/20260625_member_lifecycle.sql` -> `[feat] migrate documentation photo column`
+- `src/index.html` -> `[feat] add mobile documentation photo action`
+- `src/static/assets/script.js` -> `[feat] add camera-first completion flow`
+- `src/summary.html` -> `[feat] show operator documentation photo`
+- `CODEX_SERVER_HANDOFF.md` -> `[docs] document documentation photo workflow`
+
+## Latest Handoff: Evaluation Sync, Photo Preview, Notifications, Dark Theme
+
+## What Changed
+
+- `Notes Quality` is now a manual admin score from 1 to 5, stored in `orders.NotesQuality`.
+- `Current Rating` and `Notes Quality` now use the same source data in Summary and Kaizen.
+- Summary note modal includes `Kualitas Catatan` selector.
+- Kaizen now shows work order documentation photos, not just notes/rating.
+- Summary and Kaizen photo display now uses image thumbnails.
+- Clicking a thumbnail opens a full-size photo preview modal.
+- Dashboard now polls for new work orders every 15 seconds and shows:
+  - internal popup notification
+  - browser notification if permission is granted
+- Added dark theme foundation using `woTheme` in `localStorage` and `data-theme="dark"`.
+- Added dark theme toggle buttons to dashboard, Summary, and Kaizen.
+- Added mobile CSS hardening for data cards, action buttons, and dense mobile layouts.
+
+## Changed Files
+
+- `src/backend/config/db.go`
+- `src/backend/controllers/workorder_controller.go`
+- `src/backend/models/workorder_struct.go`
+- `src/backend/repository/workorder_repository.go`
+- `src/db/complete_db.sql`
+- `src/db/migrations/20260625_member_lifecycle.sql`
+- `src/index.html`
+- `src/summary.html`
+- `src/kaizen.html`
+- `src/static/assets/script.js`
+- `src/static/assets/style.css`
+- `CODEX_SERVER_HANDOFF.md`
+
+## Verification Done Locally
+
+- `node --check src/static/assets/script.js` passed.
+- `git diff --check` passed for touched files.
+- `GOCACHE=/tmp/go-build-cache go test ./...` passed in `src/backend`.
+- `podman build -t src-backend -f Dockerfile .` passed.
+- `podman compose up -d --no-build --force-recreate backend nginx` passed.
+- Verified local MySQL has `orders.NotesQuality` and `orders.DocumentationPhoto`.
+
+## Server Steps After Git Push
+
+1. `cd /home/it/work-order`
+2. `git pull`
+3. `cd src/backend && go test ./...`
+4. `cd /home/it/work-order/src`
+5. `docker compose up -d --build backend nginx`
+6. Confirm migration:
+   - `SHOW COLUMNS FROM orders WHERE Field IN ('NotesQuality','DocumentationPhoto');`
+7. Browser/mobile smoke test:
+   - Summary admin note modal can save rating and notes quality.
+   - Kaizen reflects the same rating and notes quality.
+   - Summary and Kaizen show photo thumbnails.
+   - Thumbnail opens full-size photo popup.
+   - Dashboard notification appears when a new order is created.
+   - Dark theme toggle works and persists after reload.
+
+## Per-File Commit Messages
+
+- `src/backend/config/db.go` -> `[feat] migrate notes quality score`
+- `src/backend/controllers/workorder_controller.go` -> `[feat] validate notes quality evaluation`
+- `src/backend/models/workorder_struct.go` -> `[feat] add notes quality field`
+- `src/backend/repository/workorder_repository.go` -> `[feat] persist notes quality score`
+- `src/db/complete_db.sql` -> `[feat] add notes quality schema`
+- `src/db/migrations/20260625_member_lifecycle.sql` -> `[feat] migrate notes quality column`
+- `src/index.html` -> `[feat] add theme toggle and mobile modal layering`
+- `src/summary.html` -> `[feat] add notes quality and photo preview`
+- `src/kaizen.html` -> `[feat] sync evaluations and photo previews`
+- `src/static/assets/script.js` -> `[feat] add order notifications and theme persistence`
+- `src/static/assets/style.css` -> `[feat] add dark theme and mobile layout hardening`
+- `CODEX_SERVER_HANDOFF.md` -> `[docs] document evaluation and theme upgrades`
+
+## Latest Handoff: Cross-Device Timer And Mobile Progress Actions
+
+## What Changed
+
+- API work order response now includes `startedAt` for progress orders.
+- `startedAt` is derived from `orders.TimeSort`, which is set when the order is taken.
+- Dashboard live timer now prefers server `startedAt` instead of browser `localStorage`.
+- This fixes cross-device timers:
+  - order taken on desktop
+  - opened on phone
+  - both devices show the same running elapsed time
+- Mobile work order cards now compute progress action permission directly from JWT token.
+- Mobile progress cards show `Foto Bukti` and `Selesai` together for assigned operators/admins.
+- `Selesai` no longer appears for users who are neither assigned nor admin.
+
+## Changed Files
+
+- `src/backend/models/workorder_struct.go`
+- `src/backend/repository/workorder_repository.go`
+- `src/index.html`
+- `src/static/assets/script.js`
+- `CODEX_SERVER_HANDOFF.md`
+
+## Verification Done Locally
+
+- `node --check src/static/assets/script.js` passed.
+- `git diff --check` passed for touched files.
+- `GOCACHE=/tmp/go-build-cache go test ./...` passed in `src/backend`.
+- `podman build -t src-backend -f Dockerfile .` passed.
+- `podman compose up -d --no-build --force-recreate backend nginx` passed.
+- Backend logs show clean startup and routes registered.
+
+## Server Steps After Git Push
+
+1. `cd /home/it/work-order`
+2. `git pull`
+3. `cd src/backend && go test ./...`
+4. `cd /home/it/work-order/src`
+5. `docker compose up -d --build backend nginx`
+6. Browser/mobile smoke test:
+   - Take an order on desktop.
+   - Open dashboard from phone.
+   - Confirm progress timer is already running on phone.
+   - Confirm assigned operator sees `Foto Bukti` and `Selesai` on mobile.
+   - Hard refresh mobile browser if it still shows old JS/CSS cache.
+
+## Per-File Commit Messages
+
+- `src/backend/models/workorder_struct.go` -> `[feat] expose work order start time`
+- `src/backend/repository/workorder_repository.go` -> `[feat] return progress start time from orders`
+- `src/index.html` -> `[fix] show mobile progress actions for assigned operators`
+- `src/static/assets/script.js` -> `[fix] sync progress timers across devices`
+- `CODEX_SERVER_HANDOFF.md` -> `[docs] document cross-device timer fix`
