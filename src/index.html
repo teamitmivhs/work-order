@@ -256,7 +256,7 @@
                 button,
                 a,
                 select,
-                input,
+                input:not([type="checkbox"]):not([type="radio"]),
                 textarea {
                     min-height: 44px;
                 }
@@ -411,6 +411,330 @@
                 .co-input {
                     font-size: 16px;
                 }
+                #takeOrderPopup {
+                    align-items: center;
+                    padding: 0.9rem;
+                    padding-top: 0.9rem;
+                    overflow: hidden;
+                }
+                #takeOrderPopup .take-order-dialog {
+                    width: min(100%, 21rem);
+                    max-height: min(86svh, 620px);
+                    padding: 0;
+                    border-radius: 1.15rem;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                }
+                #takeOrderPopup .take-order-header {
+                    margin: 0;
+                    padding: 0.85rem 1rem;
+                    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+                }
+                #takeOrderPopup .take-order-header h2 {
+                    font-size: 1rem !important;
+                }
+                #takeOrderPopup .take-order-grid {
+                    display: block;
+                    flex: 1 1 auto;
+                    min-height: 0;
+                    padding: 0.8rem 1rem 0;
+                    overflow-y: auto;
+                }
+                #takeOrderPopup h3 {
+                    margin: 0 0 0.45rem !important;
+                    font-size: 0.9rem !important;
+                }
+                #takeOrderPopup .take-order-detail,
+                #takeOrderPopup .take-order-operators,
+                #takeOrderPopup .take-order-checklist {
+                    padding: 0.75rem !important;
+                    border-radius: 0.85rem;
+                }
+                #takeOrderPopup .take-order-detail {
+                    display: grid;
+                    gap: 0.45rem;
+                    font-size: 0.78rem;
+                }
+                #takeOrderPopup .take-order-detail > div {
+                    display: grid;
+                    grid-template-columns: 5rem minmax(0, 1fr);
+                    gap: 0.65rem;
+                    align-items: start;
+                }
+                #takeOrderPopup .take-order-detail span:last-child {
+                    text-align: left;
+                    overflow-wrap: anywhere;
+                }
+                #takeOrderPopup .take-order-grid > div + div,
+                #takeOrderPopup .take-order-safety {
+                    margin-top: 0.8rem;
+                }
+                #takeOrderPopup .take-order-operators {
+                    max-height: 7.5rem;
+                }
+                #takeOrderPopup .take-order-operators p {
+                    padding: 1rem 0.5rem !important;
+                    font-size: 0.82rem;
+                }
+                #takeOrderPopup .selected-helper-item {
+                    background: #eff6ff;
+                    border: 1px solid rgba(96, 165, 250, 0.35);
+                }
+                #takeOrderPopup .selected-helper-name {
+                    min-width: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    color: #0f172a;
+                    font-size: 0.86rem;
+                    line-height: 1.25;
+                }
+                #takeOrderPopup .selected-helper-role {
+                    color: #2563eb;
+                }
+                #takeOrderPopup .remove-helper-operator-btn {
+                    flex: 0 0 auto;
+                    color: #ef4444 !important;
+                }
+                #takeOrderPopup .take-order-add-helper {
+                    margin-top: 0.55rem !important;
+                    min-height: 2.65rem;
+                    border-radius: 0.85rem;
+                }
+                #takeOrderPopup .take-order-checklist {
+                    display: grid;
+                    gap: 0.5rem !important;
+                }
+                #takeOrderPopup .safety-check-item {
+                    align-items: flex-start;
+                    gap: 0.65rem;
+                    padding: 0.15rem 0;
+                }
+                #takeOrderPopup .custom-checkbox {
+                    width: 1rem;
+                    min-width: 1rem;
+                    max-width: 1rem;
+                    height: 1rem;
+                    min-height: 1rem;
+                    max-height: 1rem;
+                    flex: 0 0 1rem;
+                    padding: 0;
+                    margin-top: 0.05rem;
+                    border-radius: 0.3rem;
+                }
+                #takeOrderPopup .custom-checkbox:checked {
+                    background-color: #3b82f6 !important;
+                    border-color: #3b82f6 !important;
+                }
+                #takeOrderPopup .safety-check-item label {
+                    line-height: 1.35;
+                    font-size: 0.83rem;
+                }
+                #takeOrderPopup .take-order-actions {
+                    margin: 0;
+                    padding: 0.75rem 1rem;
+                    border-top: 1px solid rgba(226, 232, 240, 0.9);
+                    background: #fff;
+                    flex-shrink: 0;
+                }
+                #takeOrderPopup .take-order-actions button {
+                    flex: 1 1 0;
+                    min-height: 2.7rem;
+                    border-radius: 0.8rem;
+                }
+                [data-theme="dark"] #takeOrderPopup .take-order-header,
+                [data-theme="dark"] #takeOrderPopup .take-order-actions {
+                    border-color: rgba(71, 85, 105, 0.72);
+                    background: #0f172a;
+                }
+                [data-theme="dark"] #takeOrderPopup .selected-helper-item {
+                    background: rgba(15, 23, 42, 0.76);
+                    border-color: rgba(71, 85, 105, 0.72);
+                }
+                [data-theme="dark"] #takeOrderPopup .selected-helper-name {
+                    color: #f8fafc;
+                }
+                [data-theme="dark"] #takeOrderPopup .selected-helper-role {
+                    color: #93c5fd;
+                }
+                #selectHelperOperatorModal,
+                #memberStatusPopup {
+                    align-items: center;
+                    padding: 0.9rem;
+                    padding-top: 0.9rem;
+                    overflow: hidden;
+                }
+                #selectHelperOperatorModal .helper-operator-dialog,
+                #memberStatusPopup .member-status-dialog {
+                    width: min(100%, 21rem);
+                    max-height: min(84svh, 620px);
+                    padding: 0;
+                    border-radius: 1.15rem;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                }
+                #selectHelperOperatorModal .helper-operator-header,
+                #memberStatusPopup .member-status-header {
+                    margin: 0;
+                    padding: 0.9rem 1rem;
+                    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+                }
+                #selectHelperOperatorModal .helper-operator-header h2,
+                #memberStatusPopup .member-status-header h2 {
+                    font-size: 1rem !important;
+                    line-height: 1.25;
+                }
+                #selectHelperOperatorModal .helper-operator-list,
+                #memberStatusPopup .member-status-list {
+                    flex: 1 1 auto;
+                    min-height: 0;
+                    overflow-y: auto;
+                    padding: 0.8rem 1rem 1rem;
+                }
+                #memberStatusPopup .member-status-tabs {
+                    margin: 0;
+                    padding: 0.75rem 1rem 0;
+                    flex-shrink: 0;
+                }
+                #memberStatusPopup .status-filter-tab {
+                    min-height: 2rem;
+                    padding: 0.4rem 0.7rem;
+                    border-radius: 999px;
+                }
+                #selectHelperOperatorModal .helper-operator-item,
+                #memberStatusPopup .member-status-item {
+                    border-radius: 0.9rem;
+                }
+                #selectHelperOperatorModal .helper-operator-item {
+                    min-height: 3.3rem;
+                    padding: 0.55rem 0.65rem !important;
+                }
+                #selectHelperOperatorModal .helper-operator-person,
+                #memberStatusPopup .member-status-person {
+                    min-width: 0;
+                }
+                #selectHelperOperatorModal .helper-operator-person img,
+                #memberStatusPopup .member-status-person img {
+                    width: 2.35rem;
+                    height: 2.35rem;
+                    flex: 0 0 2.35rem;
+                }
+                #selectHelperOperatorModal .helper-operator-name,
+                #memberStatusPopup .member-status-name {
+                    min-width: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    font-size: 0.86rem;
+                    line-height: 1.25;
+                }
+                #selectHelperOperatorModal .add-helper-operator-btn {
+                    width: 2.25rem;
+                    height: 2.25rem;
+                    min-height: 2.25rem;
+                    flex: 0 0 2.25rem;
+                    border-radius: 999px;
+                }
+                #memberStatusPopup .member-status-item {
+                    display: grid;
+                    gap: 0.7rem;
+                    padding: 0.75rem !important;
+                }
+                #memberStatusPopup .member-status-control {
+                    display: grid;
+                    gap: 0.3rem;
+                }
+                #memberStatusPopup .member-status-label {
+                    color: #64748b;
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                }
+                #memberStatusPopup .status-select {
+                    width: 100%;
+                    min-height: 2.45rem;
+                    border-radius: 0.75rem;
+                    font-size: 0.86rem;
+                }
+                [data-theme="dark"] #selectHelperOperatorModal .helper-operator-header,
+                [data-theme="dark"] #memberStatusPopup .member-status-header {
+                    border-color: rgba(71, 85, 105, 0.72);
+                    background: #0f172a;
+                }
+                [data-theme="dark"] #memberStatusPopup .member-status-label {
+                    color: #94a3b8;
+                }
+                #createOrderPopup {
+                    align-items: center;
+                    padding: 1rem;
+                }
+                #createOrderPopup .popup-inner {
+                    width: min(100%, 21rem);
+                    max-height: min(78svh, 560px);
+                    border-radius: 1.25rem;
+                    overflow: hidden;
+                }
+                #createOrderPopup .popup-inner > div:first-child {
+                    padding: 0.7rem 0.9rem;
+                }
+                #createOrderPopup .popup-inner > div:first-child p {
+                    display: none;
+                }
+                #createOrderForm > div:first-child {
+                    flex: 1 1 auto;
+                    min-height: 0;
+                    gap: 0.55rem;
+                    padding: 0.75rem 0.9rem;
+                    overflow-y: auto;
+                }
+                #createOrderForm {
+                    flex: 1 1 auto;
+                    min-height: 0;
+                }
+                #createOrderForm label {
+                    margin-bottom: 0.25rem;
+                    font-size: 0.62rem;
+                }
+                #prioritySelector {
+                    gap: 0.45rem;
+                }
+                .priority-opt-box {
+                    min-height: 42px;
+                    gap: 0.25rem !important;
+                    padding: 0.35rem !important;
+                    border-radius: 0.8rem !important;
+                }
+                #createOrderPopup .priority-icon,
+                #createOrderPopup .priority-icon-mask {
+                    width: 1rem;
+                    height: 1rem;
+                }
+                .co-input {
+                    min-height: 38px;
+                    border-radius: 0.8rem;
+                    padding-top: 0.4rem;
+                    padding-bottom: 0.4rem;
+                }
+                #orderProblem {
+                    min-height: 68px;
+                }
+                #createOrderForm > div:last-child {
+                    flex-shrink: 0;
+                    padding: 0.65rem 0.9rem 0.8rem;
+                    background: #fff;
+                }
+                [data-theme="dark"] #createOrderForm > div:last-child {
+                    background: #0f172a !important;
+                    border-top-color: rgba(71, 85, 105, 0.72) !important;
+                }
+                [data-theme="dark"] #cancelCreateOrderBtn {
+                    background: rgba(15, 23, 42, 0.72) !important;
+                    border-color: rgba(148, 163, 184, 0.48) !important;
+                    color: #e2e8f0 !important;
+                }
             }
 
             /* Priority selector */
@@ -423,42 +747,88 @@
                 -webkit-mask: var(--icon) center / contain no-repeat;
                 mask: var(--icon) center / contain no-repeat;
             }
-
-            .priority-opt
-                input:checked
-                + .priority-opt-box[class*="border-gray"] {
-                border-color: #3b82f6;
-                background: #eff6ff;
+            .priority-icon {
+                width: 1.45rem;
+                height: 1.45rem;
+                flex: 0 0 auto;
             }
-            .priority-opt input[value="low"]:checked + .priority-opt-box {
+
+            #createOrderPopup
+                .priority-opt
+                input[value="low"]:checked
+                + .priority-opt-box {
                 border-color: #22c55e !important;
                 background: #f0fdf4 !important;
             }
-            .priority-opt
+            #createOrderPopup
+                .priority-opt
                 input[value="low"]:checked
                 + .priority-opt-box
                 span:last-child {
                 color: #15803d;
             }
-            .priority-opt input[value="medium"]:checked + .priority-opt-box {
+            #createOrderPopup
+                .priority-opt
+                input[value="medium"]:checked
+                + .priority-opt-box {
                 border-color: #eab308 !important;
                 background: #fefce8 !important;
             }
-            .priority-opt
+            #createOrderPopup
+                .priority-opt
                 input[value="medium"]:checked
                 + .priority-opt-box
                 span:last-child {
                 color: #a16207;
             }
-            .priority-opt input[value="high"]:checked + .priority-opt-box {
+            #createOrderPopup
+                .priority-opt
+                input[value="high"]:checked
+                + .priority-opt-box {
                 border-color: #ef4444 !important;
                 background: #fef2f2 !important;
             }
-            .priority-opt
+            #createOrderPopup
+                .priority-opt
                 input[value="high"]:checked
                 + .priority-opt-box
                 span:last-child {
                 color: #b91c1c;
+            }
+            [data-theme="dark"]
+                #createOrderPopup
+                .priority-opt
+                input[value="low"]:checked
+                + .priority-opt-box {
+                --priority-selected-text: #86efac;
+                background: rgba(34, 197, 94, 0.16) !important;
+                border-color: #22c55e !important;
+            }
+            [data-theme="dark"]
+                #createOrderPopup
+                .priority-opt
+                input[value="medium"]:checked
+                + .priority-opt-box {
+                --priority-selected-text: #fcd34d;
+                background: rgba(245, 158, 11, 0.16) !important;
+                border-color: #f59e0b !important;
+            }
+            [data-theme="dark"]
+                #createOrderPopup
+                .priority-opt
+                input[value="high"]:checked
+                + .priority-opt-box {
+                --priority-selected-text: #fca5a5;
+                background: rgba(239, 68, 68, 0.16) !important;
+                border-color: #ef4444 !important;
+            }
+            [data-theme="dark"]
+                #createOrderPopup
+                .priority-opt
+                input:checked
+                + .priority-opt-box
+                span:last-child {
+                color: var(--priority-selected-text) !important;
             }
 
             /* ═══════════════════════════════════════════════════════════════
@@ -1025,6 +1395,81 @@
                 color: #f8fafc !important;
             }
 
+            .work-order-status-tabs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.55rem;
+                margin: 0 0 1rem;
+            }
+
+            .work-order-status-tab {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.45rem;
+                min-height: 2.45rem;
+                padding: 0.55rem 0.85rem;
+                border: 1px solid rgba(203, 213, 225, 0.95);
+                border-radius: 999px;
+                background: #f8fafc;
+                color: #475569;
+                font-size: 0.82rem;
+                font-weight: 700;
+                transition:
+                    background 0.18s ease,
+                    border-color 0.18s ease,
+                    color 0.18s ease;
+            }
+
+            .work-order-status-tab.active {
+                background: #0f172a;
+                border-color: #0f172a;
+                color: #f8fafc;
+            }
+
+            .status-dot {
+                width: 0.5rem;
+                height: 0.5rem;
+                border-radius: 999px;
+                flex: 0 0 auto;
+            }
+
+            .status-dot-pending {
+                background: #f59e0b;
+            }
+
+            .status-dot-progress {
+                background: #3b82f6;
+            }
+
+            .status-dot-completed {
+                background: #22c55e;
+            }
+
+            .work-order-status-count {
+                min-width: 1.35rem;
+                padding: 0.05rem 0.4rem;
+                border-radius: 999px;
+                background: rgba(15, 23, 42, 0.08);
+                text-align: center;
+                font-size: 0.72rem;
+            }
+
+            .work-order-status-tab.active .work-order-status-count {
+                background: rgba(248, 250, 252, 0.16);
+            }
+
+            [data-theme="dark"] .work-order-status-tab {
+                background: rgba(15, 23, 42, 0.72);
+                border-color: rgba(71, 85, 105, 0.82);
+                color: #cbd5e1;
+            }
+
+            [data-theme="dark"] .work-order-status-tab.active {
+                background: #f8fafc;
+                border-color: #f8fafc;
+                color: #0f172a;
+            }
+
             @media (max-width: 767px) {
                 .hero-container {
                     min-height: auto;
@@ -1136,8 +1581,23 @@
                 .workorders-panel > h2 {
                     margin: 0 !important;
                     padding: 1rem 1rem 0.75rem;
-                    border-bottom: 1px solid rgba(226, 232, 240, 0.95);
                     font-size: 1rem !important;
+                }
+
+                .work-order-status-tabs {
+                    flex-wrap: nowrap;
+                    overflow-x: auto;
+                    gap: 0.5rem;
+                    margin: 0;
+                    padding: 0 0.85rem 0.85rem;
+                    border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+                }
+
+                .work-order-status-tab {
+                    flex: 0 0 auto;
+                    min-height: 2.25rem;
+                    padding: 0.45rem 0.75rem;
+                    font-size: 0.76rem;
                 }
 
                 .summary-panel {
@@ -1395,6 +1855,9 @@
                 min-height: 44px;
                 gap: 16px;
             }
+            .nav-actions {
+                margin-left: auto;
+            }
             @media (min-width: 768px) {
                 #navMenu {
                     position: absolute;
@@ -1404,6 +1867,19 @@
                     width: max-content;
                     max-width: calc(100vw - 660px);
                     gap: 12px !important;
+                }
+            }
+            @media (min-width: 768px) and (max-width: 1180px) {
+                #navMenu {
+                    max-width: calc(100vw - 430px);
+                    gap: 6px !important;
+                }
+                #navMenu .nav-sep {
+                    display: none;
+                }
+                #navMenu .nav-pill {
+                    padding: 8px 10px;
+                    font-size: 0.74rem;
                 }
             }
             .nav-pill {
@@ -1569,6 +2045,21 @@
                 box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
                 z-index: 1002;
                 backdrop-filter: blur(18px);
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0) scale(1);
+                transform-origin: top left;
+                transition:
+                    opacity 0.18s ease,
+                    transform 0.18s ease,
+                    visibility 0.18s ease;
+            }
+            .nav-dropdown.hidden {
+                display: block !important;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transform: translateY(-6px) scale(0.98);
             }
             .nav-dropdown a,
             .nav-dropdown button {
@@ -1650,26 +2141,38 @@
                     gap: 10px;
                 }
                 #navMenu {
-                    display: none;
-                }
-                #navMenu.mobile-menu-active {
                     display: flex !important;
                     flex-direction: column;
-                    /* Reset inline style desktop (absolute center transform) */
                     position: fixed !important;
                     top: 68px !important;
                     left: 10px !important;
                     right: 10px !important;
-                    transform: none !important;
+                    transform: translateY(-8px) scale(0.98) !important;
                     width: auto !important;
+                    max-height: 0;
+                    overflow: hidden;
+                    opacity: 0;
+                    pointer-events: none;
                     background: rgba(15, 23, 42, 0.98);
-                    padding: 12px;
+                    padding: 0 12px;
                     gap: 8px;
                     z-index: 999;
                     border: 1px solid rgba(148, 163, 184, 0.18);
                     border-radius: 18px;
                     box-shadow: 0 18px 48px rgba(0, 0, 0, 0.48);
                     backdrop-filter: blur(18px);
+                    transition:
+                        opacity 0.2s ease,
+                        transform 0.2s ease,
+                        max-height 0.2s ease,
+                        padding 0.2s ease;
+                }
+                #navMenu.mobile-menu-active {
+                    transform: translateY(0) scale(1) !important;
+                    max-height: 420px;
+                    opacity: 1;
+                    pointer-events: auto;
+                    padding: 12px;
                 }
                 #navMenu.mobile-menu-active .nav-pill {
                     border-radius: 12px;
@@ -1703,9 +2206,10 @@
                     position: fixed;
                     top: 68px;
                     left: 10px;
-                    right: 10px;
+                    right: auto;
+                    width: min(260px, calc(100vw - 20px));
                     min-width: 0;
-                    z-index: 999;
+                    z-index: 1100;
                 }
             }
         </style>
@@ -2018,7 +2522,7 @@
 
                 <!-- ── KANAN: Refresh + Hamburger ─────────────────────── -->
                 <div
-                    class="flex items-center justify-end"
+                    class="nav-actions flex items-center justify-end"
                     style="gap: 8px; flex-shrink: 0"
                 >
                     <button
@@ -2256,7 +2760,7 @@
                     <div class="hero-operational-strip"></div>
 
                     <div
-                        class="welcome-buttons mt-10 grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-3"
+                        class="welcome-buttons mt-10 grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2"
                     >
                         <div class="hero-benefit-card p-4">
                             <p class="text-sm font-bold text-white">
@@ -2555,9 +3059,9 @@
             id="memberStatusPopup"
         >
             <div
-                class="popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-lg max-h-[calc(100dvh-104px)] md:max-h-[85vh] overflow-y-auto"
+                class="member-status-dialog popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-lg max-h-[calc(100dvh-104px)] md:max-h-[85vh] overflow-y-auto"
             >
-                <div class="flex justify-between items-center mb-3 md:mb-4">
+                <div class="member-status-header flex justify-between items-center mb-3 md:mb-4">
                     <h2 class="popup-title text-lg md:text-2xl font-bold">
                         Member Status
                     </h2>
@@ -2583,7 +3087,7 @@
                 </div>
                 <!-- Filter Tabs — scrollable di mobile -->
                 <div
-                    class="flex gap-2 mb-3 md:mb-4 overflow-x-auto pb-1 -mx-1 px-1"
+                    class="member-status-tabs flex gap-2 mb-3 md:mb-4 overflow-x-auto pb-1 -mx-1 px-1"
                 >
                     <button
                         class="status-filter-tab flex-shrink-0 px-3 py-1.5 rounded-full text-xs md:text-sm bg-blue-500 text-white"
@@ -2622,7 +3126,10 @@
                         Off Duty
                     </button>
                 </div>
-                <div class="space-y-2 md:space-y-3" id="memberList"></div>
+                <div
+                    class="member-status-list space-y-2 md:space-y-3"
+                    id="memberList"
+                ></div>
             </div>
         </div>
 
@@ -2632,9 +3139,9 @@
             id="takeOrderPopup"
         >
             <div
-                class="popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-2xl max-h-[calc(100dvh-104px)] md:max-h-[85vh] overflow-y-auto"
+                class="take-order-dialog popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-2xl max-h-[calc(100dvh-104px)] md:max-h-[85vh] overflow-y-auto"
             >
-                <div class="flex justify-between items-center mb-4 md:mb-6">
+                <div class="take-order-header flex justify-between items-center mb-4 md:mb-6">
                     <h2 class="popup-title text-lg md:text-2xl font-bold">
                         Ambil Work Order
                     </h2>
@@ -2658,7 +3165,7 @@
                         </svg>
                     </button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div class="take-order-grid grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
                         <h3
                             class="text-base md:text-lg font-semibold mb-3 md:mb-4"
@@ -2666,7 +3173,7 @@
                             Detail Order
                         </h3>
                         <div
-                            class="bg-gray-50 p-3 md:p-4 rounded-lg space-y-2 text-sm"
+                            class="take-order-detail bg-gray-50 p-3 md:p-4 rounded-lg space-y-2 text-sm"
                         >
                             <div class="flex justify-between gap-2">
                                 <span class="font-medium text-gray-500"
@@ -2717,7 +3224,7 @@
                             Pilih Operator
                         </h3>
                         <div
-                            class="bg-gray-50 p-3 md:p-4 rounded-lg max-h-48 md:max-h-60 overflow-y-auto"
+                            class="take-order-operators bg-gray-50 p-3 md:p-4 rounded-lg max-h-48 md:max-h-60 overflow-y-auto"
                         >
                             <div
                                 class="space-y-2"
@@ -2725,7 +3232,7 @@
                             ></div>
                         </div>
                         <button
-                            class="mt-3 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 text-sm"
+                            class="take-order-add-helper mt-3 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 text-sm"
                             id="openSelectHelperOperatorModalBtn"
                             aria-label="Tambah Operator Bantuan"
                         >
@@ -2747,16 +3254,16 @@
                         </button>
                     </div>
                 </div>
-                <div class="mt-4 md:mt-6">
+                <div class="take-order-safety mt-4 md:mt-6">
                     <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">
                         Safety Checklist
                     </h3>
                     <div
-                        class="bg-gray-50 p-3 md:p-4 rounded-lg space-y-3"
+                        class="take-order-checklist bg-gray-50 p-3 md:p-4 rounded-lg space-y-3"
                         id="safetyChecklist"
                     ></div>
                 </div>
-                <div class="mt-4 md:mt-6 flex justify-end gap-2 md:gap-3">
+                <div class="take-order-actions mt-4 md:mt-6 flex justify-end gap-2 md:gap-3">
                     <button
                         class="px-4 md:px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm"
                         id="cancelTakeOrderBtn"
@@ -2779,9 +3286,9 @@
             id="selectHelperOperatorModal"
         >
             <div
-                class="popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-md max-h-[calc(100dvh-104px)] md:max-h-[85vh] overflow-y-auto"
+                class="helper-operator-dialog popup-inner bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-md max-h-[calc(100dvh-104px)] md:max-h-[85vh] overflow-y-auto"
             >
-                <div class="flex justify-between items-center mb-4 md:mb-6">
+                <div class="helper-operator-header flex justify-between items-center mb-4 md:mb-6">
                     <h2 class="popup-title text-lg md:text-2xl font-bold">
                         Pilih Operator Bantuan
                     </h2>
@@ -2808,7 +3315,7 @@
                 </div>
                 <div
                     id="availableStandbyOperatorsList"
-                    class="space-y-2 md:space-y-3"
+                    class="helper-operator-list space-y-2 md:space-y-3"
                 ></div>
             </div>
         </div>
@@ -2905,12 +3412,19 @@
                                     <div
                                         class="priority-opt-box flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 border-gray-200 hover:border-green-300 transition-all text-center"
                                     >
-                                        <span
-                                            class="priority-icon-mask text-green-600"
-                                            style="
-                                                --icon: url(&quot;https://api.iconify.design/lucide/signal-low.svg&quot;);
-                                            "
-                                        ></span>
+                                        <svg
+                                            class="priority-icon text-green-600"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                            />
+                                        </svg>
                                         <span
                                             class="text-xs font-600 text-gray-600"
                                             >Low</span
@@ -2928,12 +3442,19 @@
                                     <div
                                         class="priority-opt-box flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 border-gray-200 hover:border-yellow-300 transition-all text-center"
                                     >
-                                        <span
-                                            class="priority-icon-mask text-yellow-600"
-                                            style="
-                                                --icon: url(&quot;https://api.iconify.design/lucide/gauge.svg&quot;);
-                                            "
-                                        ></span>
+                                        <svg
+                                            class="priority-icon text-yellow-600"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+                                            />
+                                        </svg>
                                         <span
                                             class="text-xs font-600 text-gray-600"
                                             >Medium</span
@@ -2950,12 +3471,19 @@
                                     <div
                                         class="priority-opt-box flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 border-gray-200 hover:border-red-300 transition-all text-center"
                                     >
-                                        <span
-                                            class="priority-icon-mask text-red-600"
-                                            style="
-                                                --icon: url(&quot;https://api.iconify.design/lucide/siren.svg&quot;);
-                                            "
-                                        ></span>
+                                        <svg
+                                            class="priority-icon text-red-600"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M12 8v4m0 4h.01M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86L7.86 2Z"
+                                            />
+                                        </svg>
                                         <span
                                             class="text-xs font-600 text-gray-600"
                                             >High</span
@@ -3263,6 +3791,53 @@
             </div>
         </div>
 
+        <!-- EXECUTORS LIST MODAL -->
+        <div
+            class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] flex items-center justify-center p-3 sm:p-4"
+            id="executorsModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="executorsModalTitle"
+        >
+            <div
+                class="executors-modal-panel bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[calc(100vh-1.5rem)] overflow-hidden"
+            >
+                <div
+                    class="executors-modal-header px-4 py-4 flex items-center justify-between border-b border-gray-100"
+                >
+                    <h3
+                        id="executorsModalTitle"
+                        class="font-bold text-gray-900 text-base"
+                    >
+                        Pelaksana Work Order
+                    </h3>
+                    <button
+                        id="closeExecutorsModal"
+                        class="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all"
+                        aria-label="Tutup daftar pelaksana"
+                    >
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                </div>
+                <div
+                    class="executors-modal-list px-4 py-4 space-y-2"
+                    id="executorsModalList"
+                ></div>
+            </div>
+        </div>
+
         <!-- OPERATOR PROFILE MODAL (dari search bar) -->
         <div
             class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] flex items-center justify-center p-3 sm:p-4"
@@ -3361,6 +3936,51 @@
                 <h2 class="text-lg md:text-2xl font-semibold mb-3 md:mb-4">
                     Work Orders
                 </h2>
+
+                <div
+                    class="work-order-status-tabs"
+                    aria-label="Kategori status work order"
+                >
+                    <button
+                        type="button"
+                        class="work-order-status-tab active"
+                        data-work-order-status="pending"
+                    >
+                        <span class="status-dot status-dot-pending"></span>
+                        Pending
+                        <span
+                            class="work-order-status-count"
+                            id="categoryPendingCount"
+                            >0</span
+                        >
+                    </button>
+                    <button
+                        type="button"
+                        class="work-order-status-tab"
+                        data-work-order-status="progress"
+                    >
+                        <span class="status-dot status-dot-progress"></span>
+                        On Progress
+                        <span
+                            class="work-order-status-count"
+                            id="categoryProgressCount"
+                            >0</span
+                        >
+                    </button>
+                    <button
+                        type="button"
+                        class="work-order-status-tab"
+                        data-work-order-status="completed"
+                    >
+                        <span class="status-dot status-dot-completed"></span>
+                        Completed
+                        <span
+                            class="work-order-status-count"
+                            id="categoryCompletedCount"
+                            >0</span
+                        >
+                    </button>
+                </div>
 
                 <!-- Desktop table — hidden di mobile -->
                 <div
@@ -3776,13 +4396,19 @@
         </script>
         <!-- Harus didefinisikan SEBELUM script.js agar tersedia saat populateWorkOrdersTable dipanggil -->
         <script>
-            window.renderMobileCards = function (orders, members) {
+            window.renderMobileCards = function (orders, members, activeStatus) {
                 const cardBody = document.getElementById("workOrdersCardBody");
                 if (!cardBody) return;
 
                 if (!orders || orders.length === 0) {
+                    const statusText =
+                        {
+                            pending: "pending",
+                            progress: "on progress",
+                            completed: "completed",
+                        }[activeStatus] || "";
                     cardBody.innerHTML =
-                        '<p class="text-center text-gray-400 py-8 text-sm">Belum ada work order</p>';
+                        `<p class="text-center text-gray-400 py-8 text-sm">Belum ada work order ${statusText}.</p>`;
                     return;
                 }
 
@@ -3922,15 +4548,16 @@
                     const execs = order.executors || [];
                     if (!execs.length || !members || !members.length)
                         return '<span class="text-gray-400">-</span>';
-                    let html = '<div class="flex -space-x-1">';
-                    execs.forEach((execId) => {
+                    const executorIds = execs.map(Number);
+                    let html = `<button type="button" class="executors-profile-btn flex -space-x-1" data-member-ids="${executorIds.join(",")}" title="Lihat pelaksana">`;
+                    executorIds.forEach((execId) => {
                         const m = members.find(
                             (m) => m.id === execId || m.id === parseInt(execId),
                         );
                         if (m)
-                            html += `<img src="/static/public/${m.avatar}" alt="${m.name}" title="${m.name}" class="member-avatar-small w-6 h-6">`;
+                            html += `<img src="/static/public/${m.avatar}" alt="${m.name}" class="member-avatar-small w-6 h-6">`;
                     });
-                    return html + "</div>";
+                    return html + "</button>";
                 }
 
                 // action buttons — logika sama persis dengan desktop
