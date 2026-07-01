@@ -1,235 +1,983 @@
 <!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TechGuide - Work Instructions</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="/static/assets/style.css" rel="stylesheet" />
-  <style>
-    body { font-family: 'Poppins', sans-serif; }
-    .guide-content-item { animation: fadeIn 0.3s ease-in; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>TechGuide - Work Instructions</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
+        <link href="/static/assets/style.css" rel="stylesheet" />
+        <script>
+            (function () {
+                try {
+                    var theme =
+                        localStorage.getItem("woTheme") ||
+                        localStorage.getItem("theme") ||
+                        "light";
+                    document.documentElement.setAttribute("data-theme", theme);
+                } catch (e) {}
+            })();
+        </script>
+        <style>
+            :root {
+                --guide-ink: #0f172a;
+                --guide-muted: #64748b;
+                --guide-line: rgba(148, 163, 184, 0.22);
+                --guide-card: rgba(255, 255, 255, 0.92);
+                --guide-blue: #2563eb;
+                --guide-blue-soft: #eff6ff;
+                --guide-shadow: 0 16px 44px rgba(15, 23, 42, 0.08);
+                --guide-shadow-soft: 0 10px 28px rgba(15, 23, 42, 0.06);
+            }
 
-    /* Step card accent */
-    .step-card {
-      background: #fff;
-      border-left: 4px solid #3b82f6;
-      border-radius: 0 0.75rem 0.75rem 0;
-      padding: 1rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      transition: box-shadow 0.2s;
-    }
-    .step-card:hover { box-shadow: 0 4px 12px rgba(59,130,246,0.12); }
+            html[data-theme="dark"] {
+                --guide-ink: #f1f5f9;
+                --guide-muted: #94a3b8;
+                --guide-line: rgba(71, 85, 105, 0.72);
+                --guide-card: rgba(15, 23, 42, 0.92);
+                --guide-blue: #60a5fa;
+                --guide-blue-soft: rgba(59, 130, 246, 0.12);
+                --guide-shadow: 0 16px 44px rgba(0, 0, 0, 0.24);
+                --guide-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.2);
+            }
 
-    /* Device selector pills on mobile */
-    .device-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.4rem 0.85rem;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      font-weight: 500;
-      background: #f1f5f9;
-      color: #475569;
-      border: 1.5px solid transparent;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .device-pill:hover { background: #e2e8f0; }
-    .device-pill.active {
-      background: rgba(59,130,246,0.12);
-      color: #1d4ed8;
-      border-color: rgba(59,130,246,0.4);
-    }
-  </style>
-</head>
-<body class="bg-[#f3f4f6]">
+            * {
+                -webkit-tap-highlight-color: transparent;
+            }
+            html {
+                scroll-behavior: smooth;
+            }
 
-  <!-- NAVBAR -->
-  <nav style="background:linear-gradient(to right,#0f172a,#1e293b);border-bottom:1px solid rgba(255,255,255,0.07);"
-    class="sticky top-0 z-40 w-full px-4 md:px-6 py-3 shadow-2xl flex items-center justify-between">
-    <a href="/index.html" class="flex items-center gap-2 text-white hover:text-blue-300 transition-colors min-h-[44px]">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-      </svg>
-      <span class="text-sm font-medium">Kembali</span>
-    </a>
-    <h1 class="text-white text-base sm:text-lg font-bold absolute left-1/2 -translate-x-1/2 whitespace-nowrap">TechGuide</h1>
-    <div class="w-16"></div>
-  </nav>
+            body {
+                font-family: "Poppins", sans-serif;
+                color: var(--guide-ink);
+                background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+                min-height: 100dvh;
+            }
 
-  <!-- MAIN CONTENT -->
-  <main class="px-4 md:px-10 py-6 md:py-8 max-w-4xl mx-auto">
+            html[data-theme="dark"] body {
+                background: linear-gradient(180deg, #020617 0%, #0b1120 100%);
+            }
 
-    <!-- Device selector: dropdown on mobile, hidden select replaced by pill scroller -->
-    <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6 mb-4 md:mb-6">
-      <label class="block text-sm md:text-lg font-semibold text-gray-800 mb-3" for="techGuideDeviceSelect">
-        Pilih Perangkat
-      </label>
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                z-index: -1;
+                pointer-events: none;
+                background-image:
+                    linear-gradient(
+                        rgba(100, 116, 139, 0.08) 1px,
+                        transparent 1px
+                    ),
+                    linear-gradient(
+                        90deg,
+                        rgba(100, 116, 139, 0.08) 1px,
+                        transparent 1px
+                    );
+                background-size: 44px 44px;
+                mask-image: linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.68),
+                    transparent 72%
+                );
+            }
 
-      <!-- Native select (always visible, good UX on all devices) -->
-      <select id="techGuideDeviceSelect"
-        class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors text-sm md:text-base bg-gray-50 font-medium text-gray-700">
-        <option value="Server cloud">🖥️ Server Cloud</option>
-        <option value="Upgrading PC">⬆️ Upgrading PC</option>
-        <option value="Troubleshooting Windows">🪟 Troubleshooting Windows</option>
-        <option value="Troubleshooting CCTV">📷 Troubleshooting CCTV</option>
-        <option value="Cleaning PC/Laptop">🧹 Cleaning PC/Laptop</option>
-        <option value="Printer">🖨️ Printer</option>
-        <option value="Kabel LAN">🔌 Kabel LAN</option>
-      </select>
+            .guide-nav {
+                background: rgba(2, 6, 23, 0.9);
+                border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+                box-shadow: 0 10px 26px rgba(2, 6, 23, 0.14);
+                backdrop-filter: blur(20px);
+            }
 
-      <!-- Quick-pick pill strip (scrollable on mobile) -->
-      <div class="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-        <button class="device-pill active" data-device="Server cloud">Server Cloud</button>
-        <button class="device-pill" data-device="Upgrading PC">Upgrading PC</button>
-        <button class="device-pill" data-device="Troubleshooting Windows">Windows</button>
-        <button class="device-pill" data-device="Troubleshooting CCTV">CCTV</button>
-        <button class="device-pill" data-device="Cleaning PC/Laptop">Cleaning</button>
-        <button class="device-pill" data-device="Printer">Printer</button>
-        <button class="device-pill" data-device="Kabel LAN">LAN</button>
-      </div>
-    </div>
+            .glass-card {
+                background: var(--guide-card);
+                border: 1px solid rgba(226, 232, 240, 0.9);
+                border-radius: 1.1rem;
+                box-shadow: var(--guide-shadow-soft);
+            }
 
-    <!-- Guide content -->
-    <div id="techGuideContent" class="flex flex-col gap-3 md:gap-4"></div>
-  </main>
+            .guide-hero {
+                position: relative;
+                overflow: hidden;
+                background: linear-gradient(135deg, #020617 0%, #111827 100%);
+                border: 1px solid rgba(148, 163, 184, 0.22);
+                box-shadow: var(--guide-shadow);
+            }
 
-  <script>
-    const techGuides = {
-      'Server cloud': {
-        title: 'Server Cloud — Instruksi Kerja',
-        steps: [
-          { step: 1, title: 'Server Startup', content: 'Pastikan server terhubung ke sumber daya listrik dan jaringan. Nyalakan server dengan menekan tombol power di casing server.' },
-          { step: 2, title: 'Cek Status Sistem', content: 'Masuk menggunakan kredensial admin. Ketik btop untuk memverifikasi penggunaan CPU normal (di bawah 80%) dan penggunaan RAM yang wajar.' },
-          { step: 3, title: 'Network Connectivity', content: 'Verifikasi konektivitas jaringan dengan cara ping ke gateway atau ke DNS Google (8.8.8.8). Periksa bahwa semua interface jaringan aktif (ethernet, zerotier) dan menunjukkan status hijau di Network Manager.' },
-          { step: 4, title: 'Service Verification', content: 'Restart semua critical service (SQL, Apache2, dll.) menggunakan systemctl. Verifikasi setiap layanan berhasil dijalankan dengan memeriksa statusnya.' },
-          { step: 5, title: 'Backup Check', content: 'Verifikasi backup terbaru yang telah selesai. Cek backup log untuk memastikan tidak ada error selama proses backup.' },
-        ],
-      },
-      'Upgrading PC': {
-        title: 'Upgrading PC — Instruksi Kerja',
-        steps: [
-          { step: 1, title: 'Persiapan Pre-Upgrade', content: 'Backup semua data penting ke penyimpanan eksternal. Buat system restore point. Pastikan ruang disk yang cukup tersedia (minimal 20GB).' },
-          { step: 2, title: 'Check Hardware Compatibility', content: 'Verifikasi semua komponen hardware kompatibel dengan versi OS baru. Periksa situs web produsen untuk ketersediaan driver.' },
-          { step: 3, title: 'Disable Antivirus', content: 'Nonaktifkan sementara software antivirus selama proses upgrade untuk mencegah konflik. Aktifkan kembali segera setelah upgrade selesai.' },
-          { step: 4, title: 'Run Upgrade Process', content: 'Download versi terbaru dari sumber resmi. Jalankan installer upgrade dan ikuti semua petunjuk. Jangan hentikan proses.' },
-          { step: 5, title: 'Post-Upgrade Verification', content: 'Verifikasi sistem booting dengan normal dan semua aplikasi critical berjalan.' },
-        ],
-      },
-      'Troubleshooting Windows': {
-        title: 'Troubleshooting Windows — Instruksi Kerja',
-        steps: [
-          { step: 1, title: 'System Diagnostics', content: 'Jalankan Windows Disk Check (chkdsk) untuk mengidentifikasi kesalahan sistem file. Periksa Event Viewer untuk kesalahan dan peringatan kritis.' },
-          { step: 2, title: 'Memory Test', content: 'Jalankan Windows Memory Diagnostic untuk menguji integritas RAM. Restart sistem dan biarkan siklus pengujian selesai (biasanya memakan waktu lebih dari 30 menit).' },
-          { step: 3, title: 'Update & Drivers', content: 'Install driver terbaru dari Windows Update atau situs web produsen. Pastikan semua update Windows telah diinstal.' },
-          { step: 4, title: 'Malware Scan', content: 'Jalankan full system scan dengan Windows Defender. Jika belum cukup, gunakan software tambahan seperti Malwarebytes dalam Safe Mode.' },
-          { step: 5, title: 'System Cleanup', content: 'Bersihkan temporary file menggunakan Disk Cleanup. Nonaktifkan startup program yang tidak perlu.' },
-        ],
-      },
-      'Troubleshooting CCTV': {
-        title: 'Troubleshooting CCTV — Instruksi Kerja',
-        steps: [
-          { step: 1, title: 'Check Physical Connections', content: 'Periksa semua kabel terhubung dengan kuat. Periksa kerusakan terlihat pada kabel dan konektor BNC.' },
-          { step: 2, title: 'Camera Status', content: 'Cek kamera dari monitor. Akses IVMS menggunakan IP address. Verifikasi kamera menerima input video.' },
-          { step: 3, title: 'Network Configuration', content: 'Ping alamat IP kamera untuk memverifikasi konektivitas jaringan. Periksa server DHCP untuk IP kamera. Verifikasi port switch jaringan.' },
-          { step: 4, title: 'DVR/NVR Check', content: 'Restart sistem DVR/NVR. Verifikasi semua saluran kamera menunjukkan status "Online". Periksa pengaturan perekaman dan ruang penyimpanan.' },
-          { step: 5, title: 'Firmware & Software', content: 'Periksa pembaruan firmware yang tersedia untuk kamera dan DVR/NVR. Perbarui jika tersedia. Tinjau log sistem untuk pesan kesalahan.' },
-        ],
-      },
-      'Cleaning PC/Laptop': {
-        title: 'Cleaning PC/Laptop — Instruksi Kerja',
-        steps: [
-          { step: 1, title: 'Power Down & Unplug', content: 'Matikan PC/Laptop dan cabut semua kabel daya dan periferal. Biarkan perangkat dingin selama beberapa menit sebelum membersihkan.' },
-          { step: 2, title: 'External Cleaning', content: 'Gunakan kain microfiber yang sedikit dibasahi dengan air atau pembersih layar khusus untuk membersihkan layar. Bersihkan casing luar dengan kain lembab.' },
-          { step: 3, title: 'Keyboard & Ports', content: 'Gunakan kaleng udara bertekanan untuk meniup debu dari keyboard dan port. Gunakan cotton bud yang sedikit dibasahi alkohol isopropil untuk membersihkan sela-sela keyboard.' },
-          { step: 4, title: 'Internal Cleaning', content: 'Buka casing PC/Laptop sesuai petunjuk produsen. Gunakan contact cleaner untuk membersihkan debu dari komponen internal seperti kipas, heatsink, dan motherboard. Pastikan baterai tercabut.' },
-          { step: 5, title: 'Reassemble & Test', content: 'Pasang kembali casing dengan hati-hati. Sambungkan kembali semua kabel. Nyalakan perangkat dan pastikan semuanya berfungsi dengan baik.' },
-        ],
-      },
-      'Printer': {
-        title: 'Printer — Instruksi Kerja',
-        steps: [
-          { step: 1, title: 'Check Connections', content: 'Pastikan printer terhubung ke sumber daya listrik dan komputer. Periksa kabel USB atau koneksi jaringan.' },
-          { step: 2, title: 'Paper Jam', content: 'Buka penutup printer dan periksa adanya kertas yang macet. Angkat kertas dengan hati-hati untuk menghindari kerusakan.' },
-          { step: 3, title: 'Ink/Toner Levels', content: 'Periksa level tinta atau toner. Ganti cartridge jika levelnya rendah atau habis.' },
-          { step: 4, title: 'Print Test Page', content: 'Cetak halaman uji untuk memverifikasi kualitas cetak. Periksa apakah ada garis atau noda pada hasil cetakan.' },
-          { step: 5, title: 'Driver Update', content: 'Perbarui driver printer dari situs web produsen. Pastikan kompatibilitas dengan sistem operasi yang digunakan.' },
-        ],
-      },
-      'Kabel LAN': {
-        title: 'Kabel LAN — Instruksi Kerja',
-        steps: [
-          { step: 1, title: 'Physical Inspection', content: 'Periksa kabel LAN untuk kerusakan fisik seperti sobekan, tekukan tajam, atau konektor RJ-45 yang longgar. Ganti kabel jika ditemukan kerusakan yang tidak dapat diperbaiki.' },
-          { step: 2, title: 'Connection Check', content: 'Pastikan kedua ujung kabel terhubung dengan baik ke perangkat (komputer, switch, router). Dengarkan bunyi "klik" saat konektor masuk ke port, dan pastikan clip pengunci tidak patah.' },
-          { step: 3, title: 'Network Test', content: 'Gunakan LAN tester untuk memeriksa sambungan semua 8 pin (wire map test). Jika ada pin yang tidak terhubung, kabel perlu di-crimp ulang atau diganti. Jika tidak ada LAN tester, lakukan ping ke gateway untuk verifikasi konektivitas dasar.' },
-          { step: 4, title: 'Replace if Necessary', content: 'Jika kabel rusak atau tidak berfungsi setelah pengujian, ganti dengan kabel baru yang sesuai spesifikasi (Cat5e untuk 1 Gbps, Cat6 untuk 10 Gbps). Pastikan panjang kabel tidak melebihi 100 meter per segmen.' },
-          { step: 5, title: 'Verify Connectivity', content: 'Setelah penggantian, verifikasi konektivitas jaringan dengan melakukan ping ke gateway dan ke server lokal. Periksa kecepatan koneksi menggunakan speed test internal jika tersedia.' },
-        ],
-      },
-    };
+            .guide-hero::after {
+                content: none;
+            }
 
-    function renderTechGuide(device) {
-      const guide = techGuides[device];
-      const contentDiv = document.getElementById('techGuideContent');
-      if (!guide) {
-        contentDiv.innerHTML = '<p class="text-gray-500 text-sm">Panduan tidak tersedia untuk perangkat ini.</p>';
-        return;
-      }
-      // Header card
-      let html = `
-        <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-              </svg>
+            .hero-grid {
+                position: absolute;
+                inset: 0;
+                opacity: 0.055;
+                background-image:
+                    linear-gradient(
+                        rgba(255, 255, 255, 0.6) 1px,
+                        transparent 1px
+                    ),
+                    linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0.6) 1px,
+                        transparent 1px
+                    );
+                background-size: 44px 44px;
+                pointer-events: none;
+            }
+
+            .icon-mask {
+                display: inline-block;
+                width: 1.05rem;
+                height: 1.05rem;
+                flex: 0 0 auto;
+                background: currentColor;
+                -webkit-mask: var(--icon) center / contain no-repeat;
+                mask: var(--icon) center / contain no-repeat;
+            }
+
+            .device-pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.45rem;
+                padding: 0.65rem 0.95rem;
+                border-radius: 999px;
+                font-size: 0.78rem;
+                font-weight: 700;
+                background: #f8fafc;
+                color: #475569;
+                border: 1px solid rgba(203, 213, 225, 0.9);
+                cursor: pointer;
+                transition:
+                    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+                    background 0.18s,
+                    color 0.18s,
+                    border-color 0.18s,
+                    box-shadow 0.18s;
+                white-space: nowrap;
+            }
+
+            .device-pill:hover {
+                transform: translateY(-1px);
+                background: #fff;
+                border-color: rgba(96, 165, 250, 0.48);
+                box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+            }
+
+            .device-pill.active {
+                color: #fff;
+                border-color: #1d4ed8;
+                background: #2563eb;
+                box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
+            }
+
+            .guide-select {
+                background: rgba(248, 250, 252, 0.9);
+                border: 1px solid rgba(203, 213, 225, 0.95);
+                border-radius: 0.9rem;
+                min-height: 52px;
+                outline: none;
+                transition:
+                    border-color 0.18s,
+                    box-shadow 0.18s,
+                    background 0.18s;
+            }
+
+            .guide-select:focus {
+                background: #fff;
+                border-color: #93c5fd;
+                box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            }
+
+            .guide-content-item {
+                animation: fadeUp 0.34s ease both;
+            }
+
+            @keyframes fadeUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(12px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .guide-summary-card {
+                position: relative;
+                overflow: hidden;
+                background: linear-gradient(
+                    180deg,
+                    rgba(255, 255, 255, 0.92),
+                    rgba(248, 250, 252, 0.9)
+                );
+                border: 1px solid rgba(226, 232, 240, 0.86);
+                border-radius: 1.1rem;
+                box-shadow: var(--guide-shadow-soft);
+            }
+
+            html[data-theme="dark"] .guide-summary-card {
+                background: rgba(15, 23, 42, 0.92);
+                border-color: var(--guide-line);
+            }
+
+            .step-card {
+                position: relative;
+                overflow: hidden;
+                background: rgba(255, 255, 255, 0.92);
+                border: 1px solid rgba(226, 232, 240, 0.86);
+                border-radius: 1rem;
+                padding: 1rem;
+                box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+                transition:
+                    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+                    box-shadow 0.18s,
+                    border-color 0.18s;
+            }
+
+            .step-card::before {
+                content: "";
+                position: absolute;
+                inset: 0 auto 0 0;
+                width: 4px;
+                background: #2563eb;
+            }
+
+            .step-card:hover {
+                transform: translateY(-2px);
+                border-color: rgba(96, 165, 250, 0.52);
+                box-shadow: 0 16px 38px rgba(15, 23, 42, 0.09);
+            }
+
+            html[data-theme="dark"] .glass-card {
+                background: rgba(15, 23, 42, 0.92) !important;
+                border-color: rgba(71, 85, 105, 0.76) !important;
+                box-shadow: 0 12px 34px rgba(0, 0, 0, 0.2) !important;
+            }
+
+            html[data-theme="dark"] .device-pill {
+                background: rgba(15, 23, 42, 0.92) !important;
+                color: #cbd5e1 !important;
+                border-color: rgba(71, 85, 105, 0.84) !important;
+                box-shadow: none !important;
+            }
+
+            html[data-theme="dark"] .device-pill:hover {
+                background: rgba(51, 65, 85, 0.94) !important;
+                color: #f8fafc !important;
+                border-color: rgba(96, 165, 250, 0.68) !important;
+            }
+
+            html[data-theme="dark"] .device-pill.active {
+                color: #ffffff !important;
+                border-color: #2563eb !important;
+                background: #1d4ed8 !important;
+                box-shadow: 0 10px 24px rgba(37, 99, 235, 0.14) !important;
+            }
+
+            html[data-theme="dark"] .guide-select {
+                background: rgba(15, 23, 42, 0.95) !important;
+                color: #e2e8f0 !important;
+                border-color: rgba(71, 85, 105, 0.9) !important;
+            }
+
+            html[data-theme="dark"] .guide-select:focus {
+                background: rgba(15, 23, 42, 1) !important;
+                border-color: rgba(96, 165, 250, 0.8) !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18) !important;
+            }
+
+            html[data-theme="dark"] .step-card {
+                background: rgba(15, 23, 42, 0.94) !important;
+                border-color: rgba(71, 85, 105, 0.78) !important;
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+                    0 10px 26px rgba(0, 0, 0, 0.18) !important;
+            }
+
+            html[data-theme="dark"] .step-card:hover {
+                border-color: rgba(96, 165, 250, 0.5) !important;
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+                    0 16px 38px rgba(0, 0, 0, 0.24) !important;
+            }
+
+            html[data-theme="dark"] .step-card .bg-blue-50 {
+                background-color: rgba(59, 130, 246, 0.16) !important;
+            }
+
+            html[data-theme="dark"] .guide-summary-card .bg-slate-50 {
+                background-color: rgba(15, 23, 42, 0.92) !important;
+                border-color: rgba(71, 85, 105, 0.78) !important;
+            }
+
+            html[data-theme="dark"] .guide-summary-card .bg-blue-50\/70 {
+                background-color: rgba(37, 99, 235, 0.14) !important;
+                border-color: rgba(96, 165, 250, 0.3) !important;
+            }
+
+            html[data-theme="dark"] .glass-card .text-slate-900,
+            html[data-theme="dark"] .guide-summary-card .text-slate-900,
+            html[data-theme="dark"] .step-card .text-slate-900 {
+                color: #f8fafc !important;
+            }
+
+            html[data-theme="dark"] .glass-card .text-slate-700,
+            html[data-theme="dark"] .glass-card .text-slate-600,
+            html[data-theme="dark"] .guide-summary-card .text-slate-600,
+            html[data-theme="dark"] .step-card .text-slate-600 {
+                color: #cbd5e1 !important;
+            }
+
+            html[data-theme="dark"] .glass-card .text-slate-500,
+            html[data-theme="dark"] .guide-summary-card .text-slate-500 {
+                color: #94a3b8 !important;
+            }
+
+            html[data-theme="dark"] .glass-card .text-blue-600,
+            html[data-theme="dark"] .guide-summary-card .text-blue-600 {
+                color: #60a5fa !important;
+            }
+
+            html[data-theme="dark"] .guide-summary-card .text-blue-700,
+            html[data-theme="dark"] .step-card .text-blue-700 {
+                color: #93c5fd !important;
+            }
+
+            .guide-brand-icon,
+            .guide-device-icon {
+                background: #2563eb !important;
+                box-shadow: none !important;
+            }
+
+            html[data-theme="dark"] .guide-brand-icon,
+            html[data-theme="dark"] .guide-device-icon {
+                background: #1d4ed8 !important;
+                border: 1px solid rgba(96, 165, 250, 0.35);
+            }
+
+            .summary-icon {
+                display: inline-block;
+                width: 1.8rem;
+                height: 1.8rem;
+                background: currentColor;
+                -webkit-mask: var(--icon) center / contain no-repeat;
+                mask: var(--icon) center / contain no-repeat;
+            }
+
+            .step-number {
+                display: inline-flex;
+                width: 2.35rem;
+                height: 2.35rem;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 auto;
+                border-radius: 0.95rem;
+                color: #fff;
+                font-size: 0.78rem;
+                font-weight: 800;
+                background: #1d4ed8;
+                box-shadow: none;
+            }
+
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+
+            @media (max-width: 767px) {
+                button,
+                a,
+                select {
+                    min-height: 44px;
+                }
+                select {
+                    font-size: 16px !important;
+                }
+                .glass-card,
+                .guide-summary-card,
+                .step-card {
+                    border-radius: 1rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <nav class="guide-nav sticky top-0 z-40 w-full px-4 md:px-6 py-3">
+            <div
+                class="mx-auto flex max-w-6xl items-center justify-between gap-3"
+            >
+                <a
+                    href="/index.html"
+                    class="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 text-sm font-semibold text-slate-100 no-underline transition hover:bg-white/10 hover:text-sky-200"
+                >
+                    <svg
+                        class="h-4 w-4 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                        ></path>
+                    </svg>
+                    Kembali
+                </a>
+                <div class="flex items-center gap-2 text-white">
+                    <span
+                        class="guide-brand-icon inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-blue-600 text-white"
+                    >
+                        <span
+                            class="icon-mask"
+                            style="
+                                --icon: url(&quot;https://api.iconify.design/lucide/book-open-check.svg&quot;);
+                            "
+                        ></span>
+                    </span>
+                    <div class="leading-tight">
+                        <p class="text-sm font-bold">TechGuide</p>
+                        <p
+                            class="hidden text-[11px] font-medium text-slate-400 sm:block"
+                        >
+                            Work Instructions
+                        </p>
+                    </div>
+                </div>
+                <div class="w-[86px]"></div>
             </div>
-            <div>
-              <h2 class="text-base md:text-xl font-bold text-gray-800">${guide.title}</h2>
-              <p class="text-xs md:text-sm text-gray-500">${guide.steps.length} langkah</p>
+        </nav>
+
+        <main class="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
+            <section
+                class="guide-hero mb-5 rounded-[1.6rem] p-5 text-white md:mb-7 md:p-8"
+            >
+                <div class="hero-grid"></div>
+                <div
+                    class="relative z-10 grid gap-6 md:grid-cols-[minmax(0,1fr)_280px] md:items-end"
+                >
+                    <div>
+                        <div
+                            class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-sky-100 backdrop-blur-md"
+                        >
+                            SOP Knowledge Base
+                        </div>
+                        <h1
+                            class="max-w-3xl text-3xl font-extrabold tracking-[-0.05em] text-white sm:text-4xl md:text-5xl"
+                        >
+                            Instruksi kerja teknis yang rapi, cepat, dan siap
+                            dieksekusi.
+                        </h1>
+                        <p
+                            class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"
+                        >
+                            Pilih perangkat, ikuti langkah terstruktur, dan
+                            gunakan checklist ini sebagai panduan standar untuk
+                            pekerjaan IT MIVHS.
+                        </p>
+                    </div>
+                    <div
+                        class="grid grid-cols-2 gap-3 rounded-3xl border border-white/12 bg-white/8 p-3 backdrop-blur-md"
+                    >
+                        <div class="rounded-2xl bg-white/10 p-3">
+                            <p
+                                class="text-2xl font-extrabold"
+                                id="heroDeviceCount"
+                            >
+                                7
+                            </p>
+                            <p class="text-xs text-slate-300">Kategori</p>
+                        </div>
+                        <div class="rounded-2xl bg-white/10 p-3">
+                            <p
+                                class="text-2xl font-extrabold"
+                                id="heroStepCount"
+                            >
+                                5
+                            </p>
+                            <p class="text-xs text-slate-300">Langkah aktif</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-card mb-5 p-4 md:mb-7 md:p-5">
+                <div
+                    class="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between"
+                >
+                    <div>
+                        <p
+                            class="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-600"
+                        >
+                            Device Selector
+                        </p>
+                        <h2
+                            class="mt-1 text-xl font-bold tracking-[-0.04em] text-slate-900"
+                        >
+                            Pilih Perangkat
+                        </h2>
+                    </div>
+                    <p class="max-w-xl text-sm leading-6 text-slate-500">
+                        Gunakan dropdown untuk presisi atau quick-pick untuk
+                        berpindah antar SOP lebih cepat.
+                    </p>
+                </div>
+
+                <select
+                    id="techGuideDeviceSelect"
+                    class="guide-select w-full px-4 text-sm font-semibold text-slate-700 md:text-base"
+                >
+                    <option value="Server cloud">Server Cloud</option>
+                    <option value="Upgrading PC">Upgrading PC</option>
+                    <option value="Troubleshooting Windows">
+                        Troubleshooting Windows
+                    </option>
+                    <option value="Troubleshooting CCTV">
+                        Troubleshooting CCTV
+                    </option>
+                    <option value="Cleaning PC/Laptop">
+                        Cleaning PC/Laptop
+                    </option>
+                    <option value="Printer">Printer</option>
+                    <option value="Kabel LAN">Kabel LAN</option>
+                </select>
+
+                <div
+                    class="scrollbar-hide mt-4 flex gap-2 overflow-x-auto pb-1"
+                >
+                    <button
+                        class="device-pill active"
+                        data-device="Server cloud"
+                    >
+                        <span
+                            class="icon-mask"
+                            style="
+                                --icon: url(&quot;https://api.iconify.design/lucide/server.svg&quot;);
+                            "
+                        ></span
+                        >Server Cloud
+                    </button>
+                    <button class="device-pill" data-device="Upgrading PC">
+                        <span
+                            class="icon-mask"
+                            style="
+                                --icon: url(&quot;https://api.iconify.design/lucide/arrow-up-from-line.svg&quot;);
+                            "
+                        ></span
+                        >Upgrade PC
+                    </button>
+                    <button
+                        class="device-pill"
+                        data-device="Troubleshooting Windows"
+                    >
+                        <span
+                            class="icon-mask"
+                            style="
+                                --icon: url(&quot;https://api.iconify.design/lucide/monitor-cog.svg&quot;);
+                            "
+                        ></span
+                        >Windows
+                    </button>
+                    <button
+                        class="device-pill"
+                        data-device="Troubleshooting CCTV"
+                    >
+                        <span
+                            class="icon-mask"
+                            style="
+                                --icon: url(&quot;https://api.iconify.design/lucide/cctv.svg&quot;);
+                            "
+                        ></span
+                        >CCTV
+                    </button>
+                    <button
+                        class="device-pill"
+                        data-device="Cleaning PC/Laptop"
+                    >
+                        <span
+                            class="icon-mask"
+                            style="
+                                --icon: url(&quot;https://api.iconify.design/lucide/sparkles.svg&quot;);
+                            "
+                        ></span
+                        >Cleaning
+                    </button>
+                    <button class="device-pill" data-device="Printer">
+                        <span
+                            class="icon-mask"
+                            style="
+                                --icon: url(&quot;https://api.iconify.design/lucide/printer.svg&quot;);
+                            "
+                        ></span
+                        >Printer
+                    </button>
+                    <button class="device-pill" data-device="Kabel LAN">
+                        <span
+                            class="icon-mask"
+                            style="
+                                --icon: url(&quot;https://api.iconify.design/lucide/ethernet-port.svg&quot;);
+                            "
+                        ></span
+                        >LAN
+                    </button>
+                </div>
+            </section>
+
+            <section
+                id="techGuideContent"
+                class="grid gap-4 lg:grid-cols-[330px_minmax(0,1fr)]"
+            ></section>
+        </main>
+
+        <script>
+            const techGuides = {
+                "Server cloud": {
+                    icon: "https://api.iconify.design/lucide/server.svg",
+                    title: "Server Cloud — Instruksi Kerja",
+                    steps: [
+                        {
+                            step: 1,
+                            title: "Server Startup",
+                            content:
+                                "Pastikan server terhubung ke sumber daya listrik dan jaringan. Nyalakan server dengan menekan tombol power di casing server.",
+                        },
+                        {
+                            step: 2,
+                            title: "Cek Status Sistem",
+                            content:
+                                "Masuk menggunakan kredensial admin. Ketik btop untuk memverifikasi penggunaan CPU normal (di bawah 80%) dan penggunaan RAM yang wajar.",
+                        },
+                        {
+                            step: 3,
+                            title: "Network Connectivity",
+                            content:
+                                "Verifikasi konektivitas jaringan dengan cara ping ke gateway atau ke DNS Google (8.8.8.8). Periksa bahwa semua interface jaringan aktif (ethernet, zerotier) dan menunjukkan status hijau di Network Manager.",
+                        },
+                        {
+                            step: 4,
+                            title: "Service Verification",
+                            content:
+                                "Restart semua critical service (SQL, Apache2, dll.) menggunakan systemctl. Verifikasi setiap layanan berhasil dijalankan dengan memeriksa statusnya.",
+                        },
+                        {
+                            step: 5,
+                            title: "Backup Check",
+                            content:
+                                "Verifikasi backup terbaru yang telah selesai. Cek backup log untuk memastikan tidak ada error selama proses backup.",
+                        },
+                    ],
+                },
+                "Upgrading PC": {
+                    icon: "https://api.iconify.design/lucide/arrow-up-from-line.svg",
+                    title: "Upgrading PC — Instruksi Kerja",
+                    steps: [
+                        {
+                            step: 1,
+                            title: "Persiapan Pre-Upgrade",
+                            content:
+                                "Backup semua data penting ke penyimpanan eksternal. Buat system restore point. Pastikan ruang disk yang cukup tersedia (minimal 20GB).",
+                        },
+                        {
+                            step: 2,
+                            title: "Check Hardware Compatibility",
+                            content:
+                                "Verifikasi semua komponen hardware kompatibel dengan versi OS baru. Periksa situs web produsen untuk ketersediaan driver.",
+                        },
+                        {
+                            step: 3,
+                            title: "Disable Antivirus",
+                            content:
+                                "Nonaktifkan sementara software antivirus selama proses upgrade untuk mencegah konflik. Aktifkan kembali segera setelah upgrade selesai.",
+                        },
+                        {
+                            step: 4,
+                            title: "Run Upgrade Process",
+                            content:
+                                "Download versi terbaru dari sumber resmi. Jalankan installer upgrade dan ikuti semua petunjuk. Jangan hentikan proses.",
+                        },
+                        {
+                            step: 5,
+                            title: "Post-Upgrade Verification",
+                            content:
+                                "Verifikasi sistem booting dengan normal dan semua aplikasi critical berjalan.",
+                        },
+                    ],
+                },
+                "Troubleshooting Windows": {
+                    icon: "https://api.iconify.design/lucide/monitor-cog.svg",
+                    title: "Troubleshooting Windows — Instruksi Kerja",
+                    steps: [
+                        {
+                            step: 1,
+                            title: "System Diagnostics",
+                            content:
+                                "Jalankan Windows Disk Check (chkdsk) untuk mengidentifikasi kesalahan sistem file. Periksa Event Viewer untuk kesalahan dan peringatan kritis.",
+                        },
+                        {
+                            step: 2,
+                            title: "Memory Test",
+                            content:
+                                "Jalankan Windows Memory Diagnostic untuk menguji integritas RAM. Restart sistem dan biarkan siklus pengujian selesai (biasanya memakan waktu lebih dari 30 menit).",
+                        },
+                        {
+                            step: 3,
+                            title: "Update & Drivers",
+                            content:
+                                "Install driver terbaru dari Windows Update atau situs web produsen. Pastikan semua update Windows telah diinstal.",
+                        },
+                        {
+                            step: 4,
+                            title: "Malware Scan",
+                            content:
+                                "Jalankan full system scan dengan Windows Defender. Jika belum cukup, gunakan software tambahan seperti Malwarebytes dalam Safe Mode.",
+                        },
+                        {
+                            step: 5,
+                            title: "System Cleanup",
+                            content:
+                                "Bersihkan temporary file menggunakan Disk Cleanup. Nonaktifkan startup program yang tidak perlu.",
+                        },
+                    ],
+                },
+                "Troubleshooting CCTV": {
+                    icon: "https://api.iconify.design/lucide/cctv.svg",
+                    title: "Troubleshooting CCTV — Instruksi Kerja",
+                    steps: [
+                        {
+                            step: 1,
+                            title: "Check Physical Connections",
+                            content:
+                                "Periksa semua kabel terhubung dengan kuat. Periksa kerusakan terlihat pada kabel dan konektor BNC.",
+                        },
+                        {
+                            step: 2,
+                            title: "Camera Status",
+                            content:
+                                "Cek kamera dari monitor. Akses IVMS menggunakan IP address. Verifikasi kamera menerima input video.",
+                        },
+                        {
+                            step: 3,
+                            title: "Network Configuration",
+                            content:
+                                "Ping alamat IP kamera untuk memverifikasi konektivitas jaringan. Periksa server DHCP untuk IP kamera. Verifikasi port switch jaringan.",
+                        },
+                        {
+                            step: 4,
+                            title: "DVR/NVR Check",
+                            content:
+                                'Restart sistem DVR/NVR. Verifikasi semua saluran kamera menunjukkan status "Online". Periksa pengaturan perekaman dan ruang penyimpanan.',
+                        },
+                        {
+                            step: 5,
+                            title: "Firmware & Software",
+                            content:
+                                "Periksa pembaruan firmware yang tersedia untuk kamera dan DVR/NVR. Perbarui jika tersedia. Tinjau log sistem untuk pesan kesalahan.",
+                        },
+                    ],
+                },
+                "Cleaning PC/Laptop": {
+                    icon: "https://api.iconify.design/lucide/sparkles.svg",
+                    title: "Cleaning PC/Laptop — Instruksi Kerja",
+                    steps: [
+                        {
+                            step: 1,
+                            title: "Power Down & Unplug",
+                            content:
+                                "Matikan PC/Laptop dan cabut semua kabel daya dan periferal. Biarkan perangkat dingin selama beberapa menit sebelum membersihkan.",
+                        },
+                        {
+                            step: 2,
+                            title: "External Cleaning",
+                            content:
+                                "Gunakan kain microfiber yang sedikit dibasahi dengan air atau pembersih layar khusus untuk membersihkan layar. Bersihkan casing luar dengan kain lembab.",
+                        },
+                        {
+                            step: 3,
+                            title: "Keyboard & Ports",
+                            content:
+                                "Gunakan kaleng udara bertekanan untuk meniup debu dari keyboard dan port. Gunakan cotton bud yang sedikit dibasahi alkohol isopropil untuk membersihkan sela-sela keyboard.",
+                        },
+                        {
+                            step: 4,
+                            title: "Internal Cleaning",
+                            content:
+                                "Buka casing PC/Laptop sesuai petunjuk produsen. Gunakan contact cleaner untuk membersihkan debu dari komponen internal seperti kipas, heatsink, dan motherboard. Pastikan baterai tercabut.",
+                        },
+                        {
+                            step: 5,
+                            title: "Reassemble & Test",
+                            content:
+                                "Pasang kembali casing dengan hati-hati. Sambungkan kembali semua kabel. Nyalakan perangkat dan pastikan semuanya berfungsi dengan baik.",
+                        },
+                    ],
+                },
+                Printer: {
+                    icon: "https://api.iconify.design/lucide/printer.svg",
+                    title: "Printer — Instruksi Kerja",
+                    steps: [
+                        {
+                            step: 1,
+                            title: "Check Connections",
+                            content:
+                                "Pastikan printer terhubung ke sumber daya listrik dan komputer. Periksa kabel USB atau koneksi jaringan.",
+                        },
+                        {
+                            step: 2,
+                            title: "Paper Jam",
+                            content:
+                                "Buka penutup printer dan periksa adanya kertas yang macet. Angkat kertas dengan hati-hati untuk menghindari kerusakan.",
+                        },
+                        {
+                            step: 3,
+                            title: "Ink/Toner Levels",
+                            content:
+                                "Periksa level tinta atau toner. Ganti cartridge jika levelnya rendah atau habis.",
+                        },
+                        {
+                            step: 4,
+                            title: "Print Test Page",
+                            content:
+                                "Cetak halaman uji untuk memverifikasi kualitas cetak. Periksa apakah ada garis atau noda pada hasil cetakan.",
+                        },
+                        {
+                            step: 5,
+                            title: "Driver Update",
+                            content:
+                                "Perbarui driver printer dari situs web produsen. Pastikan kompatibilitas dengan sistem operasi yang digunakan.",
+                        },
+                    ],
+                },
+                "Kabel LAN": {
+                    icon: "https://api.iconify.design/lucide/ethernet-port.svg",
+                    title: "Kabel LAN — Instruksi Kerja",
+                    steps: [
+                        {
+                            step: 1,
+                            title: "Physical Inspection",
+                            content:
+                                "Periksa kabel LAN untuk kerusakan fisik seperti sobekan, tekukan tajam, atau konektor RJ-45 yang longgar. Ganti kabel jika ditemukan kerusakan yang tidak dapat diperbaiki.",
+                        },
+                        {
+                            step: 2,
+                            title: "Connection Check",
+                            content:
+                                'Pastikan kedua ujung kabel terhubung dengan baik ke perangkat (komputer, switch, router). Dengarkan bunyi "klik" saat konektor masuk ke port, dan pastikan clip pengunci tidak patah.',
+                        },
+                        {
+                            step: 3,
+                            title: "Network Test",
+                            content:
+                                "Gunakan LAN tester untuk memeriksa sambungan semua 8 pin (wire map test). Jika ada pin yang tidak terhubung, kabel perlu di-crimp ulang atau diganti. Jika tidak ada LAN tester, lakukan ping ke gateway untuk verifikasi konektivitas dasar.",
+                        },
+                        {
+                            step: 4,
+                            title: "Replace if Necessary",
+                            content:
+                                "Jika kabel rusak atau tidak berfungsi setelah pengujian, ganti dengan kabel baru yang sesuai spesifikasi (Cat5e untuk 1 Gbps, Cat6 untuk 10 Gbps). Pastikan panjang kabel tidak melebihi 100 meter per segmen.",
+                        },
+                        {
+                            step: 5,
+                            title: "Verify Connectivity",
+                            content:
+                                "Setelah penggantian, verifikasi konektivitas jaringan dengan melakukan ping ke gateway dan ke server lokal. Periksa kecepatan koneksi menggunakan speed test internal jika tersedia.",
+                        },
+                    ],
+                },
+            };
+
+            function renderTechGuide(device) {
+                const guide = techGuides[device];
+                const contentDiv = document.getElementById("techGuideContent");
+                if (!guide) {
+                    contentDiv.innerHTML =
+                        '<p class="text-sm text-slate-500">Panduan tidak tersedia untuk perangkat ini.</p>';
+                    return;
+                }
+
+                document.getElementById("heroStepCount").textContent =
+                    guide.steps.length;
+                document.getElementById("heroDeviceCount").textContent =
+                    Object.keys(techGuides).length;
+
+                const stepsMarkup = guide.steps
+                    .map(
+                        (step, index) => `
+        <article class="guide-content-item step-card" style="animation-delay:${index * 45}ms">
+          <div class="flex items-start gap-3 md:gap-4">
+            <span class="step-number">${String(step.step).padStart(2, "0")}</span>
+            <div class="min-w-0">
+              <div class="mb-1 flex flex-wrap items-center gap-2">
+                <h3 class="text-sm font-bold text-slate-900 md:text-base">${step.title}</h3>
+                <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">Step ${step.step}</span>
+              </div>
+              <p class="text-sm leading-7 text-slate-600">${step.content}</p>
             </div>
           </div>
-        </div>`;
-      // Step cards
-      guide.steps.forEach(step => {
-        html += `
-        <div class="guide-content-item step-card">
-          <div class="flex items-start gap-3">
-            <span class="flex-shrink-0 w-7 h-7 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center mt-0.5">${step.step}</span>
-            <div>
-              <h3 class="text-sm md:text-base font-semibold text-blue-700 mb-1">${step.title}</h3>
-              <p class="text-gray-700 leading-relaxed text-sm">${step.content}</p>
+        </article>`,
+                    )
+                    .join("");
+
+                contentDiv.innerHTML = `
+        <aside class="guide-summary-card h-fit p-5 lg:sticky lg:top-24">
+          <div class="mb-5 flex items-center gap-3">
+            <div class="guide-device-icon flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white">
+              <span class="summary-icon" style="--icon: url('${guide.icon}')"></span>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-600">Active SOP</p>
+              <h2 class="mt-1 text-lg font-extrabold tracking-[-0.04em] text-slate-900">${guide.title}</h2>
             </div>
           </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <p class="text-2xl font-extrabold tracking-[-0.04em] text-slate-900">${guide.steps.length}</p>
+              <p class="text-xs font-medium text-slate-500">Langkah</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <p class="text-2xl font-extrabold tracking-[-0.04em] text-slate-900">SOP</p>
+              <p class="text-xs font-medium text-slate-500">Format</p>
+            </div>
+          </div>
+          <div class="mt-4 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+            <p class="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Reminder</p>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Dokumentasikan kondisi sebelum dan sesudah pekerjaan jika work order membutuhkan bukti foto.</p>
+          </div>
+        </aside>
+        <div class="flex flex-col gap-3 md:gap-4">
+          ${stepsMarkup}
         </div>`;
-      });
-      contentDiv.innerHTML = html;
-    }
+            }
 
-    function setDevice(device) {
-      // sync select
-      document.getElementById('techGuideDeviceSelect').value = device;
-      // sync pills
-      document.querySelectorAll('.device-pill').forEach(p => {
-        p.classList.toggle('active', p.dataset.device === device);
-      });
-      renderTechGuide(device);
-    }
+            function setDevice(device) {
+                document.getElementById("techGuideDeviceSelect").value = device;
+                document.querySelectorAll(".device-pill").forEach((p) => {
+                    p.classList.toggle("active", p.dataset.device === device);
+                });
+                renderTechGuide(device);
+            }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      const select = document.getElementById('techGuideDeviceSelect');
-      setDevice(select.value);
-
-      select.addEventListener('change', function () { setDevice(this.value); });
-
-      document.querySelectorAll('.device-pill').forEach(pill => {
-        pill.addEventListener('click', function () { setDevice(this.dataset.device); });
-      });
-    });
-  </script>
-</body>
+            document.addEventListener("DOMContentLoaded", function () {
+                const select = document.getElementById("techGuideDeviceSelect");
+                setDevice(select.value);
+                select.addEventListener("change", function () {
+                    setDevice(this.value);
+                });
+                document.querySelectorAll(".device-pill").forEach((pill) => {
+                    pill.addEventListener("click", function () {
+                        setDevice(this.dataset.device);
+                    });
+                });
+            });
+        </script>
+    </body>
 </html>
