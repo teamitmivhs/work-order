@@ -7,6 +7,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="/static/assets/style.css" rel="stylesheet" />
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem('woTheme') || localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body class="bg-[#f3f4f6] text-black font-poppins">
 
@@ -21,7 +29,18 @@
     </a>
     <h1 class="text-white text-base sm:text-lg font-bold absolute left-1/2 -translate-x-1/2">Work Order Summary</h1>
     <button class="theme-toggle-btn" data-theme-toggle title="Toggle dark theme" aria-label="Toggle dark theme">
-      <span data-theme-icon>DK</span>
+      <span data-theme-icon style="display:none;position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true"></span>
+      <span class="theme-icon-moon" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646z" />
+        </svg>
+      </span>
+      <span class="theme-icon-sun" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="5" />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+      </span>
     </button>
   </nav>
 
@@ -247,16 +266,27 @@
   </div>
 
   <script>
+    function getSavedTheme() {
+      return localStorage.getItem('woTheme') || localStorage.getItem('theme') || 'light';
+    }
+    function updateThemeControls(theme) {
+      document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
+        btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+        btn.setAttribute('title', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+      });
+    }
     function applySavedTheme() {
-      const theme = localStorage.getItem('woTheme') || 'light';
+      const theme = getSavedTheme();
       document.documentElement.dataset.theme = theme;
       document.body.setAttribute('data-theme', theme);
-      document.querySelectorAll('[data-theme-icon]').forEach(el => { el.textContent = theme === 'dark' ? 'LT' : 'DK'; });
+      updateThemeControls(theme);
     }
     applySavedTheme();
     document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
       btn.addEventListener('click', () => {
-        localStorage.setItem('woTheme', (localStorage.getItem('woTheme') || 'light') === 'dark' ? 'light' : 'dark');
+        const next = getSavedTheme() === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('woTheme', next);
+        localStorage.setItem('theme', next);
         applySavedTheme();
       });
     });
