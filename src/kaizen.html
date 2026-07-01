@@ -33,6 +33,22 @@
                 z-index: 10;
                 position: relative;
             }
+            html[data-theme="dark"] #notesModal .bg-blue-50 {
+                background: #1e293b !important;
+                border-left-color: #60a5fa !important;
+            }
+            html[data-theme="dark"] #notesModal #modalOrderNotes {
+                color: #e5e7eb !important;
+            }
+            html[data-theme="dark"] #notesModal .bg-gray-50 {
+                background: #1f2937 !important;
+            }
+            html[data-theme="dark"] #notesModal .text-gray-600 {
+                color: #cbd5e1 !important;
+            }
+            html[data-theme="dark"] #notesModal .text-gray-800 {
+                color: #f8fafc !important;
+            }
         </style>
     </head>
     <body class="bg-[#f3f4f6] text-black">
@@ -42,11 +58,11 @@
                 background: linear-gradient(to right, #0f172a, #1e293b);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.07);
             "
-            class="sticky top-0 z-40 w-full px-4 md:px-6 py-3 shadow-2xl flex items-center justify-between"
+            class="subpage-nav sticky top-0 z-40 w-full px-4 md:px-6 py-3 shadow-2xl"
         >
             <a
                 href="/index.html"
-                class="flex items-center gap-2 text-white hover:text-blue-300 transition-colors min-h-[44px]"
+                class="subpage-back flex items-center gap-2 text-white hover:text-blue-300 transition-colors min-h-[44px]"
             >
                 <svg
                     class="w-5 h-5 flex-shrink-0"
@@ -64,12 +80,12 @@
                 <span class="text-sm font-medium">Kembali</span>
             </a>
             <h1
-                class="text-white text-base sm:text-lg font-bold absolute left-1/2 -translate-x-1/2 whitespace-nowrap"
+                class="subpage-title text-white text-base sm:text-lg font-bold"
             >
                 Kaizen — Evaluasi
             </h1>
             <button
-                class="theme-toggle-btn"
+                class="subpage-action theme-toggle-btn"
                 data-theme-toggle
                 title="Toggle dark theme"
                 aria-label="Toggle dark theme"
