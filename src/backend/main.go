@@ -29,7 +29,7 @@ func main() {
 
 	r := gin.Default()
 
-	// Health check endpoint
+	//Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "healthy"})
 	})
@@ -82,6 +82,20 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../register.html")
 	})
 
+	r.GET("/guest", func(c *gin.Context) {
+		c.File("../guest.html")
+	})
+	r.GET("/guest.html", func(c *gin.Context) {
+		c.File("../guest.html")
+	})
+
+	r.GET("/staff", func(c *gin.Context) {
+		c.File("../staff.html")
+	})
+	r.GET("/staff.html", func(c *gin.Context) {
+		c.File("../staff.html")
+	})
+
 	// Dashboard
 	r.GET("/", func(c *gin.Context) {
 		c.File("../index.html")
@@ -128,6 +142,10 @@ func setupPageRoutes(r *gin.Engine) {
 			c.File("../login.html")
 		case "/register.html":
 			c.File("../register.html")
+		case "/guest.html":
+			c.File("../guest.html")
+		case "/staff.html":
+			c.File("../staff.html")
 		case "/techguide.html":
 			c.File("../techguide.html")
 		case "/summary.html":
