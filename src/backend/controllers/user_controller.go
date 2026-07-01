@@ -1,10 +1,13 @@
 package controllers
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +25,13 @@ const (
 	minNameLength     = 3
 	maxNameLength     = 50
 )
+
+type RegisterRequest struct {
+	Name      string `json:"name" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	BatchYear string `json:"batchYear"`
+	Division  string `json:"division"`
+}
 
 // isStrongPassword validates password strength
 func isStrongPassword(password string) bool {
@@ -45,83 +55,125 @@ func isStrongPassword(password string) bool {
 }
 
 func Register(c *gin.Context) {
-	var member models.Member
-	if err := c.ShouldBindJSON(&member); err != nil {
+	var req RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(c, "Invalid request payload", err.Error())
 		return
 	}
 
 	// Validasi input
-	member.Name = strings.TrimSpace(member.Name)
-	if len(member.Name) < minNameLength || len(member.Name) > maxNameLength {
+	req.Name = strings.TrimSpace(req.Name)
+	req.BatchYear = strings.TrimSpace(req.BatchYear)
+	division := normalizeStaffDivision(req.Division)
+	if len(req.Name) < minNameLength || len(req.Name) > maxNameLength {
 		utils.BadRequest(c, "Username must be between 3 and 50 characters")
 		return
 	}
+	if req.BatchYear == "" {
+		utils.BadRequest(c, "Angkatan is required")
+		return
+	}
+	if !isValidBatchNumber(req.BatchYear) {
+		utils.BadRequest(c, "Angkatan must be a number, for example 13 or 14")
+		return
+	}
+	if division == "" {
+		utils.BadRequest(c, "Invalid division. Must be Soundman, Programmer, Maintenance, or Data Analyst")
+		return
+	}
 
-	if member.Password == "" {
+	if req.Password == "" {
 		utils.BadRequest(c, "Password is required")
 		return
 	}
 
-	if !isStrongPassword(member.Password) {
+	if !isStrongPassword(req.Password) {
 		utils.BadRequest(c, "Password must be at least 8 characters with uppercase, lowercase, and digits")
 		return
 	}
 
-	// Check apakah nama sudah ada di DB
-	// PENTING: Hanya member yang sudah terdaftar di database yang bisa melakukan registration
 	memberRepo := repository.NewMemberRepository()
-	existingMember, err := memberRepo.GetMemberByName(member.Name)
-
-	// Jika ada error atau nama tidak ditemukan di database, tolak registration
-	if err != nil || existingMember == nil {
-		utils.BadRequest(c, "Username not found in system. You are not authorized to register. Please contact IT administrator.")
+	existingMember, err := memberRepo.GetMemberByName(req.Name)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		utils.InternalServerError(c, "Failed to check existing account", err)
 		return
 	}
 
-	// Member ada di database — cek apakah passwordnya masih kosong (belum pernah register)
-	// Ini terjadi karena member di-seed dari SQL dengan password kosong
-	if existingMember.Password != "" {
-		// Sudah punya password — tolak, tidak boleh overwrite akun aktif
-		utils.Conflict(c, "Username already exists")
-		return
+	if existingMember != nil {
+		if existingMember.Password != "" {
+			utils.Conflict(c, "Username already exists or is waiting for admin approval")
+			return
+		}
 	}
 
-	// Password masih kosong — ini member yang belum pernah register
-	// Set password mereka dan kembalikan token
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(member.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		utils.InternalServerError(c, "Failed to hash password", err)
 		return
 	}
 
-	// Tentukan role: pertahankan role yang ada dari DB (programmer, maintenance, dll)
-	// Upgrade ke 'Operator' agar bisa akses protected endpoints
-	roleToSet := "Operator"
-	if existingMember.Role != "" {
-		roleToSet = existingMember.Role
-	}
-
-	if err := memberRepo.SetMemberPassword(existingMember.ID, string(hashedPassword), roleToSet); err != nil {
-		utils.InternalServerError(c, "Failed to set password", err)
+	if existingMember != nil {
+		roleToSet := "Operator"
+		if normalizedRole := normalizeStaffRole(existingMember.Role); normalizedRole != "" {
+			roleToSet = normalizedRole
+		}
+		if err := memberRepo.SetMemberPassword(existingMember.ID, string(hashedPassword), roleToSet, division, req.BatchYear); err != nil {
+			utils.InternalServerError(c, "Failed to set password", err)
+			return
+		}
+		utils.RespondWithMessage(c, http.StatusCreated, "Registration successful. Your account is waiting for admin approval.", gin.H{
+			"member": gin.H{"id": existingMember.ID, "name": existingMember.Name, "accountStatus": existingMember.AccountStatus},
+		})
 		return
 	}
 
-	token, err := utils.GenerateToken(existingMember.ID, existingMember.Name, roleToSet)
+	hasAdmin, err := memberRepo.HasActiveAdmin()
 	if err != nil {
-		utils.InternalServerError(c, "Failed to generate token", err)
+		utils.InternalServerError(c, "Failed to check admin bootstrap state", err)
 		return
 	}
 
-	utils.RespondWithMessage(c, http.StatusCreated, "Registration successful", gin.H{
-		"token":  token,
-		"member": gin.H{"id": existingMember.ID, "name": existingMember.Name, "role": roleToSet, "status": existingMember.Status},
+	accountStatus := "pending"
+	role := "Operator"
+	canHandle := false
+	message := "Registration submitted. Please wait for admin approval."
+	if !hasAdmin {
+		accountStatus = "active"
+		role = "Admin"
+		canHandle = true
+		message = "First admin account created. Please login."
+	}
+
+	member := models.Member{
+		Name:               req.Name,
+		Password:           string(hashedPassword),
+		Role:               role,
+		Division:           division,
+		Status:             "offduty",
+		Avatar:             "default-avatar.png",
+		AccountStatus:      accountStatus,
+		MembershipStatus:   "active",
+		BatchYear:          req.BatchYear,
+		CanHandleWorkOrder: canHandle,
+	}
+	if err := memberRepo.CreateMember(&member); err != nil {
+		utils.InternalServerError(c, "Failed to create registration request", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusCreated, message, gin.H{
+		"member": gin.H{"id": member.ID, "name": member.Name, "accountStatus": member.AccountStatus},
 	})
 }
 
 type LoginRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Password string `json:"password" binding:"required"`
+}
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword" binding:"required"`
+	NewPassword     string `json:"newPassword" binding:"required"`
 }
 
 func Login(c *gin.Context) {
@@ -147,6 +199,15 @@ func Login(c *gin.Context) {
 
 	if member == nil {
 		utils.Unauthorized(c, "Invalid username or password")
+		return
+	}
+
+	if member.AccountStatus != "" && member.AccountStatus != "active" {
+		utils.Forbidden(c, "Your account is not active yet. Please wait for admin approval.")
+		return
+	}
+	if member.MembershipStatus == "alumni" || member.MembershipStatus == "inactive" {
+		utils.Forbidden(c, "Your account is no longer active as staff.")
 		return
 	}
 
@@ -195,6 +256,58 @@ func GetProfile(c *gin.Context) {
 	utils.RespondSuccess(c, http.StatusOK, member)
 }
 
+// ChangePasswordHandler: PATCH /api/profile/password
+func ChangePasswordHandler(c *gin.Context) {
+	userID, ok := middleware.GetUserIDFromContext(c)
+	if !ok || userID == 0 {
+		utils.Unauthorized(c, "User not found")
+		return
+	}
+
+	var req ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	if req.CurrentPassword == "" || req.NewPassword == "" {
+		utils.BadRequest(c, "Current password and new password are required")
+		return
+	}
+	if !isStrongPassword(req.NewPassword) {
+		utils.BadRequest(c, "Password must be at least 8 characters with uppercase, lowercase, and digits")
+		return
+	}
+	if req.CurrentPassword == req.NewPassword {
+		utils.BadRequest(c, "New password must be different from current password")
+		return
+	}
+
+	memberRepo := repository.NewMemberRepository()
+	member, err := memberRepo.GetMemberByID(userID)
+	if err != nil || member == nil {
+		utils.Unauthorized(c, "User not found")
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(member.Password), []byte(req.CurrentPassword)); err != nil {
+		utils.Unauthorized(c, "Current password is incorrect")
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to hash password", err)
+		return
+	}
+	if err := memberRepo.UpdateMemberPassword(userID, string(hashedPassword)); err != nil {
+		utils.InternalServerError(c, "Failed to update password", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Password updated successfully", nil)
+}
+
 // UploadAvatarHandler: POST /api/profile/avatar
 // Upload foto profil user — simpan ke static/public/ dan update DB
 func UploadAvatarHandler(c *gin.Context) {
@@ -212,9 +325,10 @@ func UploadAvatarHandler(c *gin.Context) {
 	}
 	defer file.Close()
 
-	// Validasi ukuran (max 2MB)
-	if header.Size > 2*1024*1024 {
-		utils.BadRequest(c, "File too large. Maximum 2MB")
+	// Validasi ukuran (max 5MB). Foto dari HP sering >2MB, sementara nginx
+	// juga sudah dinaikkan limit-nya agar request tidak ditolak sebelum sampai backend.
+	if header.Size > 5*1024*1024 {
+		utils.BadRequest(c, "File too large. Maximum 5MB")
 		return
 	}
 
@@ -230,7 +344,7 @@ func UploadAvatarHandler(c *gin.Context) {
 	filename := fmt.Sprintf("avatar_%d_%d%s", userID, time.Now().Unix(), ext)
 
 	// Pastikan folder static/public ada
-	uploadDir := "/static/public"
+	uploadDir := utils.PublicUploadDir()
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		utils.InternalServerError(c, "Failed to create upload directory", err)
 		return
@@ -277,7 +391,7 @@ func DeleteAvatarHandler(c *gin.Context) {
 	// Hapus file lama jika bukan default
 	if member.Avatar != "" && member.Avatar != "no avatar" &&
 		!strings.HasPrefix(member.Avatar, "default") {
-		oldPath := filepath.Join("/static/public", member.Avatar)
+		oldPath := filepath.Join(utils.PublicUploadDir(), member.Avatar)
 		os.Remove(oldPath) // silent fail — file mungkin sudah tidak ada
 	}
 
@@ -344,4 +458,255 @@ func UpdateStatusHandler(c *gin.Context) {
 		"member": member,
 		"status": member.Status,
 	})
+}
+
+type ApproveMemberRequest struct {
+	Role               string `json:"role"`
+	Division           string `json:"division"`
+	BatchYear          string `json:"batchYear"`
+	CanHandleWorkOrder *bool  `json:"canHandleWorkOrder"`
+}
+
+type GraduateBatchRequest struct {
+	BatchYear      string `json:"batchYear" binding:"required"`
+	GraduationYear int    `json:"graduationYear" binding:"required"`
+}
+
+func GetAdminMembersHandler(c *gin.Context) {
+	filter := strings.ToLower(strings.TrimSpace(c.Query("status")))
+	memberRepo := repository.NewMemberRepository()
+	members, err := memberRepo.GetAdminMembers(filter)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to retrieve staff list", err)
+		return
+	}
+
+	for i := range members {
+		members[i].Password = ""
+	}
+	utils.RespondSuccess(c, http.StatusOK, members)
+}
+
+func ApproveMemberHandler(c *gin.Context) {
+	memberID, ok := parseMemberIDParam(c)
+	if !ok {
+		return
+	}
+
+	approverID, ok := middleware.GetUserIDFromContext(c)
+	if !ok || approverID == 0 {
+		utils.Unauthorized(c, "Admin user not found")
+		return
+	}
+
+	var req ApproveMemberRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	role := normalizeStaffRole(req.Role)
+	if role == "" {
+		utils.BadRequest(c, "Invalid role. Must be Operator or Admin")
+		return
+	}
+
+	division := normalizeStaffDivision(req.Division)
+	if division == "" {
+		utils.BadRequest(c, "Invalid division. Must be Soundman, Programmer, Maintenance, or Data Analyst")
+		return
+	}
+	batchYear := strings.TrimSpace(req.BatchYear)
+	if !isValidBatchNumber(batchYear) {
+		utils.BadRequest(c, "Angkatan must be a number, for example 13 or 14")
+		return
+	}
+
+	canHandle := true
+	if req.CanHandleWorkOrder != nil {
+		canHandle = *req.CanHandleWorkOrder
+	}
+
+	memberRepo := repository.NewMemberRepository()
+	if err := memberRepo.ApproveMember(memberID, role, division, batchYear, canHandle, approverID); err != nil {
+		utils.InternalServerError(c, "Failed to approve staff", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Staff approved successfully", gin.H{"id": memberID})
+}
+
+func RejectMemberHandler(c *gin.Context) {
+	memberID, ok := parseMemberIDParam(c)
+	if !ok {
+		return
+	}
+	memberRepo := repository.NewMemberRepository()
+	if err := memberRepo.RejectMember(memberID); err != nil {
+		utils.InternalServerError(c, "Failed to reject staff", err)
+		return
+	}
+	utils.RespondWithMessage(c, http.StatusOK, "Staff rejected successfully", gin.H{"id": memberID})
+}
+
+func DisableMemberHandler(c *gin.Context) {
+	memberID, ok := parseMemberIDParam(c)
+	if !ok {
+		return
+	}
+	memberRepo := repository.NewMemberRepository()
+	if err := memberRepo.DisableMember(memberID); err != nil {
+		utils.InternalServerError(c, "Failed to disable staff", err)
+		return
+	}
+	utils.RespondWithMessage(c, http.StatusOK, "Staff disabled successfully", gin.H{"id": memberID})
+}
+
+func MarkMemberAlumniHandler(c *gin.Context) {
+	memberID, ok := parseMemberIDParam(c)
+	if !ok {
+		return
+	}
+
+	var req struct {
+		GraduationYear int `json:"graduationYear" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+	if req.GraduationYear < 2000 || req.GraduationYear > 2100 {
+		utils.BadRequest(c, "Graduation year is invalid")
+		return
+	}
+
+	memberRepo := repository.NewMemberRepository()
+	if err := memberRepo.MarkMemberAsAlumni(memberID, req.GraduationYear); err != nil {
+		utils.InternalServerError(c, "Failed to mark staff as alumni", err)
+		return
+	}
+	utils.RespondWithMessage(c, http.StatusOK, "Staff moved to alumni successfully", gin.H{"id": memberID})
+}
+
+func GraduateBatchHandler(c *gin.Context) {
+	var req GraduateBatchRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	req.BatchYear = strings.TrimSpace(req.BatchYear)
+	if req.BatchYear == "" {
+		utils.BadRequest(c, "Batch year is required")
+		return
+	}
+	if !isValidBatchNumber(req.BatchYear) {
+		utils.BadRequest(c, "Angkatan must be a number, for example 13 or 14")
+		return
+	}
+	if req.GraduationYear < 2000 || req.GraduationYear > 2100 {
+		utils.BadRequest(c, "Graduation year is invalid")
+		return
+	}
+
+	memberRepo := repository.NewMemberRepository()
+	affected, err := memberRepo.GraduateBatch(req.BatchYear, req.GraduationYear)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to graduate batch", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Batch graduated successfully", gin.H{"affected": affected})
+}
+
+// ChangeRoleHandler: PATCH /api/admin/members/:id/role
+// Allows an admin to promote Operator → Admin or demote Admin → Operator.
+// An admin cannot change their own role (guard against self-lockout).
+type ChangeRoleRequest struct {
+	Role string `json:"role" binding:"required"`
+}
+
+func ChangeRoleHandler(c *gin.Context) {
+	memberID, ok := parseMemberIDParam(c)
+	if !ok {
+		return
+	}
+
+	callerID, ok := middleware.GetUserIDFromContext(c)
+	if !ok || callerID == 0 {
+		utils.Unauthorized(c, "Admin user not found")
+		return
+	}
+
+	if callerID == memberID {
+		utils.BadRequest(c, "You cannot change your own role")
+		return
+	}
+
+	var req ChangeRoleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	role := normalizeStaffRole(req.Role)
+	if role == "" {
+		utils.BadRequest(c, "Invalid role. Must be Operator or Admin")
+		return
+	}
+
+	memberRepo := repository.NewMemberRepository()
+	if err := memberRepo.ChangeRole(memberID, role); err != nil {
+		utils.InternalServerError(c, "Failed to change role", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Role updated successfully", gin.H{
+		"id":   memberID,
+		"role": role,
+	})
+}
+
+func parseMemberIDParam(c *gin.Context) (int, bool) {
+	memberID, err := strconv.Atoi(c.Param("id"))
+	if err != nil || memberID <= 0 {
+		utils.BadRequest(c, "Invalid member ID")
+		return 0, false
+	}
+	return memberID, true
+}
+
+func normalizeStaffRole(role string) string {
+	switch strings.ToLower(strings.TrimSpace(role)) {
+	case "", "operator":
+		return "Operator"
+	case "admin":
+		return "Admin"
+	default:
+		return ""
+	}
+}
+
+func normalizeStaffDivision(division string) string {
+	switch strings.ToLower(strings.TrimSpace(division)) {
+	case "soundman":
+		return "Soundman"
+	case "", "programmer":
+		return "Programmer"
+	case "maintenance":
+		return "Maintenance"
+	case "data analyst", "data-analyst", "data_analyst":
+		return "Data Analyst"
+	default:
+		return ""
+	}
+}
+
+func isValidBatchNumber(batch string) bool {
+	batch = strings.TrimSpace(batch)
+	if batch == "" || len(batch) > 2 {
+		return false
+	}
+	value, err := strconv.Atoi(batch)
+	return err == nil && value >= 1 && value <= 99
 }
