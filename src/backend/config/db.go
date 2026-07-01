@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -76,6 +77,11 @@ func InitDB() error {
 			continue
 		}
 
+		if err = runMigrations(dbName); err != nil {
+			DB.Close()
+			return fmt.Errorf("failed to run database migrations: %w", err)
+		}
+
 		log.Println("Database connected successfully")
 		return nil
 	}
@@ -93,4 +99,108 @@ func CloseDB() error {
 	}
 	log.Println("Database connection closed.")
 	return DB.Close()
+}
+
+func runMigrations(dbName string) error {
+	if DB == nil {
+		return nil
+	}
+
+	migrations := []struct {
+		table  string
+		column string
+		sql    string
+	}{
+		{"members", "Division", "ALTER TABLE members ADD COLUMN Division varchar(50) DEFAULT NULL AFTER Role"},
+		{"members", "AccountStatus", "ALTER TABLE members ADD COLUMN AccountStatus enum('pending','active','rejected','disabled') NOT NULL DEFAULT 'active' AFTER Avatar"},
+		{"members", "MembershipStatus", "ALTER TABLE members ADD COLUMN MembershipStatus enum('active','alumni','inactive') NOT NULL DEFAULT 'active' AFTER AccountStatus"},
+		{"members", "BatchYear", "ALTER TABLE members ADD COLUMN BatchYear varchar(20) DEFAULT NULL AFTER MembershipStatus"},
+		{"members", "GraduationYear", "ALTER TABLE members ADD COLUMN GraduationYear int DEFAULT NULL AFTER BatchYear"},
+		{"members", "CanHandleWorkOrder", "ALTER TABLE members ADD COLUMN CanHandleWorkOrder tinyint(1) NOT NULL DEFAULT 1 AFTER GraduationYear"},
+		{"members", "RegisteredAt", "ALTER TABLE members ADD COLUMN RegisteredAt datetime NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER CanHandleWorkOrder"},
+		{"members", "ApprovedAt", "ALTER TABLE members ADD COLUMN ApprovedAt datetime DEFAULT NULL AFTER RegisteredAt"},
+		{"members", "ApprovedBy", "ALTER TABLE members ADD COLUMN ApprovedBy int DEFAULT NULL AFTER ApprovedAt"},
+		{"orders", "TrackingCode", "ALTER TABLE orders ADD COLUMN TrackingCode varchar(20) DEFAULT NULL AFTER OrderNumber"},
+		{"orders", "StartedAt", "ALTER TABLE orders ADD COLUMN StartedAt datetime DEFAULT NULL AFTER TimeSort"},
+		{"orders", "Rating", "ALTER TABLE orders ADD COLUMN Rating tinyint DEFAULT NULL AFTER Notes"},
+		{"orders", "NotesQuality", "ALTER TABLE orders ADD COLUMN NotesQuality tinyint DEFAULT NULL AFTER Rating"},
+		{"orders", "DocumentationPhoto", "ALTER TABLE orders ADD COLUMN DocumentationPhoto varchar(255) DEFAULT NULL AFTER NotesQuality"},
+	}
+
+	for _, migration := range migrations {
+		exists, err := columnExists(dbName, migration.table, migration.column)
+		if err != nil {
+			return err
+		}
+		if exists {
+			continue
+		}
+		if _, err := DB.Exec(migration.sql); err != nil {
+			return fmt.Errorf("add %s.%s: %w", migration.table, migration.column, err)
+		}
+	}
+
+	if _, err := DB.Exec(`
+		UPDATE members
+		SET Division = CASE
+		        WHEN LOWER(TRIM(Role)) = 'soundman' THEN 'Soundman'
+		        WHEN LOWER(TRIM(Role)) = 'programmer' THEN 'Programmer'
+		        WHEN LOWER(TRIM(Role)) = 'maintenance' THEN 'Maintenance'
+		        WHEN LOWER(TRIM(Role)) IN ('data analyst', 'data-analyst', 'data_analyst') THEN 'Data Analyst'
+		        ELSE Division
+		    END,
+		    Role = CASE
+		        WHEN LOWER(TRIM(Role)) IN ('soundman', 'programmer', 'maintenance', 'data analyst', 'data-analyst', 'data_analyst') THEN 'Operator'
+		        ELSE Role
+		    END
+		WHERE Division IS NULL OR Division = ''
+	`); err != nil {
+		return err
+	}
+
+	if _, err := DB.Exec(`
+		UPDATE members
+		SET Role = 'Operator'
+		WHERE LOWER(TRIM(Role)) IN ('staff', 'technician')
+	`); err != nil {
+		return err
+	}
+
+	if _, err := DB.Exec(`
+		UPDATE orders
+		SET TrackingCode = CONCAT('WO-', LPAD(ID, 6, '0'))
+		WHERE TrackingCode IS NULL OR TrackingCode = ''
+	`); err != nil {
+		return err
+	}
+
+	if _, err := DB.Exec(`
+		UPDATE members
+		SET AccountStatus = 'active',
+		    MembershipStatus = 'active',
+		    CanHandleWorkOrder = CASE WHEN Role = 'Guest' THEN 0 ELSE CanHandleWorkOrder END
+		WHERE AccountStatus IS NULL OR AccountStatus = ''
+	`); err != nil && !strings.Contains(err.Error(), "Data truncated") {
+		return err
+	}
+
+	_, err := DB.Exec("UPDATE members SET CanHandleWorkOrder = 0 WHERE Role = 'Guest'")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func columnExists(dbName, tableName, columnName string) (bool, error) {
+	var count int
+	err := DB.QueryRow(`
+		SELECT COUNT(*)
+		FROM information_schema.COLUMNS
+		WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?
+	`, dbName, tableName, columnName).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
