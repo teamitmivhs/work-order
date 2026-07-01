@@ -15,9 +15,12 @@ type WorkOrderRepository interface {
 	CompleteOrder(orderID int64, req models.CompleteWorkOrder) error
 	DeleteOrder(orderID int64) error
 	UpdateOrderExecutors(orderID int64, req models.UpdateWorkOrderRequest) error
-	UpdateOrderNotes(orderID int64, notes string) error
+	UpdateOrderNotes(orderID int64, notes string, rating *int, notesQuality *int) error
+	UpdateOrderDocumentationPhoto(orderID int64, filename string) error
+	HasDocumentationPhoto(orderID int64) (bool, error)
 	GetAllTasks() ([]models.WorkOrder, error)
-	GetTasksByExecutor(executorID int) ([]models.WorkOrder, error)
+	GetTasksForOperator(operatorID int) ([]models.WorkOrder, error)
+	GetTaskByTrackingCode(trackingCode string) (models.WorkOrder, error)
 	GetSafetyChecklist(orderID int64) ([]string, error)
 	UpdateSafetyChecklist(orderID int64, items []string) error
 	IsSafetyChecklistFulfilled(orderID int64) (bool, error)
@@ -32,14 +35,35 @@ func NewWorkOrderRepository(db *sql.DB) WorkOrderRepository {
 	return &workOrderRepository{db: db}
 }
 
-// scanWorkOrderRow adalah helper untuk menghindari duplikasi scan di GetAllTasks & GetTasksByExecutor
+const progressTimerSelect = `
+		       CASE
+		         WHEN o.Status = 'progress' AND o.StartedAt IS NOT NULL
+		           THEN DATE_FORMAT(o.StartedAt, '%Y-%m-%d %H:%i:%s')
+		         WHEN o.Status = 'progress' AND o.TimeSort IS NOT NULL
+		           THEN DATE_FORMAT(TIMESTAMP(CURDATE(), o.TimeSort), '%Y-%m-%d %H:%i:%s')
+		         ELSE NULL
+		       END AS StartedAt,
+		       CASE
+		         WHEN o.Status = 'progress' AND o.StartedAt IS NOT NULL
+		           THEN GREATEST(TIMESTAMPDIFF(SECOND, o.StartedAt, NOW()), 0)
+		         WHEN o.Status = 'progress' AND o.TimeSort IS NOT NULL THEN
+		           CASE
+		             WHEN TIME_TO_SEC(TIMEDIFF(CURTIME(), o.TimeSort)) < 0
+		               THEN TIME_TO_SEC(TIMEDIFF(CURTIME(), o.TimeSort)) + 86400
+		             ELSE TIME_TO_SEC(TIMEDIFF(CURTIME(), o.TimeSort))
+		           END
+		         ELSE NULL
+		       END AS ProgressSeconds`
+
+// scanWorkOrderRow adalah helper untuk menghindari duplikasi scan di endpoint list work order.
 func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	var wo models.WorkOrder
-	var priority, timeDisplay, requester, location, device, problem, workingHours, status, completedAt, notes sql.NullString
+	var priority, timeDisplay, startedAt, trackingCode, requester, location, device, problem, workingHours, status, completedAt, notes, documentationPhoto sql.NullString
+	var progressSeconds, rating, notesQuality sql.NullInt64
 
 	err := rows.Scan(
-		&wo.ID, &priority, &timeDisplay, &requester, &location,
-		&device, &problem, &workingHours, &status, &completedAt, &notes,
+		&wo.ID, &priority, &timeDisplay, &startedAt, &progressSeconds, &trackingCode, &requester, &location,
+		&device, &problem, &workingHours, &status, &completedAt, &notes, &rating, &notesQuality, &documentationPhoto,
 	)
 	if err != nil {
 		return wo, err
@@ -50,6 +74,16 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	}
 	if timeDisplay.Valid {
 		wo.Time = timeDisplay.String
+	}
+	if startedAt.Valid {
+		wo.StartedAt = startedAt.String
+	}
+	if progressSeconds.Valid {
+		value := int(progressSeconds.Int64)
+		wo.ProgressSeconds = &value
+	}
+	if trackingCode.Valid {
+		wo.TrackingCode = trackingCode.String
 	}
 	if requester.Valid {
 		wo.Requester = requester.String
@@ -69,6 +103,17 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	if notes.Valid {
 		wo.Notes = notes.String
 	}
+	if rating.Valid {
+		value := int(rating.Int64)
+		wo.Rating = &value
+	}
+	if notesQuality.Valid {
+		value := int(notesQuality.Int64)
+		wo.NotesQuality = &value
+	}
+	if documentationPhoto.Valid {
+		wo.DocumentationPhoto = documentationPhoto.String
+	}
 	if completedAt.Valid && completedAt.String != "" {
 		wo.CompletedAt = completedAt.String
 	}
@@ -85,8 +130,10 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 // GetAllTasks mengambil semua work orders dari database
 func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 	query := `
-		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay, o.Requester, o.Location, o.Device,
-		       o.Problem, o.WorkingHours, o.Status, o.CompletedAt, o.Notes
+		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,` + progressTimerSelect + `,
+		       o.TrackingCode,
+		       o.Requester, o.Location, o.Device, o.Problem, o.WorkingHours, o.Status,
+		       o.CompletedAt, o.Notes, o.Rating, o.NotesQuality, o.DocumentationPhoto
 		FROM orders o
 		ORDER BY o.ID DESC
 	`
@@ -124,19 +171,28 @@ func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 	return workOrders, nil
 }
 
-// GetTasksByExecutor mengambil orders yang di-assign ke executor tertentu
-func (r *workOrderRepository) GetTasksByExecutor(executorID int) ([]models.WorkOrder, error) {
+// GetTasksForOperator mengambil order yang bisa dikerjakan operator:
+// - semua order pending agar operator bisa mengambil pekerjaan baru
+// - order progress/completed yang memang ditugaskan ke operator tersebut
+func (r *workOrderRepository) GetTasksForOperator(operatorID int) ([]models.WorkOrder, error) {
 	query := `
-		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay, o.Requester, o.Location, o.Device,
-		       o.Problem, o.WorkingHours, o.Status, o.CompletedAt, o.Notes
+		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,` + progressTimerSelect + `,
+		       o.TrackingCode,
+		       o.Requester, o.Location, o.Device, o.Problem, o.WorkingHours, o.Status,
+		       o.CompletedAt, o.Notes, o.Rating, o.NotesQuality, o.DocumentationPhoto
 		FROM orders o
-		INNER JOIN executors e ON o.ID = e.order_id
-		WHERE e.member_id = ?
+		WHERE o.Status = 'pending'
+		   OR EXISTS (
+		       SELECT 1
+		       FROM executors e
+		       WHERE e.order_id = o.ID
+		         AND e.member_id = ?
+		   )
 		ORDER BY o.ID DESC
 	`
-	rows, err := r.db.Query(query, executorID)
+	rows, err := r.db.Query(query, operatorID)
 	if err != nil {
-		log.Printf("Error querying orders by executor: %v", err)
+		log.Printf("Error querying orders for operator: %v", err)
 		return nil, fmt.Errorf("querying orders failed: %w", err)
 	}
 	defer rows.Close()
@@ -165,6 +221,37 @@ func (r *workOrderRepository) GetTasksByExecutor(executorID int) ([]models.WorkO
 	return workOrders, nil
 }
 
+func (r *workOrderRepository) GetTaskByTrackingCode(trackingCode string) (models.WorkOrder, error) {
+	query := `
+		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,` + progressTimerSelect + `,
+		       o.TrackingCode,
+		       o.Requester, o.Location, o.Device, o.Problem, o.WorkingHours, o.Status,
+		       o.CompletedAt, o.Notes, o.Rating, o.NotesQuality, o.DocumentationPhoto
+		FROM orders o
+		WHERE UPPER(o.TrackingCode) = UPPER(?)
+		LIMIT 1
+	`
+	rows, err := r.db.Query(query, trackingCode)
+	if err != nil {
+		return models.WorkOrder{}, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return models.WorkOrder{}, sql.ErrNoRows
+	}
+
+	wo, err := scanWorkOrderRow(rows)
+	if err != nil {
+		return wo, err
+	}
+	wo.Executors, err = r.getOrderExecutors(wo.ID)
+	if err != nil {
+		return wo, err
+	}
+	return wo, rows.Err()
+}
+
 // getOrderExecutors adalah helper untuk mengambil list executor ID sebuah order
 func (r *workOrderRepository) getOrderExecutors(orderID int) ([]int, error) {
 	rows, err := r.db.Query("SELECT member_id FROM executors WHERE order_id = ?", orderID)
@@ -185,15 +272,45 @@ func (r *workOrderRepository) getOrderExecutors(orderID int) ([]int, error) {
 }
 
 // UpdateOrderNotes menyimpan catatan evaluasi ke kolom Notes pada tabel orders
-func (r *workOrderRepository) UpdateOrderNotes(orderID int64, notes string) error {
+func (r *workOrderRepository) UpdateOrderNotes(orderID int64, notes string, rating *int, notesQuality *int) error {
 	_, err := r.db.Exec(
-		"UPDATE orders SET Notes = ? WHERE ID = ?",
-		notes, orderID,
+		"UPDATE orders SET Notes = ?, Rating = ?, NotesQuality = ? WHERE ID = ?",
+		notes, nullableInt(rating), nullableInt(notesQuality), orderID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update notes for order %d: %w", orderID, err)
 	}
 	return nil
+}
+
+func nullableInt(value *int) interface{} {
+	if value == nil {
+		return nil
+	}
+	return *value
+}
+
+func (r *workOrderRepository) UpdateOrderDocumentationPhoto(orderID int64, filename string) error {
+	_, err := r.db.Exec(
+		"UPDATE orders SET DocumentationPhoto = ? WHERE ID = ?",
+		filename, orderID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update documentation photo for order %d: %w", orderID, err)
+	}
+	return nil
+}
+
+func (r *workOrderRepository) HasDocumentationPhoto(orderID int64) (bool, error) {
+	var count int
+	err := r.db.QueryRow(
+		"SELECT COUNT(*) FROM orders WHERE ID = ? AND DocumentationPhoto IS NOT NULL AND DocumentationPhoto <> ''",
+		orderID,
+	).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 // GetSafetyChecklist mengambil item checklist untuk sebuah order
@@ -304,9 +421,9 @@ func (r *workOrderRepository) CreateTask(task models.WorkOrderRequest) (int64, e
 
 	result, err := tx.Exec(
 		`INSERT INTO orders
-		(Priority, TimeDisplay, TimeSort, Requester, Location, Device, Problem, WorkingHours, Status)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		task.Priority, task.TimeDisplay, task.TimeSort, task.Requester,
+		(Priority, TimeDisplay, TimeSort, TrackingCode, Requester, Location, Device, Problem, WorkingHours, Status)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		task.Priority, task.TimeDisplay, task.TimeSort, task.TrackingCode, task.Requester,
 		task.Location, task.Device, task.Problem, task.WorkingHours, task.Status,
 	)
 	if err != nil {
@@ -348,9 +465,11 @@ func (r *workOrderRepository) TakeOrder(orderID int64, req models.TakeWorkOrder)
 		}
 	}
 
-	// 1. Update status order
+	// 1. Update status order dan reset waktu mulai ke waktu take.
+	// StartedAt menyimpan timestamp penuh untuk durasi lintas hari; TimeSort tetap
+	// diisi untuk kompatibilitas UI/schema lama.
 	if _, err = tx.Exec(
-		"UPDATE orders SET Status = ?, TimeSort = NOW() WHERE ID = ?",
+		"UPDATE orders SET Status = ?, StartedAt = NOW(), TimeSort = CURTIME(), TimeDisplay = DATE_FORMAT(CURTIME(), '%H:%i') WHERE ID = ?",
 		req.Status, orderID,
 	); err != nil {
 		return fmt.Errorf("failed to update order status: %w", err)
@@ -470,9 +589,10 @@ func (r *workOrderRepository) CompleteOrder(orderID int64, req models.CompleteWo
 		return nil
 	}
 
-	// Konversi detik ke menit dan update WorkingHours
+	// Simpan menit numerik agar frontend bisa format konsisten:
+	// 0 = Less than 1 minute, 54 = 54 minutes, 94 = 1 hour 34 minutes.
 	durationMinutes := durationSeconds / 60
-	workingHoursStr := fmt.Sprintf("%d menit", durationMinutes)
+	workingHoursStr := fmt.Sprintf("%d minutes", durationMinutes)
 	if _, err := r.db.Exec(
 		"UPDATE orders SET WorkingHours = ? WHERE ID = ?",
 		workingHoursStr, orderID,
