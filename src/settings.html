@@ -1,490 +1,1202 @@
 <!doctype html>
 <html lang="id">
-<head>
-  <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>Settings — Work Order ITMIVHS</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="/static/assets/style.css" rel="stylesheet" />
-  <style>
-    .settings-card {
-      background: rgba(255,255,255,0.94);
-      border: 1px solid rgba(226,232,240,0.9);
-      border-radius: 0.85rem;
-      padding: 1.5rem;
-      box-shadow: 0 12px 32px rgba(15,23,42,0.07);
-      backdrop-filter: blur(14px);
-      transition: box-shadow 0.18s ease, transform 0.18s ease;
-    }
-    .settings-card:hover { box-shadow: 0 18px 46px rgba(15,23,42,0.09); }
-    .settings-section-title {
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #9ca3af;
-      margin-bottom: 1rem;
-    }
-    .settings-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid #f3f4f6;
-      gap: 1rem;
-    }
-    .settings-row:last-child { border-bottom: none; }
-    .settings-row-label { font-size: 0.875rem; font-weight: 500; color: #374151; }
-    .settings-row-desc  { font-size: 0.75rem; color: #9ca3af; margin-top: 0.1rem; }
-    input[type="text"], input[type="password"], input[type="email"] {
-      font-size: 16px; /* Cegah zoom di iOS */
-    }
-    @media (max-width: 640px) {
-      .settings-card { padding: 1.1rem; border-radius: 0.75rem; }
-      .settings-row { align-items: flex-start; }
-    }
-  </style>
-</head>
-<body class="bg-[#f3f4f6] text-black min-h-screen">
-
-  <!-- NAVBAR -->
-  <nav class="w-full bg-gradient-to-r from-slate-900 to-slate-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shadow-2xl border-b border-slate-700">
-    <a href="/index.html" class="flex items-center gap-2 text-white hover:text-slate-300 transition-colors">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-      </svg>
-      <span class="text-sm font-medium">Kembali</span>
-    </a>
-    <h1 class="text-white font-semibold text-base md:text-lg">Settings</h1>
-    <div class="w-16"></div> <!-- spacer biar title center -->
-  </nav>
-
-  <!-- MAIN CONTENT -->
-  <main class="max-w-xl mx-auto px-4 py-5 md:py-10 pb-10 flex flex-col gap-4 md:gap-5">
-
-    <!-- Profile Section -->
-    <div class="settings-card">
-      <p class="settings-section-title">Profil</p>
-
-      <!-- Avatar -->
-      <div class="flex flex-col items-center gap-3 mb-6 pt-2">
-        <div class="relative group">
-          <img id="settingsAvatar" src="/static/public/default-avatar.png" alt="Avatar"
-            class="w-20 h-20 rounded-full border-4 border-blue-500 object-cover shadow-md cursor-pointer"
-            title="Klik untuk ganti foto" />
-          <!-- Hidden file input — diklik via JS saat tombol kamera ditekan -->
-          <input type="file" id="avatarFileInput" accept="image/png,image/jpeg,image/webp"
-            class="hidden" />
-          <button id="changeAvatarBtn"
-            class="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center shadow hover:bg-blue-600 transition-colors"
-            title="Ganti foto profil">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
-          </button>
-        </div>
-        <div class="text-center">
-          <p class="font-semibold text-gray-800" id="settingsName">—</p>
-          <p class="text-xs text-gray-500" id="settingsRole">—</p>
-          <!-- Tombol Simpan & Batalkan untuk avatar (hidden by default) -->
-          <div class="mt-3 flex gap-2 justify-center hidden" id="avatarActionButtons">
-            <button id="saveAvatarBtn"
-              class="text-xs px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors font-medium">
-              Simpan Foto
-            </button>
-            <button id="cancelAvatarBtn"
-              class="text-xs px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors font-medium">
-              Batalkan
-            </button>
-          </div>
-          <button id="removeAvatarBtn"
-            class="mt-2 text-xs text-red-400 hover:text-red-600 transition-colors hidden">
-            Hapus foto
-          </button>
-          <div id="avatarFeedback" class="hidden mt-3 p-3 rounded-lg text-sm text-center font-medium"></div>
-        </div>
-      </div>
-
-      <!-- Display Name (read-only, dari DB) -->
-      <div class="settings-row">
-        <div>
-          <p class="settings-row-label">Nama</p>
-          <p class="settings-row-desc">Nama tidak bisa diubah sendiri</p>
-        </div>
-        <span class="text-sm text-gray-500 font-medium" id="settingsNameDisplay">—</span>
-      </div>
-
-      <!-- Role -->
-      <div class="settings-row">
-        <div>
-          <p class="settings-row-label">Role</p>
-          <p class="settings-row-desc">Akses sistem: Admin atau Operator</p>
-        </div>
-        <span class="text-sm text-gray-500 font-medium" id="settingsRoleDisplay">—</span>
-      </div>
-
-      <!-- Division -->
-      <div class="settings-row">
-        <div>
-          <p class="settings-row-label">Divisi</p>
-          <p class="settings-row-desc">Bidang kerja teknis kamu</p>
-        </div>
-        <span class="text-sm text-gray-500 font-medium" id="settingsDivisionDisplay">—</span>
-      </div>
-
-      <!-- Status -->
-      <div class="settings-row">
-        <div>
-          <p class="settings-row-label">Status Saat Ini</p>
-          <p class="settings-row-desc">Status aktif kamu di sistem</p>
-        </div>
-        <span class="text-sm font-semibold" id="settingsStatusDisplay">—</span>
-      </div>
-    </div>
-
-    <!-- Ganti Password -->
-    <div class="settings-card">
-      <p class="settings-section-title">Keamanan</p>
-
-      <form id="changePasswordForm" class="flex flex-col gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1" for="currentPassword">Password Saat Ini</label>
-          <input type="password" id="currentPassword" placeholder="••••••••"
-            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1" for="newPassword">Password Baru</label>
-          <input type="password" id="newPassword" placeholder="Min. 8 karakter, huruf besar, angka"
-            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
-          <!-- Password strength indicator -->
-          <div class="mt-2 flex gap-1" id="passwordStrengthBar">
-            <div class="h-1 flex-1 rounded bg-gray-200" id="ps1"></div>
-            <div class="h-1 flex-1 rounded bg-gray-200" id="ps2"></div>
-            <div class="h-1 flex-1 rounded bg-gray-200" id="ps3"></div>
-            <div class="h-1 flex-1 rounded bg-gray-200" id="ps4"></div>
-          </div>
-          <p class="text-xs text-gray-400 mt-1" id="passwordStrengthLabel"></p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1" for="confirmPassword">Konfirmasi Password Baru</label>
-          <input type="password" id="confirmPassword" placeholder="Ulangi password baru"
-            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
-        </div>
-        <p class="text-xs text-gray-400">Password harus min. 8 karakter, ada huruf besar, huruf kecil, dan angka.</p>
-        <button type="submit"
-          class="w-full py-2.5 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors text-sm">
-          Simpan Password Baru
-        </button>
-      </form>
-
-      <!-- Feedback message -->
-      <div id="passwordFeedback" class="hidden mt-3 p-3 rounded-lg text-sm text-center font-medium"></div>
-    </div>
-
-    <!-- Danger Zone -->
-    <div class="settings-card border border-red-200">
-      <p class="settings-section-title text-red-400">Akun</p>
-      <div class="settings-row flex-col sm:flex-row items-start sm:items-center gap-3">
-        <div>
-          <p class="settings-row-label text-red-600">Logout</p>
-          <p class="settings-row-desc">Keluar dari semua sesi aktif</p>
-        </div>
-        <button id="logoutBtn"
-          class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-red-600 border border-red-300 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors min-h-[44px]">
-          Logout
-        </button>
-      </div>
-    </div>
-
-  </main>
-
-  <script>
-    // ── Avatar: buka file explorer, upload ke server, hapus ──
-    const avatarImg           = document.getElementById('settingsAvatar');
-    const changeAvatarBtn     = document.getElementById('changeAvatarBtn');
-    const avatarFileInput     = document.getElementById('avatarFileInput');
-    const removeAvatarBtn     = document.getElementById('removeAvatarBtn');
-    const avatarActionButtons = document.getElementById('avatarActionButtons');
-    const saveAvatarBtn       = document.getElementById('saveAvatarBtn');
-    const cancelAvatarBtn     = document.getElementById('cancelAvatarBtn');
-
-    const DEFAULT_AVATAR = '/static/public/default-avatar.png';
-    let pendingAvatarFile = null; // File yang sedang ditunggu disimpan
-    let originalAvatarSrc = DEFAULT_AVATAR; // Simpan foto asli untuk restore
-
-    function unwrapProfileResponse(response) {
-      return response && response.data ? response.data : response;
-    }
-
-    function avatarUrl(avatar) {
-      if (!avatar || avatar === 'no avatar' || avatar === 'default-avatar.png') return DEFAULT_AVATAR;
-      return '/static/public/' + avatar + '?t=' + Date.now();
-    }
-
-    // Klik tombol kamera ATAU gambar avatar → buka file explorer
-    changeAvatarBtn.addEventListener('click', () => avatarFileInput.click());
-    avatarImg.addEventListener('click',       () => avatarFileInput.click());
-
-    // Saat file dipilih → preview dulu, tampilkan tombol Simpan/Batalkan
-    avatarFileInput.addEventListener('change', function() {
-      const file = this.files[0];
-      if (!file) return;
-
-      // Validasi ukuran (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        showAvatarFeedback('Ukuran file terlalu besar. Maksimal 2MB.', true);
-        avatarFileInput.value = '';
-        return;
-      }
-
-      // Simpan file yang sedang pending
-      pendingAvatarFile = file;
-      originalAvatarSrc = avatarImg.src; // Simpan foto lama
-
-      // Preview lokal agar terasa responsif
-      const reader = new FileReader();
-      reader.onload = (e) => { 
-        avatarImg.src = e.target.result;
-        // Tampilkan tombol Simpan & Batalkan
-        avatarActionButtons.classList.remove('hidden');
-        showAvatarFeedback('Foto preview berhasil dimuat. Klik Simpan untuk disimpan.', false);
-      };
-      reader.readAsDataURL(file);
-    });
-
-    // Klik tombol Simpan → upload ke server
-    saveAvatarBtn.addEventListener('click', async () => {
-      if (!pendingAvatarFile) return;
-
-      const token = localStorage.getItem('userToken');
-      if (!token) {
-        showAvatarFeedback('Sesi habis, silakan login ulang.', true);
-        return;
-      }
-
-      showAvatarFeedback('Mengupload...', false);
-      saveAvatarBtn.disabled = true;
-
-      try {
-        const formData = new FormData();
-        formData.append('avatar', pendingAvatarFile);
-
-        const res = await fetch('/api/profile/avatar', {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + token },
-          body: formData
-        });
-
-        const text = await res.text();
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          console.error('Server response (non-JSON):', text);
-          throw new Error(`Server error ${res.status}: ${text.slice(0, 100)}`);
-        }
-
-        if (!res.ok) throw new Error(data.message || 'Upload gagal');
-
-        // Update gambar dengan URL dari server
-        const avatarFile = data.data?.avatar || data.avatar;
-        if (avatarFile) {
-          const newUrl = avatarUrl(avatarFile);
-          avatarImg.src = newUrl;
-          originalAvatarSrc = newUrl;
-          localStorage.setItem('userAvatar', avatarFile);
-          // Update navbar profile photo juga
-          const navImg = document.getElementById('navProfileImg');
-          if (navImg) {
-            navImg.src = newUrl;
-          }
-        }
-        removeAvatarBtn.classList.remove('hidden');
-        showAvatarFeedback('Foto profil berhasil di update', false);
-        avatarActionButtons.classList.add('hidden');
-        pendingAvatarFile = null;
-
-      } catch (err) {
-        console.error('Avatar upload error:', err);
-        showAvatarFeedback('Gagal upload: ' + err.message, true);
-      } finally {
-        saveAvatarBtn.disabled = false;
-        avatarFileInput.value = '';
-      }
-    });
-
-    // Klik tombol Batalkan → restore foto lama dan sembunyikan tombol
-    cancelAvatarBtn.addEventListener('click', () => {
-      avatarImg.src = originalAvatarSrc;
-      avatarActionButtons.classList.add('hidden');
-      showAvatarFeedback('Perubahan foto dibatalkan.', false);
-      pendingAvatarFile = null;
-      avatarFileInput.value = '';
-    });
-
-    // Hapus avatar → kirim DELETE ke server
-    removeAvatarBtn.addEventListener('click', async () => {
-      const token = localStorage.getItem('userToken');
-      if (!token) return;
-
-      try {
-        const res = await fetch('/api/profile/avatar', {
-          method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-
-        if (!res.ok) throw new Error('Gagal menghapus avatar');
-
-        avatarImg.src = DEFAULT_AVATAR;
-        originalAvatarSrc = DEFAULT_AVATAR;
-        // Update navbar photo juga
-        const navImg = document.getElementById('navProfileImg');
-        if (navImg) {
-          navImg.src = DEFAULT_AVATAR;
-        }
-        removeAvatarBtn.classList.add('hidden');
-        avatarActionButtons.classList.add('hidden');
-        pendingAvatarFile = null;
-        avatarFileInput.value = '';
-        showAvatarFeedback('Foto profil dihapus.', false);
-
-      } catch (err) {
-        showAvatarFeedback('Gagal hapus: ' + err.message, true);
-      }
-    });
-
-    function showAvatarFeedback(msg, isError) {
-      const fb = document.getElementById('avatarFeedback');
-      fb.textContent = msg;
-      fb.className = 'mt-3 p-3 rounded-lg text-sm text-center font-medium ' +
-        (isError ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700');
-      fb.classList.remove('hidden');
-      if (!isError) setTimeout(() => fb.classList.add('hidden'), 4000);
-    }
-
-    // ── Load profil user dari JWT ──
-    (function loadProfile() {
-      const token = localStorage.getItem('userToken');
-      if (!token) { window.location.href = '/login.html'; return; }
-
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const name = payload.name || '—';
-        const role = payload.role || '—';
-
-        document.getElementById('settingsName').textContent        = name;
-        document.getElementById('settingsRole').textContent        = role;
-        document.getElementById('settingsNameDisplay').textContent = name;
-        document.getElementById('settingsRoleDisplay').textContent = role;
-      } catch(e) {}
-
-      // Ambil data lengkap dari API (avatar + status)
-      const updateProfileStatus = () => {
-        fetch('/api/profile', { headers: { Authorization: 'Bearer ' + token } })
-          .then(r => r.ok ? r.json() : null)
-          .then(raw => {
-            const data = unwrapProfileResponse(raw);
-            if (!data) return;
-            const nextAvatarUrl = avatarUrl(data.avatar);
-            document.getElementById('settingsAvatar').src = nextAvatarUrl;
-            originalAvatarSrc = nextAvatarUrl; // Update foto asli reference
-            // Tampilkan tombol hapus jika punya avatar yang bukan default
-            if (data.avatar && data.avatar !== 'no avatar' && data.avatar !== 'default-avatar.png') {
-              removeAvatarBtn.classList.remove('hidden');
-            } else {
-              removeAvatarBtn.classList.add('hidden');
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>Settings — Work Order ITMIVHS</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link href="/static/assets/style.css" rel="stylesheet" />
+        <style>
+            .settings-card {
+                background: rgba(255, 255, 255, 0.94);
+                border: 1px solid rgba(226, 232, 240, 0.9);
+                border-radius: 0.85rem;
+                padding: 1.5rem;
+                box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+                backdrop-filter: blur(14px);
+                transition:
+                    box-shadow 0.18s ease,
+                    transform 0.18s ease;
             }
-            const statusEl = document.getElementById('settingsStatusDisplay');
-            const divisionEl = document.getElementById('settingsDivisionDisplay');
-            if (divisionEl) divisionEl.textContent = data.division || '—';
-            const statusMap = {
-              standby: { label: 'Stand By', color: 'text-green-600' },
-              onjob:   { label: 'On Job',   color: 'text-blue-600'  },
-              support: { label: 'Support',  color: 'text-yellow-600'},
-              nextshift:{ label: 'Next Shift', color: 'text-purple-600'},
-              offduty: { label: 'Off Duty', color: 'text-gray-500'  },
-            };
-            const s = statusMap[data.status] || { label: data.status || '—', color: 'text-gray-500' };
-            statusEl.textContent = s.label;
-            statusEl.className   = 'text-sm font-semibold ' + s.color;
-          })
-          .catch(() => {});
-      };
-      
-      // Load initial profile
-      updateProfileStatus();
-      
-      // Auto-refresh status setiap 4 detik agar selalu terupdate
-      setInterval(updateProfileStatus, 4000);
-    })();
+            .settings-card:hover {
+                box-shadow: 0 18px 46px rgba(15, 23, 42, 0.09);
+            }
+            .settings-section-title {
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: #9ca3af;
+                margin-bottom: 1rem;
+            }
+            .settings-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid #f3f4f6;
+                gap: 1rem;
+            }
+            .settings-row:last-child {
+                border-bottom: none;
+            }
+            .settings-row-label {
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: #374151;
+            }
+            .settings-row-desc {
+                font-size: 0.75rem;
+                color: #9ca3af;
+                margin-top: 0.1rem;
+            }
+            input[type="text"],
+            input[type="password"],
+            input[type="email"] {
+                font-size: 16px; /* Cegah zoom di iOS */
+            }
+            .crop-modal {
+                position: fixed;
+                inset: 0;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 1rem;
+                background: rgba(15, 23, 42, 0.72);
+                backdrop-filter: blur(10px);
+            }
+            .crop-modal.hidden {
+                display: none;
+            }
+            .crop-panel {
+                width: min(100%, 420px);
+                border-radius: 1.25rem;
+                background: #fff;
+                box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
+                overflow: hidden;
+            }
+            .crop-canvas-wrap {
+                display: flex;
+                justify-content: center;
+                padding: 1rem;
+                background: linear-gradient(135deg, #0f172a, #1e293b);
+                touch-action: none;
+            }
+            #avatarCropCanvas {
+                width: min(78vw, 320px);
+                height: min(78vw, 320px);
+                max-width: 320px;
+                max-height: 320px;
+                border-radius: 1rem;
+                cursor: grab;
+                touch-action: none;
+                background: #020617;
+            }
+            #avatarCropCanvas:active {
+                cursor: grabbing;
+            }
+            .crop-range {
+                width: 100%;
+                accent-color: #2563eb;
+            }
+            @media (max-width: 640px) {
+                .settings-card {
+                    padding: 1.1rem;
+                    border-radius: 0.75rem;
+                }
+                .settings-row {
+                    align-items: flex-start;
+                }
+            }
+        </style>
+        <script>
+            (function () {
+                try {
+                    var theme =
+                        localStorage.getItem("woTheme") ||
+                        localStorage.getItem("theme") ||
+                        "light";
+                    document.documentElement.setAttribute("data-theme", theme);
+                } catch (e) {}
+            })();
+        </script>
+    </head>
+    <body class="bg-[#f3f4f6] text-black min-h-screen">
+        <!-- NAVBAR -->
+        <nav
+            class="w-full bg-gradient-to-r from-slate-900 to-slate-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shadow-2xl border-b border-slate-700"
+        >
+            <a
+                href="/index.html"
+                class="flex items-center gap-2 text-white hover:text-slate-300 transition-colors"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 19l-7-7 7-7"
+                    ></path>
+                </svg>
+                <span class="text-sm font-medium">Kembali</span>
+            </a>
+            <h1 class="text-white font-semibold text-base md:text-lg">
+                Settings
+            </h1>
+            <div class="w-16"></div>
+            <!-- spacer biar title center -->
+        </nav>
 
-    // ── Password strength checker ──
-    document.getElementById('newPassword').addEventListener('input', function() {
-      const val = this.value;
-      const bars  = [document.getElementById('ps1'), document.getElementById('ps2'),
-                     document.getElementById('ps3'), document.getElementById('ps4')];
-      const label = document.getElementById('passwordStrengthLabel');
+        <!-- MAIN CONTENT -->
+        <main
+            class="max-w-xl mx-auto px-4 py-5 md:py-10 pb-10 flex flex-col gap-4 md:gap-5"
+        >
+            <!-- Profile Section -->
+            <div class="settings-card">
+                <p class="settings-section-title">Profil</p>
 
-      let score = 0;
-      if (val.length >= 8)            score++;
-      if (/[A-Z]/.test(val))          score++;
-      if (/[a-z]/.test(val))          score++;
-      if (/[0-9]/.test(val))          score++;
+                <!-- Avatar -->
+                <div class="flex flex-col items-center gap-3 mb-6 pt-2">
+                    <div class="relative group">
+                        <img
+                            id="settingsAvatar"
+                            src="/static/public/default-avatar.png"
+                            alt="Avatar"
+                            class="w-20 h-20 rounded-full border-4 border-blue-500 object-cover shadow-md cursor-pointer"
+                            title="Klik untuk ganti foto"
+                        />
+                        <!-- Hidden file input — diklik via JS saat tombol kamera ditekan -->
+                        <input
+                            type="file"
+                            id="avatarFileInput"
+                            accept="image/png,image/jpeg,image/webp"
+                            class="hidden"
+                        />
+                        <button
+                            id="changeAvatarBtn"
+                            class="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center shadow hover:bg-blue-600 transition-colors"
+                            title="Ganti foto profil"
+                        >
+                            <svg
+                                class="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                                ></path>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <p
+                            class="font-semibold text-gray-800"
+                            id="settingsName"
+                        >
+                            —
+                        </p>
+                        <p class="text-xs text-gray-500" id="settingsRole">—</p>
+                        <!-- Tombol Simpan & Batalkan untuk avatar (hidden by default) -->
+                        <div
+                            class="mt-3 flex gap-2 justify-center hidden"
+                            id="avatarActionButtons"
+                        >
+                            <button
+                                id="saveAvatarBtn"
+                                class="text-xs px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors font-medium"
+                            >
+                                Simpan Foto
+                            </button>
+                            <button
+                                id="cancelAvatarBtn"
+                                class="text-xs px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors font-medium"
+                            >
+                                Batalkan
+                            </button>
+                        </div>
+                        <button
+                            id="removeAvatarBtn"
+                            class="mt-2 text-xs text-red-400 hover:text-red-600 transition-colors hidden"
+                        >
+                            Hapus foto
+                        </button>
+                        <div
+                            id="avatarFeedback"
+                            class="hidden mt-3 p-3 rounded-lg text-sm text-center font-medium"
+                        ></div>
+                    </div>
+                </div>
 
-      const colors  = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-500'];
-      const labels  = ['', 'Lemah', 'Cukup', 'Baik', 'Kuat'];
-      const tcolors = ['', 'text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-600'];
+                <!-- Display Name (read-only, dari DB) -->
+                <div class="settings-row">
+                    <div>
+                        <p class="settings-row-label">Nama</p>
+                        <p class="settings-row-desc">
+                            Nama tidak bisa diubah sendiri
+                        </p>
+                    </div>
+                    <span
+                        class="text-sm text-gray-500 font-medium"
+                        id="settingsNameDisplay"
+                        >—</span
+                    >
+                </div>
 
-      bars.forEach((b, i) => {
-        b.className = 'h-1 flex-1 rounded ' + (i < score ? colors[score - 1] : 'bg-gray-200');
-      });
-      label.textContent = val.length > 0 ? labels[score] : '';
-      label.className   = 'text-xs mt-1 ' + (val.length > 0 ? tcolors[score] : 'text-gray-400');
-    });
+                <!-- Role -->
+                <div class="settings-row">
+                    <div>
+                        <p class="settings-row-label">Role</p>
+                        <p class="settings-row-desc">
+                            Akses sistem: Admin atau Operator
+                        </p>
+                    </div>
+                    <span
+                        class="text-sm text-gray-500 font-medium"
+                        id="settingsRoleDisplay"
+                        >—</span
+                    >
+                </div>
 
-    // ── Ganti Password ──
-    document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const current = document.getElementById('currentPassword').value;
-      const newPass  = document.getElementById('newPassword').value;
-      const confirm  = document.getElementById('confirmPassword').value;
-      const feedback = document.getElementById('passwordFeedback');
+                <!-- Division -->
+                <div class="settings-row">
+                    <div>
+                        <p class="settings-row-label">Divisi</p>
+                        <p class="settings-row-desc">
+                            Bidang kerja teknis kamu
+                        </p>
+                    </div>
+                    <span
+                        class="text-sm text-gray-500 font-medium"
+                        id="settingsDivisionDisplay"
+                        >—</span
+                    >
+                </div>
 
-      const showFeedback = (msg, isError) => {
-        feedback.textContent = msg;
-        feedback.className   = 'mt-3 p-3 rounded-lg text-sm text-center font-medium ' +
-          (isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700');
-        feedback.classList.remove('hidden');
-        setTimeout(() => feedback.classList.add('hidden'), 4000);
-      };
+                <!-- Status -->
+                <div class="settings-row">
+                    <div>
+                        <p class="settings-row-label">Status Saat Ini</p>
+                        <p class="settings-row-desc">
+                            Status aktif kamu di sistem
+                        </p>
+                    </div>
+                    <span
+                        class="text-sm font-semibold"
+                        id="settingsStatusDisplay"
+                        >—</span
+                    >
+                </div>
+            </div>
 
-      if (!current || !newPass || !confirm) {
-        showFeedback('Semua kolom harus diisi.', true); return;
-      }
-      if (newPass !== confirm) {
-        showFeedback('Konfirmasi password tidak cocok.', true); return;
-      }
-      if (newPass.length < 8 || !/[A-Z]/.test(newPass) || !/[0-9]/.test(newPass)) {
-        showFeedback('Password baru tidak memenuhi syarat.', true); return;
-      }
+            <!-- Ganti Password -->
+            <div class="settings-card">
+                <p class="settings-section-title">Keamanan</p>
 
-      // TODO: Hubungkan ke endpoint PATCH /api/profile/password saat sudah dibuat di backend
-      // Sementara ini hanya simulasi
-      showFeedback('Password berhasil diubah! (simulasi — endpoint belum tersedia)', false);
-      this.reset();
-    });
+                <form id="changePasswordForm" class="flex flex-col gap-4">
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                            for="currentPassword"
+                            >Password Saat Ini</label
+                        >
+                        <input
+                            type="password"
+                            id="currentPassword"
+                            placeholder="••••••••"
+                            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                            for="newPassword"
+                            >Password Baru</label
+                        >
+                        <input
+                            type="password"
+                            id="newPassword"
+                            placeholder="Min. 8 karakter, huruf besar, angka"
+                            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
+                        <!-- Password strength indicator -->
+                        <div class="mt-2 flex gap-1" id="passwordStrengthBar">
+                            <div
+                                class="h-1 flex-1 rounded bg-gray-200"
+                                id="ps1"
+                            ></div>
+                            <div
+                                class="h-1 flex-1 rounded bg-gray-200"
+                                id="ps2"
+                            ></div>
+                            <div
+                                class="h-1 flex-1 rounded bg-gray-200"
+                                id="ps3"
+                            ></div>
+                            <div
+                                class="h-1 flex-1 rounded bg-gray-200"
+                                id="ps4"
+                            ></div>
+                        </div>
+                        <p
+                            class="text-xs text-gray-400 mt-1"
+                            id="passwordStrengthLabel"
+                        ></p>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                            for="confirmPassword"
+                            >Konfirmasi Password Baru</label
+                        >
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            placeholder="Ulangi password baru"
+                            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
+                    </div>
+                    <p class="text-xs text-gray-400">
+                        Password harus min. 8 karakter, ada huruf besar, huruf
+                        kecil, dan angka.
+                    </p>
+                    <button
+                        id="changePasswordSubmit"
+                        type="submit"
+                        class="w-full py-2.5 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                    >
+                        Simpan Password Baru
+                    </button>
+                </form>
 
-    // ── Logout ──
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-      localStorage.removeItem('userToken');
-      localStorage.removeItem('isGuestUser');
-      localStorage.removeItem('guestLoginTime');
-      localStorage.removeItem('isAdmin');
-      window.location.href = '/login.html';
-    });
-  </script>
-</body>
+                <!-- Feedback message -->
+                <div
+                    id="passwordFeedback"
+                    class="hidden mt-3 p-3 rounded-lg text-sm text-center font-medium"
+                ></div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="settings-card border border-red-200">
+                <p class="settings-section-title text-red-400">Akun</p>
+                <div
+                    class="settings-row flex-col sm:flex-row items-start sm:items-center gap-3"
+                >
+                    <div>
+                        <p class="settings-row-label text-red-600">Logout</p>
+                        <p class="settings-row-desc">
+                            Keluar dari semua sesi aktif
+                        </p>
+                    </div>
+                    <button
+                        id="logoutBtn"
+                        class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-red-600 border border-red-300 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors min-h-[44px]"
+                    >
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <div
+            id="avatarCropModal"
+            class="crop-modal hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="avatarCropTitle"
+        >
+            <div class="crop-panel">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h2
+                        id="avatarCropTitle"
+                        class="text-base font-bold text-gray-900"
+                    >
+                        Sesuaikan Foto Profil
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Geser foto untuk mengatur posisi, lalu zoom seperti crop
+                        WhatsApp/Instagram.
+                    </p>
+                </div>
+                <div class="crop-canvas-wrap">
+                    <canvas
+                        id="avatarCropCanvas"
+                        width="320"
+                        height="320"
+                    ></canvas>
+                </div>
+                <div class="px-5 py-4 space-y-4">
+                    <div>
+                        <div
+                            class="flex justify-between text-xs text-gray-500 mb-2"
+                        >
+                            <span>Zoom</span>
+                            <span>Drag foto untuk reposisi</span>
+                        </div>
+                        <input
+                            id="avatarCropZoom"
+                            class="crop-range"
+                            type="range"
+                            min="1"
+                            max="3"
+                            step="0.01"
+                            value="1"
+                        />
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button
+                            id="cancelCropBtn"
+                            type="button"
+                            class="px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                        >
+                            Batalkan
+                        </button>
+                        <button
+                            id="applyCropBtn"
+                            type="button"
+                            class="px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+                        >
+                            Gunakan Foto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // ── Avatar: buka file explorer, upload ke server, hapus ──
+            const avatarImg = document.getElementById("settingsAvatar");
+            const changeAvatarBtn = document.getElementById("changeAvatarBtn");
+            const avatarFileInput = document.getElementById("avatarFileInput");
+            const removeAvatarBtn = document.getElementById("removeAvatarBtn");
+            const avatarActionButtons = document.getElementById(
+                "avatarActionButtons",
+            );
+            const saveAvatarBtn = document.getElementById("saveAvatarBtn");
+            const cancelAvatarBtn = document.getElementById("cancelAvatarBtn");
+            const avatarCropModal = document.getElementById("avatarCropModal");
+            const avatarCropCanvas =
+                document.getElementById("avatarCropCanvas");
+            const avatarCropZoom = document.getElementById("avatarCropZoom");
+            const applyCropBtn = document.getElementById("applyCropBtn");
+            const cancelCropBtn = document.getElementById("cancelCropBtn");
+            const cropCtx = avatarCropCanvas.getContext("2d");
+
+            const DEFAULT_AVATAR = "/static/public/default-avatar.png";
+            let pendingAvatarFile = null; // File crop yang sedang ditunggu disimpan
+            let pendingAvatarPreviewUrl = "";
+            let originalAvatarSrc = DEFAULT_AVATAR; // Simpan foto asli untuk restore
+            let cropImage = null;
+            let cropImageUrl = "";
+            let cropZoom = 1;
+            let cropOffsetX = 0;
+            let cropOffsetY = 0;
+            let cropDragStart = null;
+
+            function unwrapProfileResponse(response) {
+                return response && response.data ? response.data : response;
+            }
+
+            function avatarUrl(avatar) {
+                if (
+                    !avatar ||
+                    avatar === "no avatar" ||
+                    avatar === "default-avatar.png"
+                )
+                    return DEFAULT_AVATAR;
+                return "/static/public/" + avatar + "?t=" + Date.now();
+            }
+
+            function decodeJwtPayload(token) {
+                try {
+                    const payload = token.split(".")[1];
+                    if (!payload) return null;
+                    const normalized = payload
+                        .replace(/-/g, "+")
+                        .replace(/_/g, "/");
+                    const padded = normalized.padEnd(
+                        normalized.length + ((4 - (normalized.length % 4)) % 4),
+                        "=",
+                    );
+                    return JSON.parse(atob(padded));
+                } catch (err) {
+                    console.warn("Failed to decode JWT payload:", err);
+                    return null;
+                }
+            }
+
+            function applyProfileData(data) {
+                if (!data) return;
+                const name = data.name || data.Name || "—";
+                const role = data.role || data.Role || "—";
+                const division = data.division || data.Division || "—";
+
+                document.getElementById("settingsName").textContent = name;
+                document.getElementById("settingsRole").textContent = role;
+                document.getElementById("settingsNameDisplay").textContent =
+                    name;
+                document.getElementById("settingsRoleDisplay").textContent =
+                    role;
+                const divisionEl = document.getElementById(
+                    "settingsDivisionDisplay",
+                );
+                if (divisionEl) divisionEl.textContent = division;
+            }
+
+            // Klik tombol kamera ATAU gambar avatar → buka file explorer
+            changeAvatarBtn.addEventListener("click", () =>
+                avatarFileInput.click(),
+            );
+            avatarImg.addEventListener("click", () => avatarFileInput.click());
+
+            function clamp(value, min, max) {
+                return Math.min(max, Math.max(min, value));
+            }
+
+            function closeCropModal() {
+                avatarCropModal.classList.add("hidden");
+                if (cropImageUrl) URL.revokeObjectURL(cropImageUrl);
+                cropImageUrl = "";
+                cropImage = null;
+                cropDragStart = null;
+                avatarFileInput.value = "";
+            }
+
+            function getCropMetrics(outputSize = avatarCropCanvas.width) {
+                const sourceW =
+                    cropImage?.naturalWidth || cropImage?.width || 1;
+                const sourceH =
+                    cropImage?.naturalHeight || cropImage?.height || 1;
+                const baseScale = Math.max(
+                    outputSize / sourceW,
+                    outputSize / sourceH,
+                );
+                const scale = baseScale * cropZoom;
+                const displayW = sourceW * scale;
+                const displayH = sourceH * scale;
+                const maxOffsetX = Math.max(0, (displayW - outputSize) / 2);
+                const maxOffsetY = Math.max(0, (displayH - outputSize) / 2);
+                cropOffsetX = clamp(cropOffsetX, -maxOffsetX, maxOffsetX);
+                cropOffsetY = clamp(cropOffsetY, -maxOffsetY, maxOffsetY);
+                return {
+                    sourceW,
+                    sourceH,
+                    displayW,
+                    displayH,
+                    x: (outputSize - displayW) / 2 + cropOffsetX,
+                    y: (outputSize - displayH) / 2 + cropOffsetY,
+                };
+            }
+
+            function drawCropCanvas() {
+                if (!cropImage) return;
+                const size = avatarCropCanvas.width;
+                const radius = size / 2 - 16;
+                const m = getCropMetrics(size);
+
+                cropCtx.clearRect(0, 0, size, size);
+                cropCtx.fillStyle = "#020617";
+                cropCtx.fillRect(0, 0, size, size);
+                cropCtx.drawImage(cropImage, m.x, m.y, m.displayW, m.displayH);
+
+                cropCtx.save();
+                cropCtx.fillStyle = "rgba(15, 23, 42, 0.56)";
+                cropCtx.beginPath();
+                cropCtx.rect(0, 0, size, size);
+                cropCtx.arc(size / 2, size / 2, radius, 0, Math.PI * 2, true);
+                cropCtx.fill("evenodd");
+                cropCtx.restore();
+
+                cropCtx.save();
+                cropCtx.strokeStyle = "rgba(255, 255, 255, 0.96)";
+                cropCtx.lineWidth = 3;
+                cropCtx.beginPath();
+                cropCtx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
+                cropCtx.stroke();
+                cropCtx.restore();
+            }
+
+            function openCropModal(file) {
+                if (cropImageUrl) URL.revokeObjectURL(cropImageUrl);
+                cropImageUrl = URL.createObjectURL(file);
+                cropImage = new Image();
+                cropImage.onload = () => {
+                    cropZoom = 1;
+                    cropOffsetX = 0;
+                    cropOffsetY = 0;
+                    avatarCropZoom.value = "1";
+                    avatarCropModal.classList.remove("hidden");
+                    drawCropCanvas();
+                };
+                cropImage.onerror = () => {
+                    closeCropModal();
+                    showAvatarFeedback(
+                        "Gagal membaca foto. Coba pilih file lain.",
+                        true,
+                    );
+                };
+                cropImage.src = cropImageUrl;
+            }
+
+            function createCroppedAvatarFile() {
+                return new Promise((resolve, reject) => {
+                    if (!cropImage) {
+                        reject(new Error("Foto belum dipilih."));
+                        return;
+                    }
+                    const outputSize = 512;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = outputSize;
+                    canvas.height = outputSize;
+                    const ctx = canvas.getContext("2d");
+                    const previewSize = avatarCropCanvas.width;
+                    const previewMetrics = getCropMetrics(previewSize);
+                    const ratio = outputSize / previewSize;
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, outputSize, outputSize);
+                    ctx.drawImage(
+                        cropImage,
+                        previewMetrics.x * ratio,
+                        previewMetrics.y * ratio,
+                        previewMetrics.displayW * ratio,
+                        previewMetrics.displayH * ratio,
+                    );
+                    canvas.toBlob(
+                        (blob) => {
+                            if (!blob) {
+                                reject(new Error("Gagal membuat hasil crop."));
+                                return;
+                            }
+                            resolve(
+                                new File([blob], "avatar-cropped.jpg", {
+                                    type: "image/jpeg",
+                                    lastModified: Date.now(),
+                                }),
+                            );
+                        },
+                        "image/jpeg",
+                        0.88,
+                    );
+                });
+            }
+
+            // Saat file dipilih → buka cropper dulu seperti social media
+            avatarFileInput.addEventListener("change", function () {
+                const file = this.files[0];
+                if (!file) return;
+
+                if (!file.type.startsWith("image/")) {
+                    showAvatarFeedback("File harus berupa gambar.", true);
+                    avatarFileInput.value = "";
+                    return;
+                }
+
+                // File asli boleh lebih besar karena yang diupload adalah hasil crop 512px.
+                if (file.size > 15 * 1024 * 1024) {
+                    showAvatarFeedback(
+                        "Ukuran file terlalu besar. Maksimal 15MB sebelum crop.",
+                        true,
+                    );
+                    avatarFileInput.value = "";
+                    return;
+                }
+
+                originalAvatarSrc = avatarImg.src;
+                openCropModal(file);
+            });
+
+            avatarCropZoom.addEventListener("input", function () {
+                cropZoom = Number(this.value) || 1;
+                drawCropCanvas();
+            });
+
+            avatarCropCanvas.addEventListener("pointerdown", (e) => {
+                if (!cropImage) return;
+                avatarCropCanvas.setPointerCapture(e.pointerId);
+                cropDragStart = {
+                    pointerId: e.pointerId,
+                    x: e.clientX,
+                    y: e.clientY,
+                    offsetX: cropOffsetX,
+                    offsetY: cropOffsetY,
+                };
+            });
+
+            avatarCropCanvas.addEventListener("pointermove", (e) => {
+                if (!cropDragStart || cropDragStart.pointerId !== e.pointerId)
+                    return;
+                cropOffsetX =
+                    cropDragStart.offsetX + (e.clientX - cropDragStart.x);
+                cropOffsetY =
+                    cropDragStart.offsetY + (e.clientY - cropDragStart.y);
+                drawCropCanvas();
+            });
+
+            function stopCropDrag(e) {
+                if (cropDragStart && cropDragStart.pointerId === e.pointerId) {
+                    cropDragStart = null;
+                }
+            }
+            avatarCropCanvas.addEventListener("pointerup", stopCropDrag);
+            avatarCropCanvas.addEventListener("pointercancel", stopCropDrag);
+            avatarCropCanvas.addEventListener(
+                "wheel",
+                (e) => {
+                    if (!cropImage) return;
+                    e.preventDefault();
+                    const nextZoom = clamp(
+                        cropZoom + (e.deltaY < 0 ? 0.08 : -0.08),
+                        1,
+                        3,
+                    );
+                    cropZoom = nextZoom;
+                    avatarCropZoom.value = String(nextZoom);
+                    drawCropCanvas();
+                },
+                { passive: false },
+            );
+
+            applyCropBtn.addEventListener("click", async () => {
+                try {
+                    pendingAvatarFile = await createCroppedAvatarFile();
+                    if (pendingAvatarPreviewUrl)
+                        URL.revokeObjectURL(pendingAvatarPreviewUrl);
+                    pendingAvatarPreviewUrl =
+                        URL.createObjectURL(pendingAvatarFile);
+                    avatarImg.src = pendingAvatarPreviewUrl;
+                    avatarActionButtons.classList.remove("hidden");
+                    showAvatarFeedback(
+                        "Foto sudah dicrop. Klik Simpan Foto untuk upload.",
+                        false,
+                    );
+                    closeCropModal();
+                } catch (err) {
+                    showAvatarFeedback(err.message || "Gagal crop foto.", true);
+                }
+            });
+
+            cancelCropBtn.addEventListener("click", () => {
+                closeCropModal();
+                avatarImg.src = originalAvatarSrc;
+                pendingAvatarFile = null;
+            });
+
+            avatarCropModal.addEventListener("click", (e) => {
+                if (e.target === avatarCropModal) {
+                    closeCropModal();
+                    avatarImg.src = originalAvatarSrc;
+                    pendingAvatarFile = null;
+                }
+            });
+
+            // Klik tombol Simpan → upload ke server
+            saveAvatarBtn.addEventListener("click", async () => {
+                if (!pendingAvatarFile) return;
+
+                const token = localStorage.getItem("userToken");
+                if (!token) {
+                    showAvatarFeedback(
+                        "Sesi habis, silakan login ulang.",
+                        true,
+                    );
+                    return;
+                }
+
+                showAvatarFeedback("Mengupload...", false);
+                saveAvatarBtn.disabled = true;
+
+                try {
+                    const formData = new FormData();
+                    formData.append("avatar", pendingAvatarFile);
+
+                    const res = await fetch("/api/profile/avatar", {
+                        method: "POST",
+                        headers: { Authorization: "Bearer " + token },
+                        body: formData,
+                    });
+
+                    const text = await res.text();
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch {
+                        console.error("Server response (non-JSON):", text);
+                        throw new Error(
+                            `Server error ${res.status}: ${text.slice(0, 100)}`,
+                        );
+                    }
+
+                    if (!res.ok)
+                        throw new Error(data.message || "Upload gagal");
+
+                    // Update gambar dengan URL dari server
+                    const avatarFile = data.data?.avatar || data.avatar;
+                    if (avatarFile) {
+                        const newUrl = avatarUrl(avatarFile);
+                        avatarImg.src = newUrl;
+                        originalAvatarSrc = newUrl;
+                        localStorage.setItem("userAvatar", avatarFile);
+                        // Update navbar profile photo juga
+                        const navImg = document.getElementById("navProfileImg");
+                        if (navImg) {
+                            navImg.src = newUrl;
+                        }
+                    }
+                    removeAvatarBtn.classList.remove("hidden");
+                    showAvatarFeedback("Foto profil berhasil di update", false);
+                    avatarActionButtons.classList.add("hidden");
+                    pendingAvatarFile = null;
+                    if (pendingAvatarPreviewUrl) {
+                        URL.revokeObjectURL(pendingAvatarPreviewUrl);
+                        pendingAvatarPreviewUrl = "";
+                    }
+                } catch (err) {
+                    console.error("Avatar upload error:", err);
+                    showAvatarFeedback("Gagal upload: " + err.message, true);
+                } finally {
+                    saveAvatarBtn.disabled = false;
+                    avatarFileInput.value = "";
+                }
+            });
+
+            // Klik tombol Batalkan → restore foto lama dan sembunyikan tombol
+            cancelAvatarBtn.addEventListener("click", () => {
+                avatarImg.src = originalAvatarSrc;
+                avatarActionButtons.classList.add("hidden");
+                showAvatarFeedback("Perubahan foto dibatalkan.", false);
+                pendingAvatarFile = null;
+                if (pendingAvatarPreviewUrl) {
+                    URL.revokeObjectURL(pendingAvatarPreviewUrl);
+                    pendingAvatarPreviewUrl = "";
+                }
+                avatarFileInput.value = "";
+            });
+
+            // Hapus avatar → kirim DELETE ke server
+            removeAvatarBtn.addEventListener("click", async () => {
+                const token = localStorage.getItem("userToken");
+                if (!token) return;
+
+                try {
+                    const res = await fetch("/api/profile/avatar", {
+                        method: "DELETE",
+                        headers: { Authorization: "Bearer " + token },
+                    });
+
+                    if (!res.ok) throw new Error("Gagal menghapus avatar");
+
+                    avatarImg.src = DEFAULT_AVATAR;
+                    originalAvatarSrc = DEFAULT_AVATAR;
+                    // Update navbar photo juga
+                    const navImg = document.getElementById("navProfileImg");
+                    if (navImg) {
+                        navImg.src = DEFAULT_AVATAR;
+                    }
+                    removeAvatarBtn.classList.add("hidden");
+                    avatarActionButtons.classList.add("hidden");
+                    pendingAvatarFile = null;
+                    if (pendingAvatarPreviewUrl) {
+                        URL.revokeObjectURL(pendingAvatarPreviewUrl);
+                        pendingAvatarPreviewUrl = "";
+                    }
+                    avatarFileInput.value = "";
+                    showAvatarFeedback("Foto profil dihapus.", false);
+                } catch (err) {
+                    showAvatarFeedback("Gagal hapus: " + err.message, true);
+                }
+            });
+
+            function showAvatarFeedback(msg, isError) {
+                const fb = document.getElementById("avatarFeedback");
+                fb.textContent = msg;
+                fb.className =
+                    "mt-3 p-3 rounded-lg text-sm text-center font-medium " +
+                    (isError
+                        ? "bg-red-100 text-red-700"
+                        : "bg-blue-100 text-blue-700");
+                fb.classList.remove("hidden");
+                if (!isError)
+                    setTimeout(() => fb.classList.add("hidden"), 4000);
+            }
+
+            // ── Load profil user dari JWT ──
+            (function loadProfile() {
+                const token = localStorage.getItem("userToken");
+                if (!token) {
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                const payload = decodeJwtPayload(token);
+                if (payload) applyProfileData(payload);
+
+                // Ambil data lengkap dari API (avatar + status)
+                const updateProfileStatus = () => {
+                    fetch("/api/profile", {
+                        headers: { Authorization: "Bearer " + token },
+                    })
+                        .then(async (r) => {
+                            if (r.status === 401) {
+                                localStorage.removeItem("userToken");
+                                window.location.href = "/login.html";
+                                return null;
+                            }
+                            if (!r.ok) throw new Error("Gagal memuat profil");
+                            return r.json();
+                        })
+                        .then((raw) => {
+                            const data = unwrapProfileResponse(raw);
+                            if (!data) return;
+                            applyProfileData(data);
+                            const nextAvatarUrl = avatarUrl(data.avatar);
+                            const isEditingAvatar =
+                                pendingAvatarFile ||
+                                !avatarCropModal.classList.contains("hidden");
+                            if (!isEditingAvatar) {
+                                document.getElementById("settingsAvatar").src =
+                                    nextAvatarUrl;
+                                originalAvatarSrc = nextAvatarUrl; // Update foto asli reference
+                            }
+                            // Tampilkan tombol hapus jika punya avatar yang bukan default
+                            if (
+                                data.avatar &&
+                                data.avatar !== "no avatar" &&
+                                data.avatar !== "default-avatar.png"
+                            ) {
+                                removeAvatarBtn.classList.remove("hidden");
+                            } else {
+                                removeAvatarBtn.classList.add("hidden");
+                            }
+                            const statusEl = document.getElementById(
+                                "settingsStatusDisplay",
+                            );
+                            const statusMap = {
+                                standby: {
+                                    label: "Stand By",
+                                    color: "text-green-600",
+                                },
+                                onjob: {
+                                    label: "On Job",
+                                    color: "text-blue-600",
+                                },
+                                support: {
+                                    label: "Support",
+                                    color: "text-yellow-600",
+                                },
+                                nextshift: {
+                                    label: "Next Shift",
+                                    color: "text-purple-600",
+                                },
+                                offduty: {
+                                    label: "Off Duty",
+                                    color: "text-gray-500",
+                                },
+                            };
+                            const s = statusMap[data.status] || {
+                                label: data.status || "—",
+                                color: "text-gray-500",
+                            };
+                            statusEl.textContent = s.label;
+                            statusEl.className =
+                                "text-sm font-semibold " + s.color;
+                        })
+                        .catch((err) => {
+                            console.error("Failed to load profile:", err);
+                        });
+                };
+
+                // Load initial profile
+                updateProfileStatus();
+
+                // Auto-refresh status setiap 4 detik agar selalu terupdate
+                setInterval(updateProfileStatus, 4000);
+            })();
+
+            // ── Password strength checker ──
+            document
+                .getElementById("newPassword")
+                .addEventListener("input", function () {
+                    const val = this.value;
+                    const bars = [
+                        document.getElementById("ps1"),
+                        document.getElementById("ps2"),
+                        document.getElementById("ps3"),
+                        document.getElementById("ps4"),
+                    ];
+                    const label = document.getElementById(
+                        "passwordStrengthLabel",
+                    );
+
+                    let score = 0;
+                    if (val.length >= 8) score++;
+                    if (/[A-Z]/.test(val)) score++;
+                    if (/[a-z]/.test(val)) score++;
+                    if (/[0-9]/.test(val)) score++;
+
+                    const colors = [
+                        "bg-red-400",
+                        "bg-orange-400",
+                        "bg-yellow-400",
+                        "bg-green-500",
+                    ];
+                    const labels = ["", "Lemah", "Cukup", "Baik", "Kuat"];
+                    const tcolors = [
+                        "",
+                        "text-red-500",
+                        "text-orange-500",
+                        "text-yellow-500",
+                        "text-green-600",
+                    ];
+
+                    bars.forEach((b, i) => {
+                        b.className =
+                            "h-1 flex-1 rounded " +
+                            (i < score ? colors[score - 1] : "bg-gray-200");
+                    });
+                    label.textContent = val.length > 0 ? labels[score] : "";
+                    label.className =
+                        "text-xs mt-1 " +
+                        (val.length > 0 ? tcolors[score] : "text-gray-400");
+                });
+
+            // ── Ganti Password ──
+            document
+                .getElementById("changePasswordForm")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+                    const current =
+                        document.getElementById("currentPassword").value;
+                    const newPass =
+                        document.getElementById("newPassword").value;
+                    const confirm =
+                        document.getElementById("confirmPassword").value;
+                    const feedback =
+                        document.getElementById("passwordFeedback");
+
+                    const showFeedback = (msg, isError) => {
+                        feedback.textContent = msg;
+                        feedback.className =
+                            "mt-3 p-3 rounded-lg text-sm text-center font-medium " +
+                            (isError
+                                ? "bg-red-100 text-red-700"
+                                : "bg-green-100 text-green-700");
+                        feedback.classList.remove("hidden");
+                        setTimeout(
+                            () => feedback.classList.add("hidden"),
+                            4000,
+                        );
+                    };
+
+                    if (!current || !newPass || !confirm) {
+                        showFeedback("Semua kolom harus diisi.", true);
+                        return;
+                    }
+                    if (newPass !== confirm) {
+                        showFeedback("Konfirmasi password tidak cocok.", true);
+                        return;
+                    }
+                    if (
+                        newPass.length < 8 ||
+                        !/[A-Z]/.test(newPass) ||
+                        !/[a-z]/.test(newPass) ||
+                        !/[0-9]/.test(newPass)
+                    ) {
+                        showFeedback(
+                            "Password baru tidak memenuhi syarat.",
+                            true,
+                        );
+                        return;
+                    }
+
+                    const token = localStorage.getItem("userToken");
+                    if (!token) {
+                        window.location.href = "/login.html";
+                        return;
+                    }
+
+                    const submitBtn = document.getElementById(
+                        "changePasswordSubmit",
+                    );
+                    const originalText = submitBtn.textContent;
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = "Menyimpan...";
+
+                    try {
+                        const res = await fetch("/api/profile/password", {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: "Bearer " + token,
+                            },
+                            body: JSON.stringify({
+                                currentPassword: current,
+                                newPassword: newPass,
+                            }),
+                        });
+                        const raw = await res.text();
+                        const data = raw ? JSON.parse(raw) : {};
+
+                        if (res.status === 401) {
+                            if (
+                                data.message ===
+                                "Current password is incorrect"
+                            ) {
+                                throw new Error("Password saat ini salah.");
+                            }
+                            localStorage.removeItem("userToken");
+                            window.location.href = "/login.html";
+                            return;
+                        }
+                        if (!res.ok) {
+                            throw new Error(
+                                data.message ||
+                                    "Gagal memperbarui password.",
+                            );
+                        }
+
+                        showFeedback("Password berhasil diubah.", false);
+                        this.reset();
+                    } catch (err) {
+                        showFeedback(
+                            err.message || "Gagal memperbarui password.",
+                            true,
+                        );
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
+                });
+
+            // ── Logout ──
+            document
+                .getElementById("logoutBtn")
+                .addEventListener("click", function () {
+                    localStorage.removeItem("userToken");
+                    localStorage.removeItem("isGuestUser");
+                    localStorage.removeItem("guestLoginTime");
+                    localStorage.removeItem("isAdmin");
+                    window.location.href = "/login.html";
+                });
+        </script>
+    </body>
 </html>
