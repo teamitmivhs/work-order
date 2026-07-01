@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//register workorder routes
+// register workorder routes
 func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 	db := config.GetDB()
 	if db == nil {
@@ -19,6 +19,8 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 
 	workOrderRepo := repository.NewWorkOrderRepository(db)
 	workOrderCtrl := controllers.NewWorkOrderController(workOrderRepo)
+
+	api.GET("/workorders/track/:code", workOrderCtrl.TrackOrderHandler)
 
 	//protected routes
 	protected := api.Group("")
