@@ -60,3 +60,6 @@ Makefile
 
 #Models for reactbits
 my-app
+.codex
+.agents
+.gitignore
