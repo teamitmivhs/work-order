@@ -113,17 +113,208 @@
                 border-color: #2563eb;
                 background: #eff6ff;
             }
+            .guest-tabs {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+                padding: 0.75rem;
+                background: #f8fafc;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .guest-tab {
+                min-height: 42px;
+                border-radius: 0.75rem;
+                color: #64748b;
+                font-weight: 700;
+                font-size: 0.88rem;
+                transition:
+                    background 0.18s,
+                    color 0.18s,
+                    box-shadow 0.18s;
+            }
+            .guest-tab.active {
+                background: #0f172a;
+                color: #fff;
+                box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
+            }
+            .track-card {
+                border: 1px solid #e2e8f0;
+                border-radius: 0.9rem;
+                background: #f8fafc;
+                padding: 0.9rem;
+            }
+            .track-status {
+                display: inline-flex;
+                align-items: center;
+                min-height: 1.65rem;
+                padding: 0 0.65rem;
+                border-radius: 999px;
+                font-size: 0.72rem;
+                font-weight: 800;
+                text-transform: uppercase;
+            }
+            .track-status-pending {
+                background: #fef3c7;
+                color: #92400e;
+            }
+            .track-status-progress {
+                background: #dbeafe;
+                color: #1d4ed8;
+            }
+            .track-status-completed {
+                background: #dcfce7;
+                color: #166534;
+            }
+            .tracking-modal-panel {
+                width: min(100%, 22rem);
+                border-radius: 1rem;
+                background: #fff;
+                box-shadow: 0 28px 80px rgba(2, 6, 23, 0.38);
+            }
+            .tracking-code-box {
+                border: 1px dashed #93c5fd;
+                border-radius: 0.85rem;
+                background: #eff6ff;
+                color: #1d4ed8;
+                font-size: 1.55rem;
+                font-weight: 900;
+                letter-spacing: 0.08em;
+                text-align: center;
+                padding: 0.9rem;
+            }
+            html[data-theme="dark"] .tracking-modal-panel {
+                color-scheme: light;
+                background: #fff !important;
+                color: #0f172a !important;
+            }
             .toast {
                 animation: guestIn 0.2s ease both;
             }
+            html[data-theme="dark"] .guest-bg {
+                background: linear-gradient(
+                    135deg,
+                    #0f172a 0%,
+                    #1e293b 44%,
+                    #0f4c81 100%
+                ) !important;
+                color: #0f172a !important;
+            }
+            html[data-theme="dark"] .guest-panel {
+                color-scheme: light;
+                background: rgba(255, 255, 255, 0.96) !important;
+                border-color: rgba(226, 232, 240, 0.9) !important;
+                color: #0f172a !important;
+            }
+            html[data-theme="dark"] .guest-panel .text-gray-700 {
+                color: #374151 !important;
+            }
+            html[data-theme="dark"] .guest-panel .text-gray-500 {
+                color: #64748b !important;
+            }
+            html[data-theme="dark"] .guest-panel .text-green-700 {
+                color: #15803d !important;
+            }
+            html[data-theme="dark"] .guest-panel .text-yellow-700 {
+                color: #a16207 !important;
+            }
+            html[data-theme="dark"] .guest-panel .text-red-700 {
+                color: #b91c1c !important;
+            }
+            html[data-theme="dark"] .guest-panel .guest-input {
+                background: #f8fafc !important;
+                border-color: #dbe3ee !important;
+                color: #0f172a !important;
+            }
+            html[data-theme="dark"] .guest-panel .guest-input:focus {
+                background: #fff !important;
+                border-color: #93c5fd !important;
+                box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+            }
+            html[data-theme="dark"] .guest-panel .guest-input::placeholder {
+                color: #94a3b8 !important;
+            }
+            html[data-theme="dark"] .guest-panel .priority-card {
+                background: #f8fafc !important;
+                border-color: #dbe3ee !important;
+            }
+            html[data-theme="dark"] .guest-panel .guest-tabs {
+                background: #f8fafc !important;
+                border-color: #e2e8f0 !important;
+            }
+            html[data-theme="dark"] .guest-panel .guest-tab:not(.active) {
+                color: #64748b !important;
+            }
+            html[data-theme="dark"] .guest-panel .track-card {
+                background: #f8fafc !important;
+                border-color: #e2e8f0 !important;
+                color: #0f172a !important;
+            }
+            html[data-theme="dark"]
+                .guest-panel
+                .priority-opt
+                input:checked
+                + .priority-card {
+                background: #eff6ff !important;
+                border-color: #2563eb !important;
+            }
+            html[data-theme="dark"] .guest-panel .border-gray-300 {
+                border-color: #d1d5db !important;
+            }
+            html[data-theme="dark"] .guest-panel .text-gray-600 {
+                color: #4b5563 !important;
+            }
             @media (max-width: 640px) {
+                .guest-shell {
+                    align-items: flex-start;
+                    padding: 2.5rem 1rem 1rem;
+                }
                 .guest-panel {
+                    border-radius: 0.8rem;
+                }
+                .guest-panel header {
+                    padding: 1rem 1.1rem;
+                }
+                .guest-panel h1 {
+                    font-size: 1.15rem;
+                }
+                #guestOrderForm {
+                    padding: 1rem 1.1rem 1.1rem;
+                    gap: 0;
+                }
+                #guestStatusPanel {
+                    padding: 1rem 1.1rem 1.1rem;
+                }
+                #guestOrderForm > * + * {
+                    margin-top: 0.85rem;
+                }
+                #guestOrderForm label {
+                    margin-bottom: 0.35rem;
+                    font-size: 0.72rem;
+                }
+                .guest-input {
+                    min-height: 42px;
+                    padding: 0.62rem 0.85rem;
+                    border-radius: 0.68rem;
+                }
+                .priority-card {
+                    min-height: 46px;
+                    padding: 0.65rem 0.45rem;
+                    border-radius: 0.68rem;
+                }
+                #guestProblem {
+                    min-height: 88px;
+                }
+                #clearGuestFormBtn,
+                #submitGuestOrderBtn {
+                    min-height: 44px;
+                    padding-top: 0.65rem;
+                    padding-bottom: 0.65rem;
                     border-radius: 0.8rem;
                 }
             }
         </style>
     </head>
-    <body class="relative">
+    <body class="guest-bg relative">
         <main
             class="guest-shell relative z-10 min-h-screen flex items-center justify-center px-4 py-6"
         >
@@ -149,6 +340,25 @@
                         Keluar
                     </button>
                 </header>
+
+                <div class="guest-tabs" role="tablist" aria-label="Guest work order">
+                    <button
+                        type="button"
+                        class="guest-tab active"
+                        id="guestCreateTab"
+                        aria-selected="true"
+                    >
+                        Buat Order
+                    </button>
+                    <button
+                        type="button"
+                        class="guest-tab"
+                        id="guestTrackTab"
+                        aria-selected="false"
+                    >
+                        Cek Status
+                    </button>
+                </div>
 
                 <form
                     id="guestOrderForm"
@@ -320,6 +530,50 @@
                         </button>
                     </div>
                 </form>
+
+                <section
+                    id="guestStatusPanel"
+                    class="hidden px-5 sm:px-6 py-5 sm:py-6 space-y-4"
+                >
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 mb-1.5"
+                            for="trackingCodeInput"
+                            >Kode Tracking</label
+                        >
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input
+                                id="trackingCodeInput"
+                                class="guest-input uppercase"
+                                placeholder="Contoh: WO-K7P9Q2"
+                                autocomplete="off"
+                            />
+                            <button
+                                id="trackOrderBtn"
+                                type="button"
+                                class="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-500/20"
+                            >
+                                Cek
+                            </button>
+                        </div>
+                    </div>
+                    <div id="trackResult" class="hidden"></div>
+                    <div>
+                        <div class="flex items-center justify-between gap-3 mb-2">
+                            <h2 class="text-sm font-bold text-gray-700">
+                                Order dari perangkat ini
+                            </h2>
+                            <button
+                                id="clearTrackedOrdersBtn"
+                                type="button"
+                                class="text-xs font-semibold text-gray-500 hover:text-red-600"
+                            >
+                                Bersihkan
+                            </button>
+                        </div>
+                        <div id="trackedOrdersList" class="space-y-2"></div>
+                    </div>
+                </section>
             </section>
         </main>
 
@@ -327,6 +581,50 @@
             id="guestToast"
             class="toast hidden fixed left-4 right-4 bottom-4 sm:left-auto sm:right-5 sm:max-w-sm rounded-xl bg-slate-950 text-white text-sm px-4 py-3 shadow-2xl z-50"
         ></div>
+
+        <div
+            id="trackingCodeModal"
+            class="hidden fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="trackingCodeModalTitle"
+        >
+            <div class="tracking-modal-panel p-5">
+                <h2
+                    id="trackingCodeModalTitle"
+                    class="text-lg font-extrabold text-slate-900"
+                >
+                    Work Order Berhasil Dibuat
+                </h2>
+                <p class="mt-2 text-sm leading-relaxed text-slate-600">
+                    Simpan kode ini. Kode dipakai untuk cek apakah work order
+                    sudah pending, sedang dikerjakan, atau selesai.
+                </p>
+                <div class="tracking-code-box mt-4" id="createdTrackingCode">
+                    -
+                </div>
+                <p class="mt-3 text-xs text-slate-500">
+                    Buka tab <b>Cek Status</b>, lalu masukkan kode ini jika ingin
+                    melihat status work order.
+                </p>
+                <div class="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <button
+                        id="copyTrackingCodeBtn"
+                        type="button"
+                        class="rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700"
+                    >
+                        Copy Kode
+                    </button>
+                    <button
+                        id="closeTrackingCodeModal"
+                        type="button"
+                        class="rounded-xl border border-slate-300 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                    >
+                        Saya Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <script>
             const token = localStorage.getItem("userToken");
@@ -338,6 +636,110 @@
             const form = document.getElementById("guestOrderForm");
             const toast = document.getElementById("guestToast");
             const submitBtn = document.getElementById("submitGuestOrderBtn");
+            const createTab = document.getElementById("guestCreateTab");
+            const trackTab = document.getElementById("guestTrackTab");
+            const statusPanel = document.getElementById("guestStatusPanel");
+            const trackResult = document.getElementById("trackResult");
+            const trackedOrdersList =
+                document.getElementById("trackedOrdersList");
+            const trackingCodeModal =
+                document.getElementById("trackingCodeModal");
+            const createdTrackingCode =
+                document.getElementById("createdTrackingCode");
+            const trackedOrdersKey = "guestTrackedOrders";
+
+            function normalizeTrackingCode(value) {
+                return String(value || "").trim().toUpperCase();
+            }
+
+            function getTrackedOrders() {
+                try {
+                    return JSON.parse(
+                        localStorage.getItem(trackedOrdersKey) || "[]",
+                    );
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveTrackedOrder(order) {
+                const code = normalizeTrackingCode(order.trackingCode);
+                if (!code) return;
+                const next = [
+                    { ...order, trackingCode: code },
+                    ...getTrackedOrders().filter(
+                        (item) =>
+                            normalizeTrackingCode(item.trackingCode) !== code,
+                    ),
+                ].slice(0, 8);
+                localStorage.setItem(trackedOrdersKey, JSON.stringify(next));
+                renderTrackedOrders();
+            }
+
+            function statusLabel(status) {
+                return (
+                    {
+                        pending: "Pending",
+                        progress: "On Progress",
+                        completed: "Completed",
+                    }[status] || status || "-"
+                );
+            }
+
+            function renderTrackCard(order) {
+                if (!order) return "";
+                return `
+                    <div class="track-card">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tracking</p>
+                                <p class="text-lg font-extrabold text-slate-900">${order.trackingCode || "-"}</p>
+                            </div>
+                            <span class="track-status track-status-${order.status || "pending"}">${statusLabel(order.status)}</span>
+                        </div>
+                        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                            <p><span class="font-semibold text-gray-500">Order:</span> #${order.id || "-"}</p>
+                            <p><span class="font-semibold text-gray-500">Requester:</span> ${order.requester || "-"}</p>
+                            <p><span class="font-semibold text-gray-500">Device:</span> ${order.device || "-"}</p>
+                            <p><span class="font-semibold text-gray-500">Lokasi:</span> ${order.location || "-"}</p>
+                            <p><span class="font-semibold text-gray-500">Selesai:</span> ${order.completedAt || "-"}</p>
+                        </div>
+                    </div>`;
+            }
+
+            function renderTrackedOrders() {
+                const orders = getTrackedOrders();
+                if (!orders.length) {
+                    trackedOrdersList.innerHTML =
+                        '<p class="text-sm text-gray-500 text-center py-4">Belum ada kode tracking di perangkat ini.</p>';
+                    return;
+                }
+                trackedOrdersList.innerHTML = orders
+                    .map(
+                        (order) => `
+                    <button type="button" class="track-card w-full text-left tracked-order-btn" data-code="${order.trackingCode}">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-bold text-slate-900">${order.trackingCode}</p>
+                                <p class="text-xs text-gray-500">${order.device || "Work order"}${order.createdAt ? " - " + order.createdAt : ""}</p>
+                            </div>
+                            <span class="text-xs font-bold text-blue-600">Cek</span>
+                        </div>
+                    </button>`,
+                    )
+                    .join("");
+            }
+
+            function setGuestMode(mode) {
+                const isTrack = mode === "track";
+                form.classList.toggle("hidden", isTrack);
+                statusPanel.classList.toggle("hidden", !isTrack);
+                createTab.classList.toggle("active", !isTrack);
+                trackTab.classList.toggle("active", isTrack);
+                createTab.setAttribute("aria-selected", String(!isTrack));
+                trackTab.setAttribute("aria-selected", String(isTrack));
+                if (isTrack) renderTrackedOrders();
+            }
 
             function showToast(message, isError = false) {
                 toast.textContent = message;
@@ -353,6 +755,100 @@
                     ? "Mengirim..."
                     : "Buat Work Order";
             }
+
+            function showTrackingCodeModal(code) {
+                createdTrackingCode.textContent = normalizeTrackingCode(code);
+                trackingCodeModal.classList.remove("hidden");
+            }
+
+            function closeTrackingCodeModal() {
+                trackingCodeModal.classList.add("hidden");
+            }
+
+            document
+                .getElementById("closeTrackingCodeModal")
+                .addEventListener("click", closeTrackingCodeModal);
+            trackingCodeModal.addEventListener("click", (event) => {
+                if (event.target === trackingCodeModal)
+                    closeTrackingCodeModal();
+            });
+            document
+                .getElementById("copyTrackingCodeBtn")
+                .addEventListener("click", async () => {
+                    const code = createdTrackingCode.textContent.trim();
+                    try {
+                        await navigator.clipboard.writeText(code);
+                    } catch (e) {
+                        const input = document.createElement("input");
+                        input.value = code;
+                        document.body.appendChild(input);
+                        input.select();
+                        document.execCommand("copy");
+                        input.remove();
+                    }
+                    showToast("Kode tracking disalin.");
+                });
+
+            async function trackOrder(code) {
+                const trackingCode = normalizeTrackingCode(code);
+                if (!trackingCode) {
+                    showToast("Masukkan kode tracking.", true);
+                    return;
+                }
+                trackResult.classList.remove("hidden");
+                trackResult.innerHTML =
+                    '<div class="track-card text-sm text-gray-500">Mengecek status...</div>';
+                try {
+                    const response = await fetch(
+                        `/api/workorders/track/${encodeURIComponent(trackingCode)}`,
+                    );
+                    if (!response.ok) throw new Error("not found");
+                    const json = await response.json();
+                    const order = json.data || json;
+                    trackResult.innerHTML = renderTrackCard(order);
+                    saveTrackedOrder({
+                        id: order.id,
+                        trackingCode: order.trackingCode,
+                        device: order.device,
+                        createdAt: order.time,
+                    });
+                } catch (error) {
+                    trackResult.innerHTML =
+                        '<div class="track-card text-sm text-red-600 font-semibold">Kode tracking tidak ditemukan.</div>';
+                }
+            }
+
+            createTab.addEventListener("click", () => setGuestMode("create"));
+            trackTab.addEventListener("click", () => setGuestMode("track"));
+            document
+                .getElementById("trackOrderBtn")
+                .addEventListener("click", () =>
+                    trackOrder(
+                        document.getElementById("trackingCodeInput").value,
+                    ),
+                );
+            document
+                .getElementById("trackingCodeInput")
+                .addEventListener("keydown", (event) => {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        trackOrder(event.target.value);
+                    }
+                });
+            document
+                .getElementById("clearTrackedOrdersBtn")
+                .addEventListener("click", () => {
+                    localStorage.removeItem(trackedOrdersKey);
+                    renderTrackedOrders();
+                    trackResult.classList.add("hidden");
+                });
+            trackedOrdersList.addEventListener("click", (event) => {
+                const btn = event.target.closest(".tracked-order-btn");
+                if (!btn) return;
+                document.getElementById("trackingCodeInput").value =
+                    btn.dataset.code;
+                trackOrder(btn.dataset.code);
+            });
 
             document
                 .getElementById("exitGuestBtn")
@@ -419,8 +915,38 @@
                     .then((json) => {
                         const id =
                             json.data && json.data.id ? json.data.id : "-";
+                        const trackingCode =
+                            json.data && json.data.trackingCode
+                                ? json.data.trackingCode
+                                : "";
                         form.reset();
-                        showToast(`Work Order #${id} berhasil dibuat.`);
+                        saveTrackedOrder({
+                            id,
+                            trackingCode,
+                            device: payload.device,
+                            createdAt: payload.time_display,
+                        });
+                        showToast(
+                            trackingCode
+                                ? `Work Order #${id} berhasil dibuat. Kode: ${trackingCode}`
+                                : `Work Order #${id} berhasil dibuat.`,
+                        );
+                        if (trackingCode) {
+                            document.getElementById("trackingCodeInput").value =
+                                trackingCode;
+                            trackResult.classList.remove("hidden");
+                            trackResult.innerHTML = renderTrackCard({
+                                id,
+                                trackingCode,
+                                status: "pending",
+                                requester: payload.requester,
+                                device: payload.device,
+                                location: payload.location,
+                                completedAt: "",
+                            });
+                            setGuestMode("track");
+                            showTrackingCodeModal(trackingCode);
+                        }
                     })
                     .catch((error) => {
                         console.error(error);
@@ -431,6 +957,7 @@
                     })
                     .finally(() => setLoading(false));
             });
+            renderTrackedOrders();
         </script>
     </body>
 </html>
