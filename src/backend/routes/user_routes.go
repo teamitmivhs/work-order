@@ -20,13 +20,25 @@ func RegisterUserRoutes(rg *gin.RouterGroup) {
 	{
 		protected.GET("/profile", controllers.GetProfile)
 		protected.POST("/logout", logoutHandler)
+		protected.PATCH("/profile/password", controllers.ChangePasswordHandler)
 		protected.POST("/profile/avatar", controllers.UploadAvatarHandler)
 		protected.DELETE("/profile/avatar", controllers.DeleteAvatarHandler)
 		protected.POST("/status", controllers.UpdateStatusHandler)
+
+		admin := protected.Group("/admin")
+		admin.Use(middleware.AdminMiddleware())
+		{
+			admin.GET("/members", controllers.GetAdminMembersHandler)
+			admin.PATCH("/members/:id/approve", controllers.ApproveMemberHandler)
+			admin.PATCH("/members/:id/reject", controllers.RejectMemberHandler)
+			admin.PATCH("/members/:id/disable", controllers.DisableMemberHandler)
+			admin.PATCH("/members/:id/alumni", controllers.MarkMemberAlumniHandler)
+			admin.PATCH("/members/:id/role", controllers.ChangeRoleHandler)
+			admin.POST("/members/graduate", controllers.GraduateBatchHandler)
+		}
 	}
 }
 
-// logoutHandler — stateless JWT: instruksikan client hapus token
 func logoutHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":    200,
