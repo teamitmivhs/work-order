@@ -1,8 +1,16 @@
 package controllers
 
 import (
+	"crypto/rand"
+	"database/sql"
+	"fmt"
+	"math/big"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 
 	"teamitmivhs/work-order-backend/middleware"
 	"teamitmivhs/work-order-backend/models"
@@ -11,6 +19,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+func generateTrackingCode() (string, error) {
+	const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+	code := make([]byte, 6)
+	for i := range code {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(alphabet))))
+		if err != nil {
+			return "", err
+		}
+		code[i] = alphabet[n.Int64()]
+	}
+	return "WO-" + string(code), nil
+}
 
 type WorkOrderController struct {
 	Repo       repository.WorkOrderRepository
@@ -25,24 +46,24 @@ func NewWorkOrderController(repo repository.WorkOrderRepository) *WorkOrderContr
 }
 
 // GetTaskListHandler menangani request GET /api/workorders
-// Public endpoint — filter berdasarkan token jika ada
+// Protected endpoint — Guest tidak boleh melihat dashboard internal.
 func (ctrl *WorkOrderController) GetTaskListHandler(c *gin.Context) {
 	var tasks []models.WorkOrder
 	var err error
 
-	// Cek apakah ada token di header
-	// Jika ada token → filter berdasarkan role
-	// Jika tidak ada token → tampilkan semua orders (guest/public view)
 	userRole, _ := middleware.GetUserRoleFromContext(c)
 	userID, _ := middleware.GetUserIDFromContext(c)
 
 	if userRole == "Admin" {
 		tasks, err = ctrl.Repo.GetAllTasks()
 	} else if userRole == "Operator" && userID > 0 {
-		tasks, err = ctrl.Repo.GetTasksByExecutor(userID)
+		tasks, err = ctrl.Repo.GetTasksForOperator(userID)
+	} else if userRole == "Guest" {
+		utils.Forbidden(c, "Guest tidak dapat melihat daftar work order")
+		return
 	} else {
-		// Tidak ada token atau role tidak dikenal — tampilkan semua
-		tasks, err = ctrl.Repo.GetAllTasks()
+		utils.Forbidden(c, "Work order access requires an internal account")
+		return
 	}
 
 	if err != nil {
@@ -102,6 +123,14 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 	if req.Status == "" {
 		req.Status = "pending"
 	}
+	if req.TrackingCode == "" {
+		trackingCode, err := generateTrackingCode()
+		if err != nil {
+			utils.InternalServerError(c, "Failed to generate tracking code", err)
+			return
+		}
+		req.TrackingCode = trackingCode
+	}
 
 	newID, err := ctrl.Repo.CreateTask(req)
 	if err != nil {
@@ -109,7 +138,42 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 		return
 	}
 
-	utils.RespondWithMessage(c, http.StatusCreated, "Work order created successfully", gin.H{"id": newID})
+	utils.RespondWithMessage(c, http.StatusCreated, "Work order created successfully", gin.H{
+		"id":           newID,
+		"trackingCode": req.TrackingCode,
+	})
+}
+
+func (ctrl *WorkOrderController) TrackOrderHandler(c *gin.Context) {
+	code := strings.TrimSpace(c.Param("code"))
+	if code == "" {
+		utils.BadRequest(c, "Tracking code is required")
+		return
+	}
+
+	order, err := ctrl.Repo.GetTaskByTrackingCode(code)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			utils.NotFound(c, "Work order tidak ditemukan")
+			return
+		}
+		utils.InternalServerError(c, "Failed to track work order", err)
+		return
+	}
+
+	utils.RespondSuccess(c, http.StatusOK, gin.H{
+		"id":           order.ID,
+		"trackingCode": order.TrackingCode,
+		"status":       order.Status,
+		"priority":     order.Priority,
+		"time":         order.Time,
+		"requester":    order.Requester,
+		"location":     order.Location,
+		"device":       order.Device,
+		"problem":      order.Problem,
+		"completedAt":  order.CompletedAt,
+		"workingHours": order.WorkingHours,
+	})
 }
 
 // TakeOrderHandler: POST /api/workorders/{id}/take
@@ -205,6 +269,16 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 		return
 	}
 
+	hasPhoto, err := ctrl.Repo.HasDocumentationPhoto(orderID)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to check documentation photo", err)
+		return
+	}
+	if !hasPhoto {
+		utils.BadRequest(c, "Documentation photo is required before finishing the work order")
+		return
+	}
+
 	err = ctrl.Repo.CompleteOrder(orderID, req)
 	if err != nil {
 		utils.InternalServerError(c, "Failed to complete order", err)
@@ -214,12 +288,82 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 	utils.RespondWithMessage(c, http.StatusOK, "Order completed successfully", gin.H{"id": orderID})
 }
 
+// UploadDocumentationPhotoHandler: POST /api/workorders/{id}/documentation
+// Upload foto bukti pekerjaan. Hanya admin atau operator assigned yang boleh upload.
+func (ctrl *WorkOrderController) UploadDocumentationPhotoHandler(c *gin.Context) {
+	orderIDStr := c.Param("id")
+	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
+	if err != nil {
+		utils.BadRequest(c, "Invalid Order ID")
+		return
+	}
+
+	userRole, _ := middleware.GetUserRoleFromContext(c)
+	userID, _ := middleware.GetUserIDFromContext(c)
+	if userRole == "Guest" {
+		utils.Forbidden(c, "Guest cannot upload work order documentation")
+		return
+	}
+	if userRole != "Admin" {
+		isAssigned, err := ctrl.MemberRepo.IsMemberAssigned(orderID, userID)
+		if err != nil {
+			utils.InternalServerError(c, "Failed to check assignment", err)
+			return
+		}
+		if !isAssigned {
+			utils.Forbidden(c, "You are not assigned to this work order")
+			return
+		}
+	}
+
+	file, err := c.FormFile("photo")
+	if err != nil {
+		utils.BadRequest(c, "No documentation photo uploaded")
+		return
+	}
+	if file.Size > 15*1024*1024 {
+		utils.BadRequest(c, "File too large. Maximum 15MB")
+		return
+	}
+
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	allowedExts := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
+	if !allowedExts[ext] {
+		utils.BadRequest(c, "Invalid file type. Allowed: jpg, jpeg, png, webp")
+		return
+	}
+
+	uploadDir := filepath.Join(utils.PublicUploadDir(), "workorder-docs")
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		utils.InternalServerError(c, "Failed to create documentation upload directory", err)
+		return
+	}
+
+	filename := fmt.Sprintf("workorder_%d_%d%s", orderID, time.Now().Unix(), ext)
+	dst := filepath.Join(uploadDir, filename)
+	if err := c.SaveUploadedFile(file, dst); err != nil {
+		utils.InternalServerError(c, "Failed to save documentation photo", err)
+		return
+	}
+
+	relativeFilename := "workorder-docs/" + filename
+	if err := ctrl.Repo.UpdateOrderDocumentationPhoto(orderID, relativeFilename); err != nil {
+		utils.InternalServerError(c, "Failed to update documentation photo", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Documentation photo uploaded successfully", gin.H{
+		"documentationPhoto": relativeFilename,
+		"url":                "/static/public/" + relativeFilename,
+	})
+}
+
 // DeleteOrderHandler: DELETE /api/workorders/{id}
 // Hanya admin yang bisa delete
 func (ctrl *WorkOrderController) DeleteOrderHandler(c *gin.Context) {
 	// Guest tidak boleh delete order
-	if role, _ := middleware.GetUserRoleFromContext(c); role == "Guest" {
-		utils.Forbidden(c, "Guest hanya bisa membuat work order")
+	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
+		utils.Forbidden(c, "Only admins can delete work orders")
 		return
 	}
 
@@ -346,6 +490,12 @@ func (ctrl *WorkOrderController) UpdateOrderHandler(c *gin.Context) {
 // UpdateNotesHandler: PATCH /api/workorders/{id}/notes
 // Simpan catatan evaluasi untuk work order yang sudah selesai
 func (ctrl *WorkOrderController) UpdateNotesHandler(c *gin.Context) {
+	role, _ := middleware.GetUserRoleFromContext(c)
+	if role != "Admin" {
+		utils.Forbidden(c, "Only admins can update notes and ratings")
+		return
+	}
+
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
@@ -358,8 +508,16 @@ func (ctrl *WorkOrderController) UpdateNotesHandler(c *gin.Context) {
 		utils.BadRequest(c, "Invalid request payload", err.Error())
 		return
 	}
+	if req.Rating != nil && (*req.Rating < 1 || *req.Rating > 5) {
+		utils.BadRequest(c, "Rating must be between 1 and 5")
+		return
+	}
+	if req.NotesQuality != nil && (*req.NotesQuality < 1 || *req.NotesQuality > 5) {
+		utils.BadRequest(c, "Notes quality must be between 1 and 5")
+		return
+	}
 
-	if err := ctrl.Repo.UpdateOrderNotes(orderID, req.Notes); err != nil {
+	if err := ctrl.Repo.UpdateOrderNotes(orderID, req.Notes, req.Rating, req.NotesQuality); err != nil {
 		utils.InternalServerError(c, "Failed to save notes", err)
 		return
 	}
@@ -368,12 +526,20 @@ func (ctrl *WorkOrderController) UpdateNotesHandler(c *gin.Context) {
 }
 
 // UpdateMemberStatusHandler: PATCH /api/members/{id}/status
-// Update status member (standby, onjob, support, nextshift, offduty)
+// Update status member (standby, onjob, support, nextshift, offduty).
+// Admin boleh update semua member; operator hanya boleh update status dirinya sendiri.
 func UpdateMemberStatusHandler(c *gin.Context) {
 	memberIDStr := c.Param("id")
 	memberID, err := strconv.Atoi(memberIDStr)
 	if err != nil {
 		utils.BadRequest(c, "Invalid Member ID")
+		return
+	}
+
+	userRole, _ := middleware.GetUserRoleFromContext(c)
+	userID, _ := middleware.GetUserIDFromContext(c)
+	if userRole != "Admin" && userID != memberID {
+		utils.Forbidden(c, "Only admins can update other member statuses")
 		return
 	}
 
@@ -385,13 +551,34 @@ func UpdateMemberStatusHandler(c *gin.Context) {
 		return
 	}
 
-	memberRepo := repository.NewMemberRepository()
-	if err := memberRepo.UpdateMemberStatus(memberID, req.Status); err != nil {
-		utils.BadRequest(c, "Invalid status value")
+	req.Status = strings.TrimSpace(strings.ToLower(req.Status))
+	validStatuses := map[string]bool{
+		"standby": true, "onjob": true, "support": true,
+		"nextshift": true, "offduty": true,
+	}
+	if !validStatuses[req.Status] {
+		utils.BadRequest(c, "Invalid status. Must be: standby, onjob, support, nextshift, or offduty")
 		return
 	}
 
-	utils.RespondWithMessage(c, http.StatusOK, "Member status updated successfully", gin.H{"id": memberID})
+	memberRepo := repository.NewMemberRepository()
+	if err := memberRepo.UpdateMemberStatus(memberID, req.Status); err != nil {
+		utils.InternalServerError(c, "Failed to update member status", err)
+		return
+	}
+
+	member, err := memberRepo.GetMemberByID(memberID)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to fetch updated member data", err)
+		return
+	}
+	member.Password = ""
+
+	utils.RespondWithMessage(c, http.StatusOK, "Member status updated successfully", gin.H{
+		"id":     memberID,
+		"status": member.Status,
+		"member": member,
+	})
 }
 
 // OLD IN-MEMORY FUNCTIONS - DEPRECATED (KEEPING FOR REFERENCE BUT NOT USED)
