@@ -1,246 +1,429 @@
 <!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — Work Order ITMIVHS</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="static/assets/style.css" />
-  <style>
-    body { font-family: 'Poppins', sans-serif; }
-    .login-bg {
-      background:
-        linear-gradient(135deg, #0f172a 0%, #1e293b 52%, #0f172a 100%);
-      min-height: 100vh;
-      position: relative;
-      overflow: hidden;
-    }
-    .login-bg::before {
-      content: '';
-      position: absolute; inset: 0;
-      background:
-        linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
-      background-size: 46px 46px;
-      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent 82%);
-      pointer-events: none;
-    }
-    @keyframes authIn {
-      from { opacity: 0; transform: translateY(14px) scale(0.985); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .login-card {
-      background: rgba(255,255,255,0.96);
-      border: 1px solid rgba(226,232,240,0.86);
-      border-radius: 1rem;
-      box-shadow: 0 30px 80px rgba(2,6,23,0.36);
-      backdrop-filter: blur(18px);
-      animation: authIn 0.44s cubic-bezier(0.22,1,0.36,1) both;
-    }
-    .input-field {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 1.5px solid #dbe3ee;
-      border-radius: 0.7rem;
-      font-size: 16px; /* prevent iOS zoom */
-      font-family: 'Poppins', sans-serif;
-      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s, transform 0.18s;
-      outline: none;
-      background: #f8fafc;
-    }
-    .input-field:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
-      background: #fff;
-    }
-    .btn-primary {
-      width: 100%; padding: 0.875rem 1rem;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: #fff; font-weight: 600; font-size: 0.95rem;
-      border: none; border-radius: 0.7rem;
-      cursor: pointer; transition: opacity 0.18s, transform 0.16s, box-shadow 0.18s;
-      font-family: 'Poppins', sans-serif;
-      min-height: 48px;
-      box-shadow: 0 14px 28px rgba(37,99,235,0.24);
-    }
-    .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 18px 34px rgba(37,99,235,0.28); }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login — Work Order ITMIVHS</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="static/assets/style.css" />
+        <script>
+            (function () {
+                try {
+                    var theme =
+                        localStorage.getItem("woTheme") ||
+                        localStorage.getItem("theme") ||
+                        "light";
+                    document.documentElement.setAttribute("data-theme", theme);
+                } catch (e) {}
+            })();
+        </script>
+        <style>
+            body {
+                font-family: "Poppins", sans-serif;
+            }
+            .login-bg {
+                background: linear-gradient(
+                    135deg,
+                    #0f172a 0%,
+                    #1e293b 52%,
+                    #0f172a 100%
+                );
+                min-height: 100vh;
+                position: relative;
+                overflow: hidden;
+            }
+            .login-bg::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background:
+                    linear-gradient(
+                        rgba(255, 255, 255, 0.045) 1px,
+                        transparent 1px
+                    ),
+                    linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0.045) 1px,
+                        transparent 1px
+                    );
+                background-size: 46px 46px;
+                mask-image: linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.85),
+                    transparent 82%
+                );
+                pointer-events: none;
+            }
+            @keyframes authIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(14px) scale(0.985);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+            .login-card {
+                background: rgba(255, 255, 255, 0.96);
+                border: 1px solid rgba(226, 232, 240, 0.86);
+                border-radius: 1rem;
+                box-shadow: 0 30px 80px rgba(2, 6, 23, 0.36);
+                backdrop-filter: blur(18px);
+                animation: authIn 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+            }
+            .input-field {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: 1.5px solid #dbe3ee;
+                border-radius: 0.7rem;
+                font-size: 16px; /* prevent iOS zoom */
+                font-family: "Poppins", sans-serif;
+                transition:
+                    border-color 0.18s,
+                    box-shadow 0.18s,
+                    background 0.18s,
+                    transform 0.18s;
+                outline: none;
+                background: #f8fafc;
+            }
+            .input-field:focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+                background: #fff;
+            }
+            .btn-primary {
+                width: 100%;
+                padding: 0.875rem 1rem;
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                color: #fff;
+                font-weight: 600;
+                font-size: 0.95rem;
+                border: none;
+                border-radius: 0.7rem;
+                cursor: pointer;
+                transition:
+                    opacity 0.18s,
+                    transform 0.16s,
+                    box-shadow 0.18s;
+                font-family: "Poppins", sans-serif;
+                min-height: 48px;
+                box-shadow: 0 14px 28px rgba(37, 99, 235, 0.24);
+            }
+            .btn-primary:hover {
+                opacity: 0.95;
+                transform: translateY(-1px);
+                box-shadow: 0 18px 34px rgba(37, 99, 235, 0.28);
+            }
+            .btn-primary:active {
+                transform: scale(0.98);
+            }
+            .btn-primary:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
 
-    .btn-guest {
-      width: 100%; padding: 0.75rem 1rem;
-      background: transparent;
-      color: #64748b; font-weight: 500; font-size: 0.875rem;
-      border: 1.5px solid #e2e8f0; border-radius: 0.7rem;
-      cursor: pointer; transition: all 0.2s;
-      font-family: 'Poppins', sans-serif;
-      min-height: 48px;
-    }
-    .btn-guest:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
-    @media (prefers-reduced-motion: reduce) {
-      .login-card { animation: none; }
-      .btn-primary, .btn-guest, .input-field { transition: none; }
-    }
-  </style>
-</head>
-<body class="login-bg flex items-center justify-center p-4">
+            .btn-guest {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                background: transparent;
+                color: #64748b;
+                font-weight: 500;
+                font-size: 0.875rem;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 0.7rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: "Poppins", sans-serif;
+                min-height: 48px;
+            }
+            .btn-guest:hover {
+                background: #f8fafc;
+                border-color: #cbd5e1;
+                transform: translateY(-1px);
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .login-card {
+                    animation: none;
+                }
+                .btn-primary,
+                .btn-guest,
+                .input-field {
+                    transition: none;
+                }
+            }
+        </style>
+    </head>
+    <body class="login-bg flex items-center justify-center p-4">
+        <div class="login-card w-full max-w-sm p-6 sm:p-8 relative z-10">
+            <!-- Logo & heading -->
+            <div class="text-center mb-6">
+                <img
+                    src="static/public/itlogo.png"
+                    alt="IT Logo"
+                    class="w-16 sm:w-20 mx-auto mb-4"
+                />
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800">
+                    Selamat Datang
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">
+                    Masuk ke Work Order ITMIVHS
+                </p>
+            </div>
 
-  <div class="login-card w-full max-w-sm p-6 sm:p-8 relative z-10">
-    <!-- Logo & heading -->
-    <div class="text-center mb-6">
-      <img src="static/public/itlogo.png" alt="IT Logo" class="w-16 sm:w-20 mx-auto mb-4" />
-      <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Selamat Datang</h1>
-      <p class="text-sm text-gray-500 mt-1">Masuk ke Work Order ITMIVHS</p>
-    </div>
+            <!-- Form -->
+            <form class="login-form space-y-4" novalidate>
+                <div>
+                    <label
+                        for="username"
+                        class="block text-sm font-medium text-gray-700 mb-1.5"
+                        >Username</label
+                    >
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        required
+                        autocomplete="username"
+                        placeholder="Masukkan username"
+                        class="input-field"
+                    />
+                </div>
+                <div>
+                    <label
+                        for="password"
+                        class="block text-sm font-medium text-gray-700 mb-1.5"
+                        >Password</label
+                    >
+                    <div class="relative">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            required
+                            autocomplete="current-password"
+                            placeholder="Masukkan password"
+                            class="input-field pr-11"
+                        />
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                            aria-label="Tampilkan/sembunyikan password"
+                        >
+                            <svg
+                                id="eyeIcon"
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary mt-2">Masuk</button>
+            </form>
 
-    <!-- Form -->
-    <form class="login-form space-y-4" novalidate>
-      <div>
-        <label for="username" class="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
-        <input type="text" id="username" name="username" required autocomplete="username"
-          placeholder="Masukkan username" class="input-field" />
-      </div>
-      <div>
-        <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-        <div class="relative">
-          <input type="password" id="password" name="password" required autocomplete="current-password"
-            placeholder="Masukkan password" class="input-field pr-11" />
-          <button type="button" id="togglePassword"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-            aria-label="Tampilkan/sembunyikan password">
-            <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-            </svg>
-          </button>
+            <!-- Divider -->
+            <div class="flex items-center gap-3 my-4">
+                <div class="flex-1 h-px bg-gray-200"></div>
+                <span class="text-xs text-gray-400 font-medium">atau</span>
+                <div class="flex-1 h-px bg-gray-200"></div>
+            </div>
+
+            <!-- Guest -->
+            <button type="button" id="guestLoginBtn" class="btn-guest">
+                Lanjut sebagai Guest
+            </button>
+
+            <!-- Register link -->
+            <p class="text-center text-sm text-gray-500 mt-5">
+                Belum punya akun?
+                <a
+                    href="register.html"
+                    class="text-blue-600 font-medium hover:underline"
+                    >Daftar sekarang</a
+                >
+            </p>
         </div>
-      </div>
-      <button type="submit" class="btn-primary mt-2">Masuk</button>
-    </form>
 
-    <!-- Divider -->
-    <div class="flex items-center gap-3 my-4">
-      <div class="flex-1 h-px bg-gray-200"></div>
-      <span class="text-xs text-gray-400 font-medium">atau</span>
-      <div class="flex-1 h-px bg-gray-200"></div>
-    </div>
+        <!-- Modal -->
+        <div
+            id="myModal"
+            class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4"
+        >
+            <div
+                class="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl relative animate-bounce-in"
+            >
+                <button
+                    class="close absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+                    aria-label="Tutup"
+                >
+                    &times;
+                </button>
+                <div
+                    id="modal-icon"
+                    class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+                ></div>
+                <p
+                    id="modal-message"
+                    class="text-center text-sm text-gray-700 font-medium"
+                ></p>
+            </div>
+        </div>
 
-    <!-- Guest -->
-    <button type="button" id="guestLoginBtn" class="btn-guest">
-      Lanjut sebagai Guest
-    </button>
+        <script>
+            const modal = document.getElementById("myModal");
+            const modalMsg = document.getElementById("modal-message");
+            const modalIcon = document.getElementById("modal-icon");
 
-    <!-- Register link -->
-    <p class="text-center text-sm text-gray-500 mt-5">
-      Belum punya akun? <a href="register.html" class="text-blue-600 font-medium hover:underline">Daftar sekarang</a>
-    </p>
-  </div>
+            function showModal(message, isError = false) {
+                modalMsg.textContent = message;
+                modalIcon.className =
+                    "w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center " +
+                    (isError ? "bg-red-100" : "bg-green-100");
+                modalIcon.innerHTML = isError
+                    ? `<svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`
+                    : `<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+                modal.classList.remove("hidden");
+            }
+            function hideModal() {
+                modal.classList.add("hidden");
+            }
 
-  <!-- Modal -->
-  <div id="myModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl relative animate-bounce-in">
-      <button class="close absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none" aria-label="Tutup">&times;</button>
-      <div id="modal-icon" class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"></div>
-      <p id="modal-message" class="text-center text-sm text-gray-700 font-medium"></p>
-    </div>
-  </div>
+            document
+                .querySelector(".close")
+                .addEventListener("click", hideModal);
+            modal.addEventListener("click", (e) => {
+                if (e.target === modal) hideModal();
+            });
 
-  <script>
-    const modal        = document.getElementById('myModal');
-    const modalMsg     = document.getElementById('modal-message');
-    const modalIcon    = document.getElementById('modal-icon');
+            // Toggle password visibility
+            document
+                .getElementById("togglePassword")
+                .addEventListener("click", function () {
+                    const input = document.getElementById("password");
+                    input.type =
+                        input.type === "password" ? "text" : "password";
+                });
 
-    function showModal(message, isError = false) {
-      modalMsg.textContent = message;
-      modalIcon.className = 'w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center ' +
-        (isError ? 'bg-red-100' : 'bg-green-100');
-      modalIcon.innerHTML = isError
-        ? `<svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`
-        : `<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
-      modal.classList.remove('hidden');
-    }
-    function hideModal() { modal.classList.add('hidden'); }
+            // Guest login — pakai /api/login dengan akun guest permanen
+            // Tidak perlu endpoint baru, tidak perlu rebuild Docker
+            document
+                .getElementById("guestLoginBtn")
+                .addEventListener("click", function () {
+                    const btn = this;
+                    btn.disabled = true;
+                    btn.textContent = "Memproses...";
 
-    document.querySelector('.close').addEventListener('click', hideModal);
-    modal.addEventListener('click', e => { if (e.target === modal) hideModal(); });
+                    fetch("/api/login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            name: "guest",
+                            password: "guest123",
+                        }),
+                    })
+                        .then((r) => r.json())
+                        .then((data) => {
+                            if (data.data && data.data.token) {
+                                localStorage.setItem(
+                                    "userToken",
+                                    data.data.token,
+                                );
+                                localStorage.setItem("isGuestUser", "true");
+                                localStorage.setItem(
+                                    "guestLoginTime",
+                                    new Date().toISOString(),
+                                );
+                                showModal(
+                                    "Welcome Guest! Kamu akan diarahkan ke halaman buat work order.",
+                                );
+                                setTimeout(() => {
+                                    window.location.href = "guest.html";
+                                }, 1200);
+                            } else {
+                                // Fallback: akun guest belum ada di DB, arahkan untuk setup dulu
+                                showModal(
+                                    "Akun guest belum tersedia. Hubungi Admin untuk setup.",
+                                    true,
+                                );
+                                btn.disabled = false;
+                                btn.textContent = "Lanjut sebagai Guest";
+                            }
+                        })
+                        .catch(() => {
+                            showModal("Terjadi kesalahan. Coba lagi.", true);
+                            btn.disabled = false;
+                            btn.textContent = "Lanjut sebagai Guest";
+                        });
+                });
 
-    // Toggle password visibility
-    document.getElementById('togglePassword').addEventListener('click', function () {
-      const input = document.getElementById('password');
-      input.type = input.type === 'password' ? 'text' : 'password';
-    });
+            // Login form
+            document
+                .querySelector(".login-form")
+                .addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    const submitBtn = this.querySelector('[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = "Memproses...";
 
-    // Guest login — pakai /api/login dengan akun guest permanen
-    // Tidak perlu endpoint baru, tidak perlu rebuild Docker
-    document.getElementById('guestLoginBtn').addEventListener('click', function () {
-      const btn = this;
-      btn.disabled = true;
-      btn.textContent = 'Memproses...';
+                    const name = this.username.value.trim();
+                    const password = this.password.value;
 
-      fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'guest', password: 'guest123' })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.data && data.data.token) {
-          localStorage.setItem('userToken', data.data.token);
-          localStorage.setItem('isGuestUser', 'true');
-          localStorage.setItem('guestLoginTime', new Date().toISOString());
-          showModal('Welcome Guest! Kamu akan diarahkan ke halaman buat work order.');
-          setTimeout(() => { window.location.href = 'guest.html'; }, 1200);
-        } else {
-          // Fallback: akun guest belum ada di DB, arahkan untuk setup dulu
-          showModal('Akun guest belum tersedia. Hubungi Admin untuk setup.', true);
-          btn.disabled = false;
-          btn.textContent = 'Lanjut sebagai Guest';
-        }
-      })
-      .catch(() => {
-        showModal('Terjadi kesalahan. Coba lagi.', true);
-        btn.disabled = false;
-        btn.textContent = 'Lanjut sebagai Guest';
-      });
-    });
-
-    // Login form
-    document.querySelector('.login-form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const submitBtn = this.querySelector('[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Memproses...';
-
-      const name     = this.username.value.trim();
-      const password = this.password.value;
-
-      fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, password })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.data && data.data.token) {
-          localStorage.removeItem('isGuestUser');
-          localStorage.removeItem('guestLoginTime');
-          localStorage.setItem('isAdmin', 'true');
-          localStorage.setItem('userToken', data.data.token);
-          showModal('Login berhasil! Mengalihkan...');
-          setTimeout(() => { window.location.href = 'index.html'; }, 1000);
-        } else {
-          showModal(data.message || 'Login gagal. Periksa username & password.', true);
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Masuk';
-        }
-      })
-      .catch(() => {
-        showModal('Terjadi kesalahan. Coba lagi.', true);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Masuk';
-      });
-    });
-  </script>
-</body>
+                    fetch("/api/login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name, password }),
+                    })
+                        .then((r) => r.json())
+                        .then((data) => {
+                            if (data.data && data.data.token) {
+                                localStorage.removeItem("isGuestUser");
+                                localStorage.removeItem("guestLoginTime");
+                                localStorage.setItem("isAdmin", "true");
+                                localStorage.setItem(
+                                    "userToken",
+                                    data.data.token,
+                                );
+                                showModal("Login berhasil! Mengalihkan...");
+                                setTimeout(() => {
+                                    window.location.href = "index.html";
+                                }, 1000);
+                            } else {
+                                showModal(
+                                    data.message ||
+                                        "Login gagal. Periksa username & password.",
+                                    true,
+                                );
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = "Masuk";
+                            }
+                        })
+                        .catch(() => {
+                            showModal("Terjadi kesalahan. Coba lagi.", true);
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = "Masuk";
+                        });
+                });
+        </script>
+    </body>
 </html>
