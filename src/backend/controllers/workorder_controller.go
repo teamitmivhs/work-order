@@ -162,17 +162,61 @@ func (ctrl *WorkOrderController) TrackOrderHandler(c *gin.Context) {
 	}
 
 	utils.RespondSuccess(c, http.StatusOK, gin.H{
+		"id":                 order.ID,
+		"trackingCode":       order.TrackingCode,
+		"status":             order.Status,
+		"priority":           order.Priority,
+		"time":               order.Time,
+		"requester":          order.Requester,
+		"location":           order.Location,
+		"device":             order.Device,
+		"problem":            order.Problem,
+		"executors":          order.Executors,
+		"completedAt":        order.CompletedAt,
+		"workingHours":       order.WorkingHours,
+		"notes":              order.Notes,
+		"documentationPhoto": order.DocumentationPhoto,
+	})
+}
+
+func (ctrl *WorkOrderController) UpdateTrackedOrderNotesHandler(c *gin.Context) {
+	code := strings.TrimSpace(c.Param("code"))
+	if code == "" {
+		utils.BadRequest(c, "Tracking code is required")
+		return
+	}
+
+	var req models.UpdateNotesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	notes := strings.TrimSpace(strings.NewReplacer("<", "", ">", "").Replace(req.Notes))
+	if len(notes) > 1000 {
+		utils.BadRequest(c, "Catatan maksimal 1000 karakter")
+		return
+	}
+
+	order, err := ctrl.Repo.GetTaskByTrackingCode(code)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			utils.NotFound(c, "Work order tidak ditemukan")
+			return
+		}
+		utils.InternalServerError(c, "Failed to track work order", err)
+		return
+	}
+
+	if err := ctrl.Repo.UpdateOrderNoteText(int64(order.ID), notes); err != nil {
+		utils.InternalServerError(c, "Failed to save notes", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Notes saved successfully", gin.H{
 		"id":           order.ID,
 		"trackingCode": order.TrackingCode,
-		"status":       order.Status,
-		"priority":     order.Priority,
-		"time":         order.Time,
-		"requester":    order.Requester,
-		"location":     order.Location,
-		"device":       order.Device,
-		"problem":      order.Problem,
-		"completedAt":  order.CompletedAt,
-		"workingHours": order.WorkingHours,
+		"notes":        notes,
 	})
 }
 

@@ -143,15 +143,142 @@
                 background: #f8fafc;
                 padding: 0.9rem;
             }
+            .guest-summary-card {
+                border: 1px solid #dbe3ee;
+                border-radius: 0.9rem;
+                background: #f8fafc;
+                overflow: hidden;
+            }
+            .guest-summary-head {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 0.75rem;
+                padding: 1rem;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .guest-summary-body {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.75rem 1rem;
+                padding: 1rem;
+                font-size: 0.88rem;
+            }
+            .guest-summary-label {
+                display: block;
+                color: #64748b;
+                font-size: 0.72rem;
+                font-weight: 800;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+            .guest-summary-value {
+                color: #0f172a;
+                font-weight: 600;
+                overflow-wrap: anywhere;
+            }
+            .guest-note-box {
+                padding: 1rem;
+                border-top: 1px solid #e2e8f0;
+            }
+            .guest-executor-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .guest-executors-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.75rem;
+                border: 1px solid #dbe3ee;
+                border-radius: 999px;
+                background: #fff;
+                padding: 0.4rem 0.8rem 0.4rem 0.45rem;
+                color: #0f172a;
+                font-weight: 800;
+            }
+            .guest-avatar-stack {
+                display: flex;
+                align-items: center;
+            }
+            .guest-avatar-stack img,
+            .guest-avatar-more {
+                width: 2rem;
+                height: 2rem;
+                border: 2px solid #fff;
+                border-radius: 999px;
+                object-fit: cover;
+                background: #e2e8f0;
+                margin-left: -0.45rem;
+            }
+            .guest-avatar-stack img:first-child {
+                margin-left: 0;
+            }
+            .guest-avatar-more {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: #475569;
+                font-size: 0.72rem;
+                font-weight: 900;
+            }
+            .guest-executor-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                min-width: 0;
+                border: 1px solid #dbe3ee;
+                border-radius: 999px;
+                background: #fff;
+                padding: 0.35rem 0.65rem 0.35rem 0.35rem;
+            }
+            .guest-executor-chip img {
+                width: 1.75rem;
+                height: 1.75rem;
+                border-radius: 999px;
+                object-fit: cover;
+                flex: 0 0 auto;
+            }
+            .guest-proof-link img {
+                width: 100%;
+                max-height: 8rem;
+                border-radius: 0.75rem;
+                object-fit: cover;
+                border: 1px solid #dbe3ee;
+            }
+            .guest-operator-modal-panel {
+                width: min(100%, 22rem);
+                max-height: min(32rem, calc(100dvh - 2rem));
+                overflow: auto;
+                border-radius: 1rem;
+                background: #fff;
+                color: #0f172a;
+                box-shadow: 0 28px 80px rgba(2, 6, 23, 0.38);
+            }
+            .guest-detail-modal-panel {
+                width: min(100%, 24rem);
+                max-height: min(40rem, calc(100dvh - 1.5rem));
+                overflow: hidden;
+                border-radius: 1rem;
+                background: #fff;
+                color: #0f172a;
+                box-shadow: 0 28px 80px rgba(2, 6, 23, 0.38);
+            }
+            .guest-detail-modal-body {
+                max-height: calc(100dvh - 8.5rem);
+                overflow-y: auto;
+            }
             .track-status {
                 display: inline-flex;
                 align-items: center;
+                flex: 0 0 auto;
                 min-height: 1.65rem;
                 padding: 0 0.65rem;
                 border-radius: 999px;
                 font-size: 0.72rem;
                 font-weight: 800;
                 text-transform: uppercase;
+                white-space: nowrap;
             }
             .track-status-pending {
                 background: #fef3c7;
@@ -304,6 +431,22 @@
                 #guestProblem {
                     min-height: 88px;
                 }
+                .guest-summary-head {
+                    padding: 0.85rem;
+                }
+                .guest-summary-body {
+                    grid-template-columns: 1fr;
+                    gap: 0.65rem;
+                    padding: 0.85rem;
+                }
+                .guest-note-box {
+                    padding: 0.85rem;
+                }
+                .track-status {
+                    min-height: 1.9rem;
+                    padding: 0 0.55rem;
+                    font-size: 0.66rem;
+                }
                 #clearGuestFormBtn,
                 #submitGuestOrderBtn {
                     min-height: 44px;
@@ -341,7 +484,11 @@
                     </button>
                 </header>
 
-                <div class="guest-tabs" role="tablist" aria-label="Guest work order">
+                <div
+                    class="guest-tabs"
+                    role="tablist"
+                    aria-label="Guest work order"
+                >
                     <button
                         type="button"
                         class="guest-tab active"
@@ -559,7 +706,9 @@
                     </div>
                     <div id="trackResult" class="hidden"></div>
                     <div>
-                        <div class="flex items-center justify-between gap-3 mb-2">
+                        <div
+                            class="flex items-center justify-between gap-3 mb-2"
+                        >
                             <h2 class="text-sm font-bold text-gray-700">
                                 Order dari perangkat ini
                             </h2>
@@ -604,8 +753,8 @@
                     -
                 </div>
                 <p class="mt-3 text-xs text-slate-500">
-                    Buka tab <b>Cek Status</b>, lalu masukkan kode ini jika ingin
-                    melihat status work order.
+                    Buka tab <b>Cek Status</b>, lalu masukkan kode ini jika
+                    ingin melihat status work order.
                 </p>
                 <div class="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <button
@@ -623,6 +772,68 @@
                         Saya Simpan
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <div
+            id="guestOperatorsModal"
+            class="hidden fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guestOperatorsTitle"
+        >
+            <div class="guest-operator-modal-panel p-5">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 id="guestOperatorsTitle" class="text-lg font-extrabold">
+                        Pelaksana Work Order
+                    </h2>
+                    <button
+                        id="closeGuestOperatorsModal"
+                        type="button"
+                        class="text-2xl leading-none text-slate-500 hover:text-slate-900"
+                        aria-label="Tutup"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div id="guestOperatorsList" class="mt-4 space-y-2"></div>
+            </div>
+        </div>
+
+        <div
+            id="guestDetailModal"
+            class="hidden fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guestDetailTitle"
+        >
+            <div class="guest-detail-modal-panel">
+                <div
+                    class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3"
+                >
+                    <div>
+                        <p
+                            class="text-xs font-bold uppercase tracking-wide text-blue-600"
+                        >
+                            Tracking Result
+                        </p>
+                        <h2
+                            id="guestDetailTitle"
+                            class="text-lg font-extrabold text-slate-900"
+                        >
+                            Detail Work Order
+                        </h2>
+                    </div>
+                    <button
+                        id="closeGuestDetailModal"
+                        type="button"
+                        class="text-2xl leading-none text-slate-500 hover:text-slate-900"
+                        aria-label="Tutup"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div id="guestDetailBody" class="guest-detail-modal-body p-4"></div>
             </div>
         </div>
 
@@ -644,12 +855,23 @@
                 document.getElementById("trackedOrdersList");
             const trackingCodeModal =
                 document.getElementById("trackingCodeModal");
-            const createdTrackingCode =
-                document.getElementById("createdTrackingCode");
+            const createdTrackingCode = document.getElementById(
+                "createdTrackingCode",
+            );
+            const guestOperatorsModal =
+                document.getElementById("guestOperatorsModal");
+            const guestOperatorsList =
+                document.getElementById("guestOperatorsList");
+            const guestDetailModal = document.getElementById("guestDetailModal");
+            const guestDetailBody = document.getElementById("guestDetailBody");
             const trackedOrdersKey = "guestTrackedOrders";
+            let membersById = new Map();
+            let currentTrackedOrder = null;
 
             function normalizeTrackingCode(value) {
-                return String(value || "").trim().toUpperCase();
+                return String(value || "")
+                    .trim()
+                    .toUpperCase();
             }
 
             function getTrackedOrders() {
@@ -682,27 +904,145 @@
                         pending: "Pending",
                         progress: "On Progress",
                         completed: "Completed",
-                    }[status] || status || "-"
+                    }[status] ||
+                    status ||
+                    "-"
                 );
+            }
+
+            function priorityLabel(priority) {
+                return (
+                    {
+                        low: "Low",
+                        medium: "Medium",
+                        high: "High",
+                    }[priority] ||
+                    priority ||
+                    "-"
+                );
+            }
+
+            function escapeHtml(value) {
+                return String(value || "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            async function loadMembers() {
+                if (membersById.size) return;
+                try {
+                    const response = await fetch("/api/members", {
+                        headers: { Authorization: "Bearer " + token },
+                    });
+                    if (!response.ok) return;
+                    const json = await response.json();
+                    membersById = new Map(
+                        (json.data || []).map((member) => [
+                            Number(member.id),
+                            member,
+                        ]),
+                    );
+                } catch (e) {}
+            }
+
+            function renderExecutors(executors) {
+                const ids = (executors || []).map(Number).filter(Boolean);
+                if (!ids.length)
+                    return '<p class="text-sm text-gray-500">Belum ada pelaksana.</p>';
+                const avatars = ids
+                    .slice(0, 3)
+                    .map((id) => {
+                        const member = membersById.get(id);
+                        const name = member ? member.name : `Member #${id}`;
+                        const avatar =
+                            member && member.avatar
+                                ? member.avatar
+                                : "default-avatar.png";
+                        return `<img src="/static/public/${escapeHtml(avatar)}" alt="${escapeHtml(name)}">`;
+                    })
+                    .join("");
+                const more =
+                    ids.length > 3
+                        ? `<span class="guest-avatar-more">+${ids.length - 3}</span>`
+                        : "";
+                return `<button type="button" class="guest-executors-btn" data-action="show-executors">
+                    <span class="guest-avatar-stack">${avatars}${more}</span>
+                    <span>${ids.length} pelaksana</span>
+                </button>`;
+            }
+
+            function showGuestOperatorsModal() {
+                const ids = (currentTrackedOrder?.executors || [])
+                    .map(Number)
+                    .filter(Boolean);
+                guestOperatorsList.innerHTML = ids.length
+                    ? ids
+                          .map((id) => {
+                              const member = membersById.get(id);
+                              const name = member
+                                  ? member.name
+                                  : `Member #${id}`;
+                              const division =
+                                  member && member.division
+                                      ? member.division
+                                      : "IT";
+                              const avatar =
+                                  member && member.avatar
+                                      ? member.avatar
+                                      : "default-avatar.png";
+                              return `<div class="guest-executor-chip w-full rounded-xl">
+                                  <img src="/static/public/${escapeHtml(avatar)}" alt="${escapeHtml(name)}">
+                                  <span class="min-w-0">
+                                      <span class="block truncate text-sm font-bold text-slate-900">${escapeHtml(name)}</span>
+                                      <span class="block truncate text-xs text-gray-500">${escapeHtml(division)}</span>
+                                  </span>
+                              </div>`;
+                          })
+                          .join("")
+                    : '<p class="text-sm text-gray-500">Belum ada pelaksana.</p>';
+                guestOperatorsModal.classList.remove("hidden");
+            }
+
+            function renderProofPhoto(photo) {
+                if (!photo)
+                    return '<p class="text-sm text-gray-500">Belum ada foto bukti.</p>';
+                const src = `/static/public/${escapeHtml(photo)}`;
+                return `<a class="guest-proof-link block" href="${src}" target="_blank" rel="noopener">
+                    <img class="guest-proof-img" src="${src}" alt="Foto bukti work order">
+                </a>`;
             }
 
             function renderTrackCard(order) {
                 if (!order) return "";
+                const code = escapeHtml(order.trackingCode || "");
                 return `
-                    <div class="track-card">
-                        <div class="flex items-start justify-between gap-3">
+                    <div class="guest-summary-card">
+                        <div class="guest-summary-head">
                             <div>
                                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tracking</p>
-                                <p class="text-lg font-extrabold text-slate-900">${order.trackingCode || "-"}</p>
+                                <p class="text-lg font-extrabold text-slate-900">${code || "-"}</p>
+                                <p class="text-sm text-gray-500">#${order.id || "-"} - ${priorityLabel(order.priority)}</p>
                             </div>
                             <span class="track-status track-status-${order.status || "pending"}">${statusLabel(order.status)}</span>
                         </div>
-                        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                            <p><span class="font-semibold text-gray-500">Order:</span> #${order.id || "-"}</p>
-                            <p><span class="font-semibold text-gray-500">Requester:</span> ${order.requester || "-"}</p>
-                            <p><span class="font-semibold text-gray-500">Device:</span> ${order.device || "-"}</p>
-                            <p><span class="font-semibold text-gray-500">Lokasi:</span> ${order.location || "-"}</p>
-                            <p><span class="font-semibold text-gray-500">Selesai:</span> ${order.completedAt || "-"}</p>
+                        <div class="guest-summary-body">
+                            <p><span class="guest-summary-label">Requester</span><span class="guest-summary-value">${escapeHtml(order.requester || "-")}</span></p>
+                            <p><span class="guest-summary-label">Device</span><span class="guest-summary-value">${escapeHtml(order.device || "-")}</span></p>
+                            <p><span class="guest-summary-label">Lokasi</span><span class="guest-summary-value">${escapeHtml(order.location || "-")}</span></p>
+                            <p><span class="guest-summary-label">Selesai</span><span class="guest-summary-value">${escapeHtml(order.completedAt || "-")}</span></p>
+                            <p class="sm:col-span-2"><span class="guest-summary-label">Masalah</span><span class="guest-summary-value">${escapeHtml(order.problem || "-")}</span></p>
+                            <div class="sm:col-span-2"><span class="guest-summary-label">Pelaksana</span>${renderExecutors(order.executors)}</div>
+                            <div class="sm:col-span-2"><span class="guest-summary-label">Foto Bukti</span>${renderProofPhoto(order.documentationPhoto)}</div>
+                        </div>
+                        <div class="guest-note-box">
+                            <label class="block text-sm font-bold text-gray-700 mb-2" for="guestNoteText">Catatan Guest</label>
+                            <textarea id="guestNoteText" class="guest-input min-h-[92px]" maxlength="1000" placeholder="Tambahkan catatan tambahan untuk evaluasi...">${escapeHtml(order.notes || "")}</textarea>
+                            <button type="button" class="save-guest-note-btn mt-3 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700" data-code="${code}">
+                                Simpan Catatan
+                            </button>
                         </div>
                     </div>`;
             }
@@ -765,6 +1105,16 @@
                 trackingCodeModal.classList.add("hidden");
             }
 
+            function showGuestDetail(order) {
+                currentTrackedOrder = order;
+                guestDetailBody.innerHTML = renderTrackCard(order);
+                guestDetailModal.classList.remove("hidden");
+            }
+
+            function closeGuestDetail() {
+                guestDetailModal.classList.add("hidden");
+            }
+
             document
                 .getElementById("closeTrackingCodeModal")
                 .addEventListener("click", closeTrackingCodeModal);
@@ -788,6 +1138,21 @@
                     }
                     showToast("Kode tracking disalin.");
                 });
+            document
+                .getElementById("closeGuestOperatorsModal")
+                .addEventListener("click", () =>
+                    guestOperatorsModal.classList.add("hidden"),
+                );
+            guestOperatorsModal.addEventListener("click", (event) => {
+                if (event.target === guestOperatorsModal)
+                    guestOperatorsModal.classList.add("hidden");
+            });
+            document
+                .getElementById("closeGuestDetailModal")
+                .addEventListener("click", closeGuestDetail);
+            guestDetailModal.addEventListener("click", (event) => {
+                if (event.target === guestDetailModal) closeGuestDetail();
+            });
 
             async function trackOrder(code) {
                 const trackingCode = normalizeTrackingCode(code);
@@ -805,16 +1170,44 @@
                     if (!response.ok) throw new Error("not found");
                     const json = await response.json();
                     const order = json.data || json;
-                    trackResult.innerHTML = renderTrackCard(order);
+                    await loadMembers();
+                    trackResult.classList.add("hidden");
+                    trackResult.innerHTML = "";
+                    showGuestDetail(order);
                     saveTrackedOrder({
                         id: order.id,
                         trackingCode: order.trackingCode,
                         device: order.device,
                         createdAt: order.time,
+                        notes: order.notes,
                     });
                 } catch (error) {
                     trackResult.innerHTML =
                         '<div class="track-card text-sm text-red-600 font-semibold">Kode tracking tidak ditemukan.</div>';
+                }
+            }
+
+            async function saveGuestNote(code) {
+                const trackingCode = normalizeTrackingCode(code);
+                const noteText = document.getElementById("guestNoteText");
+                if (!trackingCode || !noteText) return;
+
+                try {
+                    const response = await fetch(
+                        `/api/workorders/track/${encodeURIComponent(trackingCode)}/notes`,
+                        {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                notes: noteText.value.trim(),
+                            }),
+                        },
+                    );
+                    if (!response.ok) throw new Error("save failed");
+                    showToast("Catatan tersimpan.");
+                    trackOrder(trackingCode);
+                } catch (error) {
+                    showToast("Gagal menyimpan catatan.", true);
                 }
             }
 
@@ -849,6 +1242,24 @@
                     btn.dataset.code;
                 trackOrder(btn.dataset.code);
             });
+            guestDetailBody.addEventListener("click", (event) => {
+                if (event.target.closest('[data-action="show-executors"]')) {
+                    showGuestOperatorsModal();
+                    return;
+                }
+                const btn = event.target.closest(".save-guest-note-btn");
+                if (btn) saveGuestNote(btn.dataset.code);
+            });
+            guestDetailBody.addEventListener(
+                "error",
+                (event) => {
+                    if (!event.target.classList.contains("guest-proof-img"))
+                        return;
+                    event.target.closest(".guest-proof-link").outerHTML =
+                        '<p class="text-sm text-gray-500">Foto bukti belum tersedia di server.</p>';
+                },
+                true,
+            );
 
             document
                 .getElementById("exitGuestBtn")
@@ -934,16 +1345,22 @@
                         if (trackingCode) {
                             document.getElementById("trackingCodeInput").value =
                                 trackingCode;
-                            trackResult.classList.remove("hidden");
-                            trackResult.innerHTML = renderTrackCard({
+                            trackResult.classList.add("hidden");
+                            trackResult.innerHTML = "";
+                            currentTrackedOrder = {
                                 id,
                                 trackingCode,
                                 status: "pending",
+                                priority: payload.priority,
                                 requester: payload.requester,
                                 device: payload.device,
                                 location: payload.location,
+                                problem: payload.problem,
+                                executors: [],
                                 completedAt: "",
-                            });
+                                notes: "",
+                                documentationPhoto: "",
+                            };
                             setGuestMode("track");
                             showTrackingCodeModal(trackingCode);
                         }

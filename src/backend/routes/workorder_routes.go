@@ -21,6 +21,7 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 	workOrderCtrl := controllers.NewWorkOrderController(workOrderRepo)
 
 	api.GET("/workorders/track/:code", workOrderCtrl.TrackOrderHandler)
+	api.PATCH("/workorders/track/:code/notes", workOrderCtrl.UpdateTrackedOrderNotesHandler)
 
 	//protected routes
 	protected := api.Group("")

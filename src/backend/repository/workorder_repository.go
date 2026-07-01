@@ -16,6 +16,7 @@ type WorkOrderRepository interface {
 	DeleteOrder(orderID int64) error
 	UpdateOrderExecutors(orderID int64, req models.UpdateWorkOrderRequest) error
 	UpdateOrderNotes(orderID int64, notes string, rating *int, notesQuality *int) error
+	UpdateOrderNoteText(orderID int64, notes string) error
 	UpdateOrderDocumentationPhoto(orderID int64, filename string) error
 	HasDocumentationPhoto(orderID int64) (bool, error)
 	GetAllTasks() ([]models.WorkOrder, error)
@@ -279,6 +280,14 @@ func (r *workOrderRepository) UpdateOrderNotes(orderID int64, notes string, rati
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update notes for order %d: %w", orderID, err)
+	}
+	return nil
+}
+
+func (r *workOrderRepository) UpdateOrderNoteText(orderID int64, notes string) error {
+	_, err := r.db.Exec("UPDATE orders SET Notes = ? WHERE ID = ?", notes, orderID)
+	if err != nil {
+		return fmt.Errorf("failed to update note text for order %d: %w", orderID, err)
 	}
 	return nil
 }

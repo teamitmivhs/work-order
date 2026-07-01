@@ -49,6 +49,40 @@
             html[data-theme="dark"] #notesModal .text-gray-800 {
                 color: #f8fafc !important;
             }
+            @media (max-width: 767px) {
+                #ordersCardBody .data-card {
+                    padding: 0.95rem;
+                }
+                #ordersCardBody .data-card-row {
+                    grid-template-columns: 5.8rem minmax(0, 1fr);
+                    gap: 0.75rem;
+                    align-items: start;
+                }
+                #ordersCardBody .data-card-value {
+                    text-align: left;
+                    justify-self: stretch;
+                    overflow-wrap: anywhere;
+                }
+                #ordersCardBody .kaizen-note-pill {
+                    display: block;
+                    width: 100%;
+                    background: #eff6ff;
+                    color: #1d4ed8;
+                    border-radius: 0.65rem;
+                    padding: 0.45rem 0.6rem;
+                    line-height: 1.35;
+                }
+                #ordersCardBody .kaizen-photo-thumb {
+                    width: 4.5rem;
+                    height: 4.5rem;
+                    border-radius: 0.75rem;
+                    object-fit: cover;
+                }
+                #ordersCardBody .kaizen-photo-missing {
+                    color: #94a3b8;
+                    font-size: 0.8rem;
+                }
+            }
         </style>
     </head>
     <body class="bg-[#f3f4f6] text-black">
@@ -834,11 +868,20 @@
                     avgNotesQuality == null
                         ? null
                         : Math.round((avgNotesQuality / 5) * 100);
+                const notedOrders = completedOrders.filter(
+                    (o) => o.notes && o.notes.trim(),
+                );
                 document.getElementById("notesQuality").textContent =
-                    nq == null ? "-" : Math.round(nq) + "%";
+                    nq == null
+                        ? notedOrders.length
+                            ? `${notedOrders.length} catatan`
+                            : "-"
+                        : Math.round(nq) + "%";
                 document.getElementById("notesQualityDetail").textContent =
                     nq == null
-                        ? "Belum ada penilaian kualitas catatan"
+                        ? notedOrders.length
+                            ? "Catatan guest/summary sudah masuk, belum dinilai admin"
+                            : "Belum ada penilaian kualitas catatan"
                         : nq >= 80
                           ? "Dokumentasi sangat baik"
                           : nq >= 60
@@ -927,6 +970,10 @@
                             typeof o.requester === "object"
                                 ? o.requester.name
                                 : o.requester || "-";
+                        const noteText =
+                            o.notes && o.notes.length > 70
+                                ? o.notes.substring(0, 70) + "…"
+                                : o.notes;
                         return `
         <div class="data-card">
           <div class="data-card-header">
@@ -939,21 +986,25 @@
           <div class="data-card-row"><span class="data-card-label">Requester</span><span class="data-card-value">${requester}</span></div>
           <div class="data-card-row"><span class="data-card-label">Device</span><span class="data-card-value">${o.device || "-"}</span></div>
           <div class="data-card-row"><span class="data-card-label">Lokasi</span><span class="data-card-value">${o.location || "-"}</span></div>
-          <div class="data-card-row"><span class="data-card-label">Masalah</span><span class="data-card-value" style="max-width:60%">${o.problem || "-"}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Masalah</span><span class="data-card-value">${o.problem || "-"}</span></div>
           <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${convertWorkingTime(o.workingHours)}</span></div>
           <div class="data-card-row">
             <span class="data-card-label">Catatan</span>
-            <span class="data-card-value" style="max-width:60%">
+            <span class="data-card-value">
               ${
                   o.notes
-                      ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">${o.notes.length > 40 ? o.notes.substring(0, 40) + "…" : o.notes}</span>`
+                      ? `<span class="kaizen-note-pill">${noteText}</span>`
                       : '<span class="text-gray-400">No notes</span>'
               }
             </span>
           </div>
           <div class="data-card-row"><span class="data-card-label">Rating</span><span class="data-card-value">${o.rating ? `${o.rating}/5` : "-"}</span></div>
           <div class="data-card-row"><span class="data-card-label">Notes Quality</span><span class="data-card-value">${o.notesQuality ? `${o.notesQuality}/5` : "-"}</span></div>
-          ${o.documentationPhoto ? `<div class="data-card-row"><span class="data-card-label">Foto</span><button class="photo-preview-btn data-card-value" data-photo="/static/public/${o.documentationPhoto}" type="button"><img src="/static/public/${o.documentationPhoto}" alt="Foto bukti order #${o.id}" class="w-16 h-16 rounded-lg object-cover border border-gray-200 shadow-sm ml-auto"></button></div>` : ""}
+          ${
+              o.documentationPhoto
+                  ? `<div class="data-card-row"><span class="data-card-label">Foto</span><button class="photo-preview-btn data-card-value" data-photo="/static/public/${o.documentationPhoto}" type="button"><img src="/static/public/${o.documentationPhoto}" alt="Foto bukti order #${o.id}" class="kaizen-photo-thumb border border-gray-200 shadow-sm" onerror="this.closest('button').outerHTML='<span class=&quot;kaizen-photo-missing&quot;>Foto belum tersedia</span>'"></button></div>`
+                  : ""
+          }
           <div class="data-card-actions">
             <button class="view-note-btn flex items-center gap-1 text-xs text-blue-500 font-semibold px-3 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" data-order-id="${o.id}">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
