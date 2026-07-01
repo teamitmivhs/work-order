@@ -1,28 +1,43 @@
 package models
 
 type WorkOrder struct {
-	ID              int      `json:"id"`
-	Priority        string   `json:"priority"`
-	Time            string   `json:"time"`
-	Requester       string   `json:"requester"`
-	Location        string   `json:"location"`
-	Device          string   `json:"device"`
-	Problem         string   `json:"problem"`
-	Executors       []int    `json:"executors"`
-	WorkingHours    *int     `json:"workingHours,omitempty"`
-	Status          string   `json:"status"`
-	SafetyChecklist []string `json:"safetyChecklist"`
-	CompletedAt     string   `json:"completedAt,omitempty"`
-	Notes           string   `json:"notes,omitempty"`
+	ID                 int      `json:"id"`
+	Priority           string   `json:"priority"`
+	Time               string   `json:"time"`
+	StartedAt          string   `json:"startedAt,omitempty"`
+	ProgressSeconds    *int     `json:"progressSeconds,omitempty"`
+	TrackingCode       string   `json:"trackingCode,omitempty"`
+	Requester          string   `json:"requester"`
+	Location           string   `json:"location"`
+	Device             string   `json:"device"`
+	Problem            string   `json:"problem"`
+	Executors          []int    `json:"executors"`
+	WorkingHours       *int     `json:"workingHours,omitempty"`
+	Status             string   `json:"status"`
+	SafetyChecklist    []string `json:"safetyChecklist"`
+	CompletedAt        string   `json:"completedAt,omitempty"`
+	Notes              string   `json:"notes,omitempty"`
+	Rating             *int     `json:"rating,omitempty"`
+	NotesQuality       *int     `json:"notesQuality,omitempty"`
+	DocumentationPhoto string   `json:"documentationPhoto,omitempty"`
 }
 
 type Member struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Password string `json:"password,omitempty"`
-	Role     string `json:"role"`
-	Status   string `json:"status"`
-	Avatar   string `json:"avatar"`
+	ID                 int    `json:"id"`
+	Name               string `json:"name"`
+	Password           string `json:"password,omitempty"`
+	Role               string `json:"role"`
+	Division           string `json:"division,omitempty"`
+	Status             string `json:"status"`
+	Avatar             string `json:"avatar"`
+	AccountStatus      string `json:"accountStatus,omitempty"`
+	MembershipStatus   string `json:"membershipStatus,omitempty"`
+	BatchYear          string `json:"batchYear,omitempty"`
+	GraduationYear     *int   `json:"graduationYear,omitempty"`
+	CanHandleWorkOrder bool   `json:"canHandleWorkOrder"`
+	RegisteredAt       string `json:"registeredAt,omitempty"`
+	ApprovedAt         string `json:"approvedAt,omitempty"`
+	ApprovedBy         *int   `json:"approvedBy,omitempty"`
 }
 type Summary struct {
 	TotalWorkOrders      int `json:"totalWorkOrders"`
@@ -41,14 +56,15 @@ type TechGuide struct {
 	DraftArticles     int `json:"draftArticles"`
 }
 type WorkOrderRequest struct {
-	ID          int    `json:"id"`
-	Priority    string `json:"priority"`
-	TimeDisplay string `json:"time_display"`
-	TimeSort    string `json:"time_sort"`
-	Requester   string `json:"requester"`
-	Location    string `json:"location"`
-	Device      string `json:"device"`
-	Problem     string `json:"problem"`
+	ID           int    `json:"id"`
+	Priority     string `json:"priority"`
+	TimeDisplay  string `json:"time_display"`
+	TimeSort     string `json:"time_sort"`
+	TrackingCode string `json:"trackingCode,omitempty"`
+	Requester    string `json:"requester"`
+	Location     string `json:"location"`
+	Device       string `json:"device"`
+	Problem      string `json:"problem"`
 
 	// Executors harus diisi dari tabel relasi task_executors
 	Executors []int `json:"executors"`
@@ -83,5 +99,7 @@ type CompleteWorkOrder struct {
 
 // UpdateNotesRequest: payload untuk PATCH /api/workorders/:id/notes
 type UpdateNotesRequest struct {
-	Notes string `json:"notes"`
+	Notes        string `json:"notes"`
+	Rating       *int   `json:"rating"`
+	NotesQuality *int   `json:"notesQuality"`
 }
