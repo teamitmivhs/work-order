@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -10,13 +11,22 @@ import (
 
 type MemberRepository interface {
 	GetAllMembers() ([]models.Member, error)
+	GetAdminMembers(filter string) ([]models.Member, error)
+	HasActiveAdmin() (bool, error)
 	CreateMember(member *models.Member) error
 	GetMemberByName(name string) (*models.Member, error)
 	GetMemberByID(id int) (*models.Member, error)
 	IsMemberAssigned(orderID int64, memberID int) (bool, error)
 	UpdateMemberStatus(memberID int, newStatus string) error
-	SetMemberPassword(memberID int, hashedPassword string, role string) error
+	SetMemberPassword(memberID int, hashedPassword string, role string, division string, batchYear string) error
+	UpdateMemberPassword(memberID int, hashedPassword string) error
 	UpdateMemberAvatar(memberID int, avatarFilename string) error
+	ApproveMember(memberID int, role string, division string, batchYear string, canHandle bool, approvedBy int) error
+	RejectMember(memberID int) error
+	DisableMember(memberID int) error
+	MarkMemberAsAlumni(memberID int, graduationYear int) error
+	GraduateBatch(batchYear string, graduationYear int) (int64, error)
+	ChangeRole(memberID int, role string) error
 }
 
 type memberRepository struct{}
@@ -26,7 +36,19 @@ func NewMemberRepository() MemberRepository {
 }
 
 func (r *memberRepository) GetAllMembers() ([]models.Member, error) {
-	rows, err := config.DB.Query("SELECT ID, Name, Role, Status, Avatar FROM members")
+	rows, err := config.DB.Query(`
+		SELECT ID, Name, COALESCE(Role, ''), COALESCE(Division, ''), Status, Avatar, AccountStatus, MembershipStatus,
+		       COALESCE(BatchYear, ''), GraduationYear, CanHandleWorkOrder,
+		       DATE_FORMAT(RegisteredAt, '%Y-%m-%d %H:%i:%s'),
+		       DATE_FORMAT(ApprovedAt, '%Y-%m-%d %H:%i:%s'),
+		       ApprovedBy
+		FROM members
+		WHERE AccountStatus = 'active'
+		  AND MembershipStatus = 'active'
+		  AND CanHandleWorkOrder = 1
+		  AND COALESCE(Role, '') <> 'Guest'
+		ORDER BY Name ASC
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +57,7 @@ func (r *memberRepository) GetAllMembers() ([]models.Member, error) {
 	members := make([]models.Member, 0)
 	for rows.Next() {
 		var m models.Member
-		if err := rows.Scan(&m.ID, &m.Name, &m.Role, &m.Status, &m.Avatar); err != nil {
+		if err := scanMember(rows, &m); err != nil {
 			log.Printf("Error scanning member row: %v", err)
 			return nil, err
 		}
@@ -44,10 +66,70 @@ func (r *memberRepository) GetAllMembers() ([]models.Member, error) {
 	return members, rows.Err()
 }
 
+func (r *memberRepository) GetAdminMembers(filter string) ([]models.Member, error) {
+	query := `
+		SELECT ID, Name, COALESCE(Role, ''), COALESCE(Division, ''), Status, Avatar, AccountStatus, MembershipStatus,
+		       COALESCE(BatchYear, ''), GraduationYear, CanHandleWorkOrder,
+		       DATE_FORMAT(RegisteredAt, '%Y-%m-%d %H:%i:%s'),
+		       DATE_FORMAT(ApprovedAt, '%Y-%m-%d %H:%i:%s'),
+		       ApprovedBy
+		FROM members
+		WHERE COALESCE(Role, '') <> 'Guest'
+	`
+	args := []any{}
+	switch filter {
+	case "pending":
+		query += " AND AccountStatus = 'pending'"
+	case "active":
+		query += " AND AccountStatus = 'active' AND MembershipStatus = 'active'"
+	case "alumni":
+		query += " AND MembershipStatus = 'alumni'"
+	case "disabled":
+		query += " AND AccountStatus = 'disabled'"
+	case "rejected":
+		query += " AND AccountStatus = 'rejected'"
+	}
+	query += " ORDER BY RegisteredAt DESC, Name ASC"
+
+	rows, err := config.DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	members := make([]models.Member, 0)
+	for rows.Next() {
+		var m models.Member
+		if err := scanMember(rows, &m); err != nil {
+			return nil, err
+		}
+		members = append(members, m)
+	}
+	return members, rows.Err()
+}
+
+func (r *memberRepository) HasActiveAdmin() (bool, error) {
+	var count int
+	err := config.DB.QueryRow(`
+		SELECT COUNT(*)
+		FROM members
+		WHERE Role = 'Admin'
+		  AND AccountStatus = 'active'
+		  AND MembershipStatus = 'active'
+	`).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func (r *memberRepository) CreateMember(member *models.Member) error {
 	result, err := config.DB.Exec(
-		"INSERT INTO members (Name, Password, Role, Status, Avatar) VALUES (?, ?, ?, ?, ?)",
-		member.Name, member.Password, member.Role, member.Status, member.Avatar,
+		`INSERT INTO members
+			(Name, Password, Role, Division, Status, Avatar, AccountStatus, MembershipStatus, BatchYear, CanHandleWorkOrder)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		member.Name, member.Password, member.Role, nullableString(member.Division), member.Status, member.Avatar,
+		member.AccountStatus, member.MembershipStatus, nullableString(member.BatchYear), member.CanHandleWorkOrder,
 	)
 	if err != nil {
 		return err
@@ -62,10 +144,16 @@ func (r *memberRepository) CreateMember(member *models.Member) error {
 
 func (r *memberRepository) GetMemberByName(name string) (*models.Member, error) {
 	row := config.DB.QueryRow(
-		"SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE Name = ?", name,
+		`SELECT ID, Name, Password, COALESCE(Role, ''), COALESCE(Division, ''), Status, Avatar, AccountStatus, MembershipStatus,
+		        COALESCE(BatchYear, ''), GraduationYear, CanHandleWorkOrder,
+		        DATE_FORMAT(RegisteredAt, '%Y-%m-%d %H:%i:%s'),
+		        DATE_FORMAT(ApprovedAt, '%Y-%m-%d %H:%i:%s'),
+		        ApprovedBy
+		 FROM members WHERE Name = ?`,
+		name,
 	)
 	var m models.Member
-	if err := row.Scan(&m.ID, &m.Name, &m.Password, &m.Role, &m.Status, &m.Avatar); err != nil {
+	if err := scanMemberWithPassword(row, &m); err != nil {
 		return nil, err
 	}
 	return &m, nil
@@ -73,10 +161,16 @@ func (r *memberRepository) GetMemberByName(name string) (*models.Member, error) 
 
 func (r *memberRepository) GetMemberByID(id int) (*models.Member, error) {
 	row := config.DB.QueryRow(
-		"SELECT ID, Name, Password, Role, Status, Avatar FROM members WHERE ID = ?", id,
+		`SELECT ID, Name, Password, COALESCE(Role, ''), COALESCE(Division, ''), Status, Avatar, AccountStatus, MembershipStatus,
+		        COALESCE(BatchYear, ''), GraduationYear, CanHandleWorkOrder,
+		        DATE_FORMAT(RegisteredAt, '%Y-%m-%d %H:%i:%s'),
+		        DATE_FORMAT(ApprovedAt, '%Y-%m-%d %H:%i:%s'),
+		        ApprovedBy
+		 FROM members WHERE ID = ?`,
+		id,
 	)
 	var m models.Member
-	if err := row.Scan(&m.ID, &m.Name, &m.Password, &m.Role, &m.Status, &m.Avatar); err != nil {
+	if err := scanMemberWithPassword(row, &m); err != nil {
 		return nil, err
 	}
 	return &m, nil
@@ -114,12 +208,188 @@ func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) er
 
 // SetMemberPassword update password + role member yang sudah ada
 // Dipakai saat register — member sudah ada (nama dikenal), hanya set password
-func (r *memberRepository) SetMemberPassword(memberID int, hashedPassword string, role string) error {
+func (r *memberRepository) SetMemberPassword(memberID int, hashedPassword string, role string, division string, batchYear string) error {
 	_, err := config.DB.Exec(
-		"UPDATE members SET Password = ?, Role = ? WHERE ID = ?",
-		hashedPassword, role, memberID,
+		"UPDATE members SET Password = ?, Role = ?, Division = ?, BatchYear = ? WHERE ID = ?",
+		hashedPassword, role, nullableString(division), nullableString(batchYear), memberID,
 	)
 	return err
+}
+
+func (r *memberRepository) UpdateMemberPassword(memberID int, hashedPassword string) error {
+	_, err := config.DB.Exec(
+		"UPDATE members SET Password = ? WHERE ID = ?",
+		hashedPassword, memberID,
+	)
+	return err
+}
+
+func (r *memberRepository) ApproveMember(memberID int, role string, division string, batchYear string, canHandle bool, approvedBy int) error {
+	_, err := config.DB.Exec(`
+		UPDATE members
+		SET Role = ?,
+		    Division = ?,
+		    BatchYear = ?,
+		    CanHandleWorkOrder = ?,
+		    AccountStatus = 'active',
+		    MembershipStatus = 'active',
+		    GraduationYear = NULL,
+		    ApprovedAt = NOW(),
+		    ApprovedBy = ?
+		WHERE ID = ?
+	`, role, nullableString(division), nullableString(batchYear), canHandle, approvedBy, memberID)
+	return err
+}
+
+func (r *memberRepository) RejectMember(memberID int) error {
+	_, err := config.DB.Exec(`
+		UPDATE members
+		SET AccountStatus = 'rejected',
+		    CanHandleWorkOrder = 0,
+		    Status = 'offduty'
+		WHERE ID = ?
+	`, memberID)
+	return err
+}
+
+func (r *memberRepository) DisableMember(memberID int) error {
+	_, err := config.DB.Exec(`
+		UPDATE members
+		SET AccountStatus = 'disabled',
+		    CanHandleWorkOrder = 0,
+		    Status = 'offduty'
+		WHERE ID = ?
+	`, memberID)
+	return err
+}
+
+func (r *memberRepository) MarkMemberAsAlumni(memberID int, graduationYear int) error {
+	_, err := config.DB.Exec(`
+		UPDATE members
+		SET MembershipStatus = 'alumni',
+		    AccountStatus = 'disabled',
+		    CanHandleWorkOrder = 0,
+		    GraduationYear = ?,
+		    Status = 'offduty'
+		WHERE ID = ?
+	`, graduationYear, memberID)
+	return err
+}
+
+func (r *memberRepository) ChangeRole(memberID int, role string) error {
+	_, err := config.DB.Exec(`
+		UPDATE members
+		SET Role = ?
+		WHERE ID = ?
+		  AND AccountStatus = 'active'
+		  AND MembershipStatus = 'active'
+	`, role, memberID)
+	return err
+}
+
+func (r *memberRepository) GraduateBatch(batchYear string, graduationYear int) (int64, error) {
+	result, err := config.DB.Exec(`
+		UPDATE members
+		SET MembershipStatus = 'alumni',
+		    AccountStatus = 'disabled',
+		    CanHandleWorkOrder = 0,
+		    GraduationYear = ?,
+		    Status = 'offduty'
+		WHERE BatchYear = ?
+		  AND MembershipStatus = 'active'
+		  AND COALESCE(Role, '') <> 'Guest'
+	`, graduationYear, batchYear)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+type memberScanner interface {
+	Scan(dest ...any) error
+}
+
+func scanMember(rows memberScanner, m *models.Member) error {
+	var graduationYear sql.NullInt64
+	var registeredAt sql.NullString
+	var approvedAt sql.NullString
+	var approvedBy sql.NullInt64
+
+	if err := rows.Scan(
+		&m.ID,
+		&m.Name,
+		&m.Role,
+		&m.Division,
+		&m.Status,
+		&m.Avatar,
+		&m.AccountStatus,
+		&m.MembershipStatus,
+		&m.BatchYear,
+		&graduationYear,
+		&m.CanHandleWorkOrder,
+		&registeredAt,
+		&approvedAt,
+		&approvedBy,
+	); err != nil {
+		return err
+	}
+
+	applyNullableMemberFields(m, graduationYear, registeredAt, approvedAt, approvedBy)
+	return nil
+}
+
+func scanMemberWithPassword(rows memberScanner, m *models.Member) error {
+	var graduationYear sql.NullInt64
+	var registeredAt sql.NullString
+	var approvedAt sql.NullString
+	var approvedBy sql.NullInt64
+
+	if err := rows.Scan(
+		&m.ID,
+		&m.Name,
+		&m.Password,
+		&m.Role,
+		&m.Division,
+		&m.Status,
+		&m.Avatar,
+		&m.AccountStatus,
+		&m.MembershipStatus,
+		&m.BatchYear,
+		&graduationYear,
+		&m.CanHandleWorkOrder,
+		&registeredAt,
+		&approvedAt,
+		&approvedBy,
+	); err != nil {
+		return err
+	}
+
+	applyNullableMemberFields(m, graduationYear, registeredAt, approvedAt, approvedBy)
+	return nil
+}
+
+func applyNullableMemberFields(m *models.Member, graduationYear sql.NullInt64, registeredAt sql.NullString, approvedAt sql.NullString, approvedBy sql.NullInt64) {
+	if graduationYear.Valid {
+		v := int(graduationYear.Int64)
+		m.GraduationYear = &v
+	}
+	if registeredAt.Valid {
+		m.RegisteredAt = registeredAt.String
+	}
+	if approvedAt.Valid {
+		m.ApprovedAt = approvedAt.String
+	}
+	if approvedBy.Valid {
+		v := int(approvedBy.Int64)
+		m.ApprovedBy = &v
+	}
+}
+
+func nullableString(value string) any {
+	if value == "" {
+		return nil
+	}
+	return value
 }
 
 // UpdateMemberAvatar update nama file avatar member
