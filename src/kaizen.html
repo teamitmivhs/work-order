@@ -95,7 +95,7 @@
             class="subpage-nav sticky top-0 z-40 w-full px-4 md:px-6 py-3 shadow-2xl"
         >
             <a
-                href="/index.html"
+                href="/index"
                 class="subpage-back flex items-center gap-2 text-white hover:text-blue-300 transition-colors min-h-[44px]"
             >
                 <svg
@@ -716,9 +716,9 @@
             let completedOrders = [];
             let members = [];
             const authToken = localStorage.getItem("userToken") || "";
-            if (!authToken) window.location.href = "/login.html";
+            if (!authToken) window.location.href = "/login";
             if (localStorage.getItem("isGuestUser") === "true")
-                window.location.href = "/guest.html";
+                window.location.href = "/guest";
 
             async function fetchMembers() {
                 try {
