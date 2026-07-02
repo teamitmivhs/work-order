@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"teamitmivhs/work-order-backend/config"
+	"teamitmivhs/work-order-backend/repository"
 	"teamitmivhs/work-order-backend/routes"
 
 	"github.com/gin-contrib/cors"
@@ -24,6 +25,11 @@ func main() {
 		println("Data akan disimpan di localStorage di frontend")
 	} else {
 		println("Database connected successfully")
+		if snapshot, err := repository.RunShiftDayRollover(); err != nil {
+			println("Warning: shift day counter failed - " + err.Error())
+		} else if snapshot.MovedToStandby > 0 {
+			println("Shift rollover moved members to standby:", snapshot.MovedToStandby)
+		}
 	}
 	defer config.CloseDB()
 
@@ -43,6 +49,7 @@ func main() {
 	println("Frontend available at: http://localhost:8080")
 	println("Summary page: http://localhost:8080/summary")
 	println("Kaizen page: http://localhost:8080/kaizen")
+	println("Shift page: http://localhost:8080/shift")
 	println("TechGuide page: http://localhost:8080/techguide")
 	println("")
 
@@ -96,6 +103,13 @@ func setupPageRoutes(r *gin.Engine) {
 		c.File("../staff.html")
 	})
 
+	r.GET("/shift", func(c *gin.Context) {
+		c.File("../shift.html")
+	})
+	r.GET("/shift.html", func(c *gin.Context) {
+		c.File("../shift.html")
+	})
+
 	// Dashboard
 	r.GET("/", func(c *gin.Context) {
 		c.File("../index.html")
@@ -146,6 +160,8 @@ func setupPageRoutes(r *gin.Engine) {
 			c.File("../guest.html")
 		case "/staff.html":
 			c.File("../staff.html")
+		case "/shift.html":
+			c.File("../shift.html")
 		case "/techguide.html":
 			c.File("../techguide.html")
 		case "/summary.html":
