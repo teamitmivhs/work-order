@@ -193,7 +193,7 @@ func (r *memberRepository) IsMemberAssigned(orderID int64, memberID int) (bool, 
 // UpdateMemberStatus memperbarui status member
 func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) error {
 	validStatuses := map[string]bool{
-		"standby": true, "onjob": true, "support": true,
+		"standby": true, "onjob": true,
 		"nextshift": true, "offduty": true,
 	}
 	if !validStatuses[newStatus] {
