@@ -122,12 +122,19 @@ if (refreshBtn) {
 // seluruh eksekusi script.
 const btn = document.getElementById("profileDropdownBtn");
 const menu = document.getElementById("profileDropdown");
+const profileDrawerBackdrop = document.getElementById("profileDrawerBackdrop");
 
 if (btn && menu) {
+  function setProfileMenu(open) {
+    menu.classList.toggle("hidden", !open);
+    profileDrawerBackdrop?.classList.toggle("hidden", !open);
+    btn.setAttribute("aria-expanded", open);
+  }
+
   // FIX: hanya JS click yang mengontrol dropdown (group-hover CSS dihapus dari index.html)
   btn.addEventListener("click", (e) => {
     e.stopPropagation(); // cegah document click langsung menutup lagi
-    menu.classList.toggle("hidden");
+    setProfileMenu(menu.classList.contains("hidden"));
   });
 
   // Logout button — cari berdasarkan ID, bukan index yang rapuh
@@ -145,8 +152,13 @@ if (btn && menu) {
   // Tutup dropdown saat klik di luar
   document.addEventListener("click", (e) => {
     if (!btn.contains(e.target) && !menu.contains(e.target)) {
-      menu.classList.add("hidden");
+      setProfileMenu(false);
     }
+  });
+
+  profileDrawerBackdrop?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setProfileMenu(false);
   });
 }
 
@@ -418,6 +430,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   const workOrderStatusTabs = document.querySelectorAll(
     ".work-order-status-tab",
   );
+  const heroPrimaryActionBtns = document.querySelectorAll(
+    "[data-hero-primary-action]",
+  );
   const selectHelperOperatorModal = document.getElementById(
     "selectHelperOperatorModal",
   );
@@ -430,6 +445,43 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   let currentStatusFilter = "all";
   let activeWorkOrderStatus = "pending";
+
+  function scrollToPendingWorkOrders() {
+    setActiveWorkOrderStatus("pending");
+    document
+      .querySelector(".workorders-panel")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function setupRoleBasedOrderActions() {
+    const admin = isCurrentUserAdmin();
+    if (!admin && createOrderBtn) createOrderBtn.classList.add("hidden");
+
+    const createMarkup = `
+      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 4.5a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V5.25a.75.75 0 01.75-.75z"/>
+      </svg>
+      Create New Order`;
+    const takeMarkup = `
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m-4-4h8m4 0a8 8 0 11-16 0 8 8 0 0116 0z"/>
+      </svg>
+      Take Work Order`;
+
+    heroPrimaryActionBtns.forEach((btn) => {
+      btn.innerHTML = admin ? createMarkup : takeMarkup;
+      btn.setAttribute(
+        "aria-label",
+        admin ? "Create new work order" : "Take pending work order",
+      );
+      btn.addEventListener("click", () => {
+        if (admin) showAnimatedPopup(createOrderPopup);
+        else scrollToPendingWorkOrders();
+      });
+    });
+  }
+
+  setupRoleBasedOrderActions();
 
   function ensureDocumentationInput() {
     if (documentationInput) return documentationInput;
@@ -1116,9 +1168,13 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // ===== CREATE ORDER POPUP =====
-  createOrderBtn.addEventListener("click", () =>
-    showAnimatedPopup(createOrderPopup),
-  );
+  createOrderBtn.addEventListener("click", () => {
+    if (!isCurrentUserAdmin()) {
+      scrollToPendingWorkOrders();
+      return;
+    }
+    showAnimatedPopup(createOrderPopup);
+  });
 
   closeCreateOrderPopupBtn.addEventListener("click", () => {
     if (isGuestUser) {
@@ -1187,6 +1243,16 @@ document.addEventListener("DOMContentLoaded", async function () {
   // ===== CREATE ORDER SUBMIT =====
   createOrderForm.addEventListener("submit", function (e) {
     e.preventDefault();
+    if (!isCurrentUserAdmin()) {
+      showPopup(
+        "Akses Ditolak",
+        "Hanya admin yang bisa membuat work order.",
+        "warning",
+      );
+      hideAnimatedPopup(createOrderPopup);
+      scrollToPendingWorkOrders();
+      return;
+    }
     const submitBtn = this.querySelector('[type="submit"]') || createOrderBtn;
     if (submitBtn.disabled) return;
     setButtonLoading(submitBtn, true);
@@ -1276,7 +1342,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const statusMap = {
       standby: { color: "bg-green-500", text: "Stand By" },
       onjob: { color: "bg-blue-500", text: "On Job" },
-      support: { color: "bg-yellow-400", text: "Support" },
       nextshift: { color: "bg-purple-500", text: "Next Shift" },
       offduty: { color: "bg-gray-500", text: "Off Duty" },
     };
@@ -1325,12 +1390,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         color: "text-blue-700",
         dot: "#3b82f6",
       },
-      support: {
-        text: "Support",
-        bg: "bg-yellow-100",
-        color: "text-yellow-700",
-        dot: "#eab308",
-      },
       nextshift: {
         text: "Next Shift",
         bg: "bg-purple-100",
@@ -1347,7 +1406,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const headerColors = {
       standby: "linear-gradient(135deg,#14532d,#166534)",
       onjob: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
-      support: "linear-gradient(135deg,#713f12,#92400e)",
       nextshift: "linear-gradient(135deg,#4c1d95,#6d28d9)",
       offduty: "linear-gradient(135deg,#1e293b,#374151)",
     };
@@ -1429,7 +1487,6 @@ document.addEventListener("DOMContentLoaded", async function () {
           <select class="status-select px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" data-member-id="${member.id}">
             <option value="standby"   ${member.status === "standby" ? "selected" : ""}>Stand By</option>
             <option value="onjob"     ${member.status === "onjob" ? "selected" : ""}>On Job</option>
-            <option value="support"   ${member.status === "support" ? "selected" : ""}>Support</option>
             <option value="nextshift" ${member.status === "nextshift" ? "selected" : ""}>Next Shift</option>
             <option value="offduty"   ${member.status === "offduty" ? "selected" : ""}>Off Duty</option>
           </select>
