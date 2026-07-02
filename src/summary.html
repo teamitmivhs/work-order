@@ -21,7 +21,7 @@
   <!-- NAVBAR -->
   <nav style="background:linear-gradient(to right,#0f172a,#1e293b);border-bottom:1px solid rgba(255,255,255,0.07);"
     class="subpage-nav sticky top-0 z-40 w-full px-4 md:px-6 py-3 shadow-2xl">
-    <a href="/index.html" class="subpage-back flex items-center gap-2 text-white hover:text-blue-300 transition-colors min-h-[44px]">
+    <a href="/index" class="subpage-back flex items-center gap-2 text-white hover:text-blue-300 transition-colors min-h-[44px]">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
       </svg>
@@ -313,8 +313,8 @@
     const authToken = localStorage.getItem('userToken') || '';
     const tokenPayload = authToken ? JSON.parse(atob(authToken.split('.')[1])) : {};
     const isAdmin = tokenPayload.role === 'Admin';
-    if (!authToken) window.location.href = '/login.html';
-    if (localStorage.getItem('isGuestUser') === 'true') window.location.href = '/guest.html';
+    if (!authToken) window.location.href = '/login';
+    if (localStorage.getItem('isGuestUser') === 'true') window.location.href = '/guest';
 
     async function fetchMembers() {
       try {
