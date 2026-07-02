@@ -407,7 +407,7 @@ func DeleteAvatarHandler(c *gin.Context) {
 }
 
 // UpdateStatusHandler: POST /api/status
-// Update status member (standby, onjob, support, nextshift, offduty)
+// Update status member (standby, onjob, nextshift, offduty)
 type UpdateStatusRequest struct {
 	Status string `json:"status" binding:"required"`
 }
@@ -430,11 +430,11 @@ func UpdateStatusHandler(c *gin.Context) {
 
 	// Validasi status (validation juga ada di repository, tapi cek dulu di sini)
 	validStatuses := map[string]bool{
-		"standby": true, "onjob": true, "support": true,
+		"standby": true, "onjob": true,
 		"nextshift": true, "offduty": true,
 	}
 	if !validStatuses[req.Status] {
-		utils.BadRequest(c, "Invalid status. Must be: standby, onjob, support, nextshift, or offduty")
+		utils.BadRequest(c, "Invalid status. Must be: standby, onjob, nextshift, or offduty")
 		return
 	}
 
