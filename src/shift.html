@@ -190,10 +190,12 @@
             .avatar-stack {
                 display: flex;
                 align-items: center;
+                min-width: 0;
             }
 
             .avatar-stack img,
             .avatar-fallback {
+                flex: 0 0 auto;
                 width: 34px;
                 height: 34px;
                 border-radius: 999px;
@@ -507,13 +509,29 @@
             }
 
             .mobile-next-card {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
+                display: grid;
                 gap: 12px;
-                padding: 14px;
+                padding: 15px;
                 border-radius: 18px;
                 margin-bottom: 12px;
+                overflow: hidden;
+            }
+
+            .mobile-next-head {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 10px;
+                align-items: start;
+            }
+
+            .mobile-next-copy {
+                min-width: 0;
+            }
+
+            .mobile-next-stack {
+                max-width: 116px;
+                justify-content: flex-end;
+                overflow: hidden;
             }
 
             .mobile-next-card strong {
@@ -526,6 +544,7 @@
                 margin: 0;
                 color: var(--shift-muted);
                 font-size: 0.76rem;
+                line-height: 1.45;
             }
 
             .mobile-control-card {
@@ -558,7 +577,7 @@
 
             .mobile-action-grid {
                 display: grid;
-                grid-template-columns: 1fr auto;
+                grid-template-columns: minmax(0, 1fr) auto;
                 gap: 8px;
                 align-items: end;
             }
@@ -643,6 +662,7 @@
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow-wrap: anywhere;
+                word-break: break-word;
             }
 
             .mobile-member-division {
@@ -866,7 +886,7 @@
                     </p>
                 </div>
                 <aside class="next-shift-card">
-                    <strong>Next Shift Besok</strong>
+                    <strong>Next Shift</strong>
                     <div class="avatar-stack" id="nextShiftAvatars"></div>
                     <p id="nextShiftCopy" style="margin-top: 12px">
                         Memuat daftar operator...
@@ -917,11 +937,20 @@
 
                 <div class="mobile-planner" id="mobilePlanner">
                     <div class="mobile-next-card">
+                        <div class="mobile-next-head">
+                            <div class="mobile-next-copy">
+                                <strong>Next Shift Besok</strong>
+                                <p id="nextShiftCopyMobile">
+                                    Memuat daftar operator...
+                                </p>
+                            </div>
+                            <div
+                                class="avatar-stack mobile-next-stack"
+                                id="nextShiftAvatarsMobile"
+                                aria-label="Operator next shift"
+                            ></div>
+                        </div>
                         <div>
-                            <strong>Next Shift Besok</strong>
-                            <p id="nextShiftCopyMobile">
-                                Memuat daftar operator...
-                            </p>
                             <span
                                 class="counter-chip"
                                 id="shiftCounterCopyMobile"
@@ -929,11 +958,6 @@
                                 Counter belum dimuat
                             </span>
                         </div>
-                        <div
-                            class="avatar-stack"
-                            id="nextShiftAvatarsMobile"
-                            aria-label="Operator next shift"
-                        ></div>
                     </div>
 
                     <div class="mobile-control-card">
@@ -1168,16 +1192,16 @@
                     "nextShiftCopyMobile",
                 );
                 const avatarMarkup = next
-                    .slice(0, 6)
+                    .slice(0, 4)
                     .map(
                         (member) =>
-                            `<img src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" />`,
+                            `<img src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />`,
                     )
                     .join("");
                 avatars.innerHTML = avatarMarkup;
                 avatarsMobile.innerHTML = avatarMarkup;
-                if (next.length > 6) {
-                    const more = `<span class="avatar-fallback">+${next.length - 6}</span>`;
+                if (next.length > 4) {
+                    const more = `<span class="avatar-fallback">+${next.length - 4}</span>`;
                     avatars.insertAdjacentHTML("beforeend", more);
                     avatarsMobile.insertAdjacentHTML("beforeend", more);
                 }
@@ -1192,12 +1216,15 @@
                 const text = state.counter
                     ? `Counter ${state.counter.lastDay}/${state.counter.lastMonth}/${state.counter.lastYear} · rollover ${state.counter.rolloverCount}x`
                     : "Counter belum dimuat";
+                const mobileText = state.counter
+                    ? `${state.counter.lastDay}/${state.counter.lastMonth}/${state.counter.lastYear} · rollover ${state.counter.rolloverCount}x`
+                    : "Counter belum dimuat";
                 const desktop = document.getElementById("shiftCounterCopy");
                 const mobile = document.getElementById(
                     "shiftCounterCopyMobile",
                 );
                 if (desktop) desktop.textContent = text;
-                if (mobile) mobile.textContent = text;
+                if (mobile) mobile.textContent = mobileText;
             }
 
             function getStatusMeta(statusKey) {
@@ -1236,7 +1263,7 @@
                 return `
                     <article class="member-card">
                         <div class="member-main">
-                            <img src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" />
+                            <img src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />
                             <div>
                                 <p class="member-name">${escapeHtml(member.name)}</p>
                                 <p class="member-meta">${escapeHtml(member.division || "Tanpa divisi")}</p>
@@ -1341,7 +1368,7 @@
                             >
                                 <span class="mobile-check">${selected ? "✓" : ""}</span>
                                 <span class="mobile-member-main">
-                                    <img class="mobile-avatar" src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" />
+                                    <img class="mobile-avatar" src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />
                                     <span style="min-width:0">
                                         <span class="mobile-member-name">${escapeHtml(member.name)}</span>
                                         <span class="mobile-member-division">${escapeHtml(member.division || "Tanpa divisi")}</span>
