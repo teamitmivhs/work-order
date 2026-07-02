@@ -1,123 +1,114 @@
-# TODO List — IT Work Order System
+# TODO List — Work Order ITMIVHS
 
-## ✅ Completed
+Status dokumen ini mengikuti kondisi project saat ini.
 
-### Backend
-- [x] Fix frontend JavaScript errors (scoping, undefined variables, duplicate listeners)
-- [x] Implement user registration and login (`POST /api/register`, `POST /api/login`)
-- [x] Secure API routes with JWT authentication middleware
-- [x] Connect login/register pages to backend API
-- [x] JWT session management (24-hour expiry)
-- [x] Role-based access (Admin sees all orders, Operator sees assigned only)
-- [x] Rate limiting on `/login` and `/register` (10 req/min per IP)
-- [x] Add `POST /api/logout` endpoint
-- [x] Add `PATCH /api/members/:id/status` endpoint
-- [x] Add `PATCH /api/workorders/:id` endpoint for updating executors
-- [x] Fix `TakeOrder` — remove reversed assignment check logic
-- [x] Fix `CompleteOrder` — rows.Close() before tx.Exec (deadlock prevention)
-- [x] Fix `DeleteOrder` — reset member status to standby when order deleted
-- [x] Fix `UpdateMemberStatus` — now calls API instead of local-only update
-- [x] Fix `GetKaizenMetrics` — count `progress` orders in total
-- [x] Fix empty array responses (return `[]` not `null`)
-- [x] Consistent response format `{ code, message, data }`
-- [x] Fix `sql.NullString` → `*string` for JSON compatibility
-- [x] Fix `Requester any` → `string` in WorkOrder struct
-- [x] Add `Notes` field to work order for evaluation notes
-- [x] Integrate `StartTimer` call in `TakeOrder`
-- [x] Integrate `StopTimer` call in `CompleteOrder`, save duration to `working_hours`
-- [x] Remove hardcoded credentials from db.go (require env vars)
-- [x] Fix JWT secret evaluated at runtime (sync.Once)
-- [x] Add `UpdateWorkOrderRequest` struct for PATCH endpoint
+Estimasi readiness:
 
-### Rust Time Tracker
-- [x] Fix `std::sync::Mutex` → `tokio::sync::Mutex` (non-blocking async)
-- [x] Fix `now()` — return `Result<i64>` instead of silent zero on clock error
-- [x] Fix `stop()` — return actual `stopped_at` timestamp (not reconstructed)
-- [x] Fix negative duration guard `.max(0)`
-- [x] Add `executor_id` validation (not just `work_order_id`)
-- [x] Add `list_active()` for all active timers
-- [x] Add `GET /timers` endpoint
-- [x] Add `X-Internal-Key` authentication on all endpoints
-- [x] Add `PORT` env variable support
-- [x] Remove unused `chrono` and `uuid` dependencies
-- [x] Fix `impl Default` for `AppState`
-- [x] Fix `Dockerfile` — copy `Cargo.lock` for reproducible builds
+- core functionality: hampir selesai
+- UI/UX consistency: masih butuh finishing pass
+- production readiness: belum final
+- low-maintenance readiness: belum final
 
-### Database
-- [x] Add `Password` column to `members` table
-- [x] Fix `Role` column from narrow ENUM to `VARCHAR(50)`
-- [x] Rename `executors.ID` → `order_id`, `executors.Executors` → `member_id`
-- [x] Rename `safetychecklist.ID` → `order_id`
-- [x] Fix `SafetyChecklist VARCHAR(50)` → `VARCHAR(255)`
-- [x] Fix `CompletedAt DATETIME` → `VARCHAR(20)` for display string
-- [x] Add `Notes TEXT` column to `orders`
-- [x] Add `ON DELETE CASCADE` to child tables
-- [x] Add FK from `executors` to `members`
-- [x] Clean trailing spaces in member data rows 26-34
-- [x] Add `UNIQUE` constraint on `members.name`
+## Completed
 
-### Frontend
-- [x] Fix welcome banner text color (dark text on dark background)
-- [x] Fix footer outside grid (`col-span-3` invalid outside grid)
-- [x] Fix dropdown CSS hover vs JS click conflict
-- [x] Fix `viewbox` typo → `viewBox` in all SVGs
-- [x] Fix mobile menu — proper vertical dropdown
-- [x] Fix hardcoded user profile (now loaded from JWT + API)
-- [x] Fix `.status-completed` continuous blinking animation
-- [x] Fix `summary.html` and `kaizen.html` using `localStorage` → API
-- [x] Fix `colspan="10"` → `12` in summary.html table
-- [x] Fix Kabel LAN step 3 truncated text
-- [x] Fix login modal close via backdrop (classList vs style.display)
-- [x] Remove duplicate `DOMContentLoaded` login/register listeners from script.js
-- [x] Add loading skeleton for stats cards
-- [x] Add `<br>` spacers replaced with CSS margin
-- [x] Add JWT token saved to `localStorage` after login
-- [x] Fix `script.js` crash on login/register pages (null check)
-- [x] Fix API response unwrap `{ code, message, data }` format
-- [x] Add `Authorization` header to all protected fetch calls
-- [x] Fix GSAP null check before calling
-- [x] Fix `logoutBtn` targeting wrong button index
+### Core app
+- [x] Login, register, logout, dan JWT auth sudah berjalan
+- [x] Role dasar sudah aktif untuk Admin, Operator, dan guest flow
+- [x] Dashboard work order utama sudah berjalan untuk pending, on progress, completed
+- [x] Summary, Kaizen, TechGuide, Shift Piket, Staff, dan Settings page sudah tersedia
+- [x] Guest request flow sudah bisa membuat order dan cek status dengan tracking code
+- [x] Guest notes sudah tersambung ke summary/kaizen data
+- [x] Take order flow sudah mendukung pelaksana utama dan operator bantuan
+- [x] Executor preview popup sudah tersedia
 
-### Docker
-- [x] Add `.env` file requirement (no more hardcoded credentials)
-- [x] Add `INTERNAL_API_KEY` env var to backend and time-tracker
-- [x] Fix healthcheck endpoint from `HEAD /api/members` to no healthcheck (backend)
-- [x] Fix `time-tracker` depends_on → `service_healthy`
-- [x] Fix `nginx` depends_on → `service_started` (no healthcheck on backend)
-- [x] Fix MySQL healthcheck using env vars not hardcoded credentials
-- [x] Add `:ro` read-only flag to nginx volume mounts
-- [x] Fix Rust Dockerfile — `COPY Cargo.toml Cargo.lock` → optional without Cargo.lock
+### Shift and member status
+- [x] Halaman `shift.html` dipisah sebagai tempat pengelolaan status operator
+- [x] Dashboard `Member Status` popup sekarang read-only
+- [x] Kategori status aktif: `standby`, `onjob`, `nextshift`, `offduty`
+- [x] Support state sudah dihapus dari flow utama
+- [x] Shift day counter sudah ada
+- [x] Saat hari berganti, member dengan status `nextshift` otomatis dipindah ke `standby`
 
----
+### Backend and data
+- [x] Backend Go, MySQL, nginx, dan Rust time-tracker sudah terhubung
+- [x] Response API sudah konsisten ke format `{ code, message, data }`
+- [x] Timer start/stop sudah terhubung ke workflow work order
+- [x] Shift day counter repository dan migration sudah ditambahkan
+- [x] Endpoint shift counter sudah tersedia
+- [x] Patch status member dan patch work order sudah tersedia
 
-## 🔴 High Priority
+### UI improvements already done
+- [x] Banyak bug mobile layout sudah dibersihkan di dashboard, guest, kaizen, summary, settings, shift
+- [x] Banyak bug dark mode/light mode sudah dibersihkan
+- [x] Popup crop avatar di settings sudah diperbaiki untuk dark mode
+- [x] Badge status member popup sudah diperbaiki agar lebih rapi
+- [x] Status bar dashboard sekarang sudah punya `Off Duty`
 
-- [ ] **Production SSL/TLS** — Setup Let's Encrypt via nginx untuk HTTPS
-- [ ] **GIN_MODE=release** — Set di docker-compose environment backend
-- [ ] **Cargo.lock di Git** — Setelah build, simpan `Cargo.lock` untuk reproducible builds
-  ```bash
-  docker cp work-order-time-tracker:/app/Cargo.lock ./src/rust-engine/Cargo.lock
-  ```
+### Deployment groundwork
+- [x] `deployment.md` sudah dibuat sebagai draft panduan production low-maintenance
+- [x] Compose internal, persistent, dan external-db sudah tersedia
 
----
+## High Priority
 
-## 🟡 Medium Priority
+### Low-maintenance production
+- [ ] Ubah `docker-compose.persistent.yml` agar memakai host path yang benar untuk server production
+  Gunakan path seperti `/mnt/disk3/work-order/mysql-data` dan `/mnt/disk3/work-order/static`, bukan `/docker/...`.
+- [ ] Pastikan upload foto benar-benar masuk ke storage host persistent
+  Avatar dan foto dokumentasi audit tidak boleh bergantung pada lifecycle container.
+- [ ] Buat script backup otomatis di repo
+  Minimal backup MySQL dan folder upload.
+- [ ] Uji restore dari backup
+  Backup tanpa restore test belum cukup aman.
+- [ ] Tambahkan runbook operasional singkat
+  Fokus pada start, restart, update, rollback, dan recovery.
 
-- [ ] **Backend unit tests** — Controller, repository, dan model tests
-- [ ] **Frontend tests** — Test untuk fungsi utama di `script.js`
-- [ ] **Redis rate limiting** — Untuk deployment multi-instance
-- [ ] **Timer persistence** — Rust timer hilang saat service restart; perlu recovery mechanism
-- [ ] **`notes` endpoint** — Dedicated `PATCH /api/workorders/:id/notes` untuk simpan catatan evaluasi (saat ini pakai endpoint umum)
-- [ ] **Tailwind build process** — Ganti CDN dengan PostCSS/Tailwind CLI untuk production
+### Data and storage
+- [ ] Tambahkan kebijakan kompresi/resize foto upload
+  Ini penting untuk storage jangka panjang dan audit trail.
+- [ ] Batasi ukuran dan format final file upload
+  Target praktis: foto final tidak terlalu besar, tetap cukup jelas untuk audit.
+- [ ] Audit lokasi penyimpanan avatar dan dokumentasi agar tidak ada file yang masih tersimpan di tempat sementara
 
----
+### UI consistency pass
+- [ ] Final pass light mode vs dark mode di semua popup utama
+- [ ] Final pass mobile layout di halaman dengan data panjang atau avatar rusak
+- [ ] Final pass desktop polish di dashboard popup dan status sections
 
-## 🟢 Future Enhancements
+## Medium Priority
 
-- [ ] Email / Telegram notifications saat order baru dibuat
-- [ ] Export laporan ke PDF / Excel
-- [ ] Mobile application (iOS / Android)
-- [ ] Real-time notifications via WebSocket
-- [ ] Advanced role-based permissions (selain Admin/Operator)
-- [ ] Integration dengan tools IT eksternal
-- [ ] Dashboard statistik lebih detail (grafik, tren)
+### Security and ops
+- [ ] Set `GIN_MODE=release` untuk backend production
+- [ ] Finalisasi `Cargo.lock` Rust engine untuk reproducible build
+- [ ] Tambahkan healthcheck operasional yang benar-benar dipakai saat deploy
+- [ ] Review limit upload dan validasi file dari sisi backend
+
+### Reliability
+- [ ] Review semua endpoint yang menyentuh status member agar konsisten dengan flow `shift.html`
+- [ ] Review work order transitions: pending -> progress -> completed
+- [ ] Review guest tracking flow untuk edge case order lama atau data foto kosong
+- [ ] Audit fallback avatar/image handling di semua halaman
+
+### Testing
+- [ ] Tambahkan smoke test backend untuk endpoint penting
+- [ ] Tambahkan minimal regression checklist manual sebelum deploy
+- [ ] Tambahkan test atau script validasi untuk workflow guest, shift, dan complete order
+
+## Future Enhancements
+
+- [ ] Notifikasi WhatsApp / Telegram / email saat order selesai
+- [ ] Export laporan audit ke PDF atau Excel
+- [ ] Dashboard statistik yang lebih kaya untuk admin
+- [ ] Permission matrix yang lebih detail per role/divisi
+- [ ] Archive policy untuk data audit lama
+- [ ] Monitoring sederhana untuk disk usage dan backup freshness
+
+## Definition of Final
+
+Project ini baru layak disebut final untuk internal production kalau poin berikut sudah terpenuhi:
+
+- [ ] data tetap aman setelah server restart atau container rebuild
+- [ ] backup otomatis aktif dan restore pernah diuji
+- [ ] upload foto sudah dikendalikan agar storage tidak meledak
+- [ ] UI sudah konsisten di mobile dan desktop, light dan dark
+- [ ] deployment steps sudah terdokumentasi dan bisa dijalankan orang lain
+- [ ] tidak ada workflow utama yang masih bergantung pada knowledge developer utama
