@@ -52,12 +52,9 @@ func (ctrl *WorkOrderController) GetTaskListHandler(c *gin.Context) {
 	var err error
 
 	userRole, _ := middleware.GetUserRoleFromContext(c)
-	userID, _ := middleware.GetUserIDFromContext(c)
 
-	if userRole == "Admin" {
+	if userRole == "Admin" || userRole == "Operator" {
 		tasks, err = ctrl.Repo.GetAllTasks()
-	} else if userRole == "Operator" && userID > 0 {
-		tasks, err = ctrl.Repo.GetTasksForOperator(userID)
 	} else if userRole == "Guest" {
 		utils.Forbidden(c, "Guest tidak dapat melihat daftar work order")
 		return
@@ -77,6 +74,11 @@ func (ctrl *WorkOrderController) GetTaskListHandler(c *gin.Context) {
 // CreateTaskHandler menangani request POST /api/workorders
 func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 	var req models.WorkOrderRequest
+
+	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
+		utils.Forbidden(c, "Only admins can create work orders")
+		return
+	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(c, "Invalid request payload", err.Error())
@@ -491,6 +493,11 @@ func (ctrl *WorkOrderController) GetKaizenHandler(c *gin.Context) {
 
 // GetMembersHandler: GET /api/members
 func GetMembersHandler(c *gin.Context) {
+	if _, err := repository.RunShiftDayRollover(); err != nil {
+		utils.InternalServerError(c, "Failed to run shift day counter", err)
+		return
+	}
+
 	memberRepo := repository.NewMemberRepository()
 	members, err := memberRepo.GetAllMembers()
 	if err != nil {
@@ -504,6 +511,16 @@ func GetMembersHandler(c *gin.Context) {
 	}
 
 	utils.RespondSuccess(c, http.StatusOK, members)
+}
+
+func GetShiftDayCounterHandler(c *gin.Context) {
+	snapshot, err := repository.RunShiftDayRollover()
+	if err != nil {
+		utils.InternalServerError(c, "Failed to retrieve shift day counter", err)
+		return
+	}
+
+	utils.RespondSuccess(c, http.StatusOK, snapshot)
 }
 
 // UpdateOrderHandler: PATCH /api/workorders/{id}
@@ -570,8 +587,8 @@ func (ctrl *WorkOrderController) UpdateNotesHandler(c *gin.Context) {
 }
 
 // UpdateMemberStatusHandler: PATCH /api/members/{id}/status
-// Update status member (standby, onjob, support, nextshift, offduty).
-// Admin boleh update semua member; operator hanya boleh update status dirinya sendiri.
+// Update status member (standby, onjob, nextshift, offduty).
+// Admin dan Data Analyst boleh update semua member; operator hanya boleh update status dirinya sendiri.
 func UpdateMemberStatusHandler(c *gin.Context) {
 	memberIDStr := c.Param("id")
 	memberID, err := strconv.Atoi(memberIDStr)
@@ -582,8 +599,16 @@ func UpdateMemberStatusHandler(c *gin.Context) {
 
 	userRole, _ := middleware.GetUserRoleFromContext(c)
 	userID, _ := middleware.GetUserIDFromContext(c)
-	if userRole != "Admin" && userID != memberID {
-		utils.Forbidden(c, "Only admins can update other member statuses")
+	memberRepo := repository.NewMemberRepository()
+	canManageShift := userRole == "Admin"
+	if !canManageShift && userID != 0 {
+		currentMember, err := memberRepo.GetMemberByID(userID)
+		if err == nil && strings.EqualFold(strings.TrimSpace(currentMember.Division), "Data Analyst") {
+			canManageShift = true
+		}
+	}
+	if !canManageShift && userID != memberID {
+		utils.Forbidden(c, "Only admins or Data Analyst can update other member statuses")
 		return
 	}
 
@@ -597,15 +622,14 @@ func UpdateMemberStatusHandler(c *gin.Context) {
 
 	req.Status = strings.TrimSpace(strings.ToLower(req.Status))
 	validStatuses := map[string]bool{
-		"standby": true, "onjob": true, "support": true,
+		"standby": true, "onjob": true,
 		"nextshift": true, "offduty": true,
 	}
 	if !validStatuses[req.Status] {
-		utils.BadRequest(c, "Invalid status. Must be: standby, onjob, support, nextshift, or offduty")
+		utils.BadRequest(c, "Invalid status. Must be: standby, onjob, nextshift, or offduty")
 		return
 	}
 
-	memberRepo := repository.NewMemberRepository()
 	if err := memberRepo.UpdateMemberStatus(memberID, req.Status); err != nil {
 		utils.InternalServerError(c, "Failed to update member status", err)
 		return
