@@ -62,5 +62,4 @@ Makefile
 my-app
 .codex
 .agents
-.gitignore
 workorder-docs
