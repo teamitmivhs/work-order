@@ -722,7 +722,9 @@
 
             async function fetchMembers() {
                 try {
-                    const r = await fetch("/api/members");
+                    const r = await fetch("/api/members", {
+                        headers: { Authorization: "Bearer " + authToken },
+                    });
                     if (!r.ok) throw new Error(r.statusText);
                     const json = await r.json();
                     members = Array.isArray(json)
@@ -767,7 +769,9 @@
                         (m) => m.id === id || m.id === parseInt(id),
                     );
                     if (m)
-                        html += `<img src="/static/public/${m.avatar}" alt="${m.name}" title="${m.name}" class="member-avatar-small border-2 border-white rounded-full w-8 h-8 object-cover shadow-sm">`;
+                        html += `<img src="/static/public/${m.avatar || "default-avatar.png"}" alt="${m.name}" title="${m.name}" class="member-avatar-small border-2 border-white rounded-full w-8 h-8 object-cover shadow-sm">`;
+                    else
+                        html += `<span class="member-avatar-small border-2 border-white rounded-full w-8 h-8 bg-gray-200 text-gray-600 text-[10px] font-bold inline-flex items-center justify-center shadow-sm" title="Member #${id}">#${id}</span>`;
                 });
                 return html + "</div>";
             }
