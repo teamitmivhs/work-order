@@ -145,7 +145,7 @@ if (btn && menu) {
       localStorage.removeItem("guestLoginTime");
       localStorage.removeItem("isAdmin");
       localStorage.removeItem("userToken");
-      window.location.href = "login.html";
+      window.location.href = "/login";
     });
   }
 
@@ -378,11 +378,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   const isGuestUser = localStorage.getItem("isGuestUser") === "true";
   if (!getAuthToken()) {
-    window.location.replace("/login.html");
+    window.location.replace("/login");
     return;
   }
   if (isGuestUser) {
-    window.location.replace("/guest.html");
+    window.location.replace("/guest");
     return;
   }
 
@@ -726,7 +726,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       tag: `work-order-${order && order.id ? order.id : "incoming"}`,
       renotify: true,
       data: {
-        url: "/index.html",
+        url: "/index",
         workOrderId: order && order.id ? order.id : null,
       },
     };
