@@ -30,6 +30,7 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 		//members
 		protected.GET("/members", controllers.GetMembersHandler)
 		protected.PATCH("/members/:id/status", controllers.UpdateMemberStatusHandler)
+		protected.GET("/shift/day-counter", controllers.GetShiftDayCounterHandler)
 
 		//kaizen
 		protected.GET("/kaizen", workOrderCtrl.GetKaizenHandler)
