@@ -77,6 +77,7 @@
                 width: min(100%, 420px);
                 border-radius: 1.25rem;
                 background: #fff;
+                color: #111827;
                 box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
                 overflow: hidden;
             }
@@ -103,6 +104,89 @@
             .crop-range {
                 width: 100%;
                 accent-color: #2563eb;
+            }
+            .settings-feedback-error {
+                background: #fee2e2;
+                color: #991b1b;
+                border: 1px solid #fecaca;
+            }
+            .settings-feedback-info {
+                background: #dbeafe;
+                color: #1d4ed8;
+                border: 1px solid #bfdbfe;
+            }
+            .settings-feedback-success {
+                background: #dcfce7;
+                color: #166534;
+                border: 1px solid #bbf7d0;
+            }
+            html[data-theme="dark"] .settings-card {
+                background: rgba(15, 23, 42, 0.88) !important;
+                border-color: rgba(71, 85, 105, 0.9) !important;
+                box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+            }
+            html[data-theme="dark"] .settings-row {
+                border-color: rgba(148, 163, 184, 0.28);
+            }
+            html[data-theme="dark"] .settings-row-label,
+            html[data-theme="dark"] main label,
+            html[data-theme="dark"] #settingsName {
+                color: #e5e7eb !important;
+            }
+            html[data-theme="dark"] .settings-row-desc,
+            html[data-theme="dark"] #settingsRole,
+            html[data-theme="dark"] #passwordStrengthLabel {
+                color: #94a3b8 !important;
+            }
+            html[data-theme="dark"] #settingsNameDisplay,
+            html[data-theme="dark"] #settingsRoleDisplay,
+            html[data-theme="dark"] #settingsDivisionDisplay {
+                color: #cbd5e1 !important;
+            }
+            html[data-theme="dark"] .crop-modal {
+                background: rgba(2, 6, 23, 0.78);
+            }
+            html[data-theme="dark"] .crop-panel {
+                background: #0f172a;
+                color: #e5e7eb;
+                border: 1px solid rgba(71, 85, 105, 0.9);
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.52);
+            }
+            html[data-theme="dark"] .crop-panel .border-b {
+                border-color: rgba(71, 85, 105, 0.9) !important;
+            }
+            html[data-theme="dark"] .crop-panel h2 {
+                color: #f8fafc !important;
+            }
+            html[data-theme="dark"] .crop-panel p,
+            html[data-theme="dark"] .crop-panel .text-gray-500 {
+                color: #94a3b8 !important;
+            }
+            html[data-theme="dark"] .crop-canvas-wrap {
+                background: linear-gradient(135deg, #020617, #111827);
+            }
+            html[data-theme="dark"] #cancelCropBtn {
+                background: #111827;
+                border-color: #475569;
+                color: #e5e7eb;
+            }
+            html[data-theme="dark"] #cancelCropBtn:hover {
+                background: #1f2937;
+            }
+            html[data-theme="dark"] .settings-feedback-error {
+                background: rgba(127, 29, 29, 0.46) !important;
+                color: #fecaca !important;
+                border-color: rgba(248, 113, 113, 0.35);
+            }
+            html[data-theme="dark"] .settings-feedback-info {
+                background: rgba(30, 64, 175, 0.34) !important;
+                color: #bfdbfe !important;
+                border-color: rgba(96, 165, 250, 0.36);
+            }
+            html[data-theme="dark"] .settings-feedback-success {
+                background: rgba(20, 83, 45, 0.42) !important;
+                color: #bbf7d0 !important;
+                border-color: rgba(74, 222, 128, 0.35);
             }
             @media (max-width: 640px) {
                 .settings-card {
@@ -932,8 +1016,8 @@
                 fb.className =
                     "mt-3 p-3 rounded-lg text-sm text-center font-medium " +
                     (isError
-                        ? "bg-red-100 text-red-700"
-                        : "bg-blue-100 text-blue-700");
+                        ? "settings-feedback-error"
+                        : "settings-feedback-info");
                 fb.classList.remove("hidden");
                 if (!isError)
                     setTimeout(() => fb.classList.add("hidden"), 4000);
@@ -1094,8 +1178,8 @@
                         feedback.className =
                             "mt-3 p-3 rounded-lg text-sm text-center font-medium " +
                             (isError
-                                ? "bg-red-100 text-red-700"
-                                : "bg-green-100 text-green-700");
+                                ? "settings-feedback-error"
+                                : "settings-feedback-success");
                         feedback.classList.remove("hidden");
                         setTimeout(
                             () => feedback.classList.add("hidden"),
