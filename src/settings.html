@@ -216,7 +216,7 @@
             class="w-full bg-gradient-to-r from-slate-900 to-slate-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shadow-2xl border-b border-slate-700"
         >
             <a
-                href="/index.html"
+                href="/index"
                 class="flex items-center gap-2 text-white hover:text-slate-300 transition-colors"
             >
                 <svg
@@ -1027,7 +1027,7 @@
             (function loadProfile() {
                 const token = localStorage.getItem("userToken");
                 if (!token) {
-                    window.location.href = "/login.html";
+                    window.location.href = "/login";
                     return;
                 }
 
@@ -1042,7 +1042,7 @@
                         .then(async (r) => {
                             if (r.status === 401) {
                                 localStorage.removeItem("userToken");
-                                window.location.href = "/login.html";
+                                window.location.href = "/login";
                                 return null;
                             }
                             if (!r.ok) throw new Error("Gagal memuat profil");
@@ -1210,7 +1210,7 @@
 
                     const token = localStorage.getItem("userToken");
                     if (!token) {
-                        window.location.href = "/login.html";
+                        window.location.href = "/login";
                         return;
                     }
 
@@ -1244,7 +1244,7 @@
                                 throw new Error("Password saat ini salah.");
                             }
                             localStorage.removeItem("userToken");
-                            window.location.href = "/login.html";
+                            window.location.href = "/login";
                             return;
                         }
                         if (!res.ok) {
@@ -1275,7 +1275,7 @@
                     localStorage.removeItem("isGuestUser");
                     localStorage.removeItem("guestLoginTime");
                     localStorage.removeItem("isAdmin");
-                    window.location.href = "/login.html";
+                    window.location.href = "/login";
                 });
         </script>
     </body>
