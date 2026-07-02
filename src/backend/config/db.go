@@ -141,6 +141,21 @@ func runMigrations(dbName string) error {
 	}
 
 	if _, err := DB.Exec(`
+		CREATE TABLE IF NOT EXISTS shift_day_counter (
+			ID tinyint NOT NULL,
+			LastDate date NOT NULL,
+			LastDay int NOT NULL,
+			LastMonth int NOT NULL,
+			LastYear int NOT NULL,
+			RolloverCount int NOT NULL DEFAULT 0,
+			UpdatedAt datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (ID)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+	`); err != nil {
+		return fmt.Errorf("create shift_day_counter: %w", err)
+	}
+
+	if _, err := DB.Exec(`
 		UPDATE members
 		SET Division = CASE
 		        WHEN LOWER(TRIM(Role)) = 'soundman' THEN 'Soundman'
