@@ -2497,7 +2497,7 @@
                                 </button>
                             </div>
                         </div>
-                        <a href="/settings.html">
+                        <a href="/settings">
                             <svg
                                 style="width: 15px; height: 15px"
                                 fill="none"
@@ -2520,7 +2520,7 @@
                             Settings
                         </a>
                         <a
-                            href="/staff.html"
+                            href="/staff"
                             class="hidden"
                             id="adminStaffDropdownLink"
                         >
@@ -2540,7 +2540,7 @@
                             Staff Management
                         </a>
                         <a
-                            href="/shift.html"
+                            href="/shift"
                             class="hidden"
                             id="shiftDropdownLink"
                         >
@@ -2588,7 +2588,7 @@
                     style="gap: 10px; min-width: 0"
                     id="navMenu"
                 >
-                    <a href="/kaizen.html" class="nav-pill">
+                    <a href="/kaizen" class="nav-pill">
                         <svg
                             style="width: 15px; height: 15px"
                             fill="currentColor"
@@ -2608,7 +2608,7 @@
                         Kaizen
                     </a>
                     <div class="nav-sep"></div>
-                    <a href="/techguide.html" class="nav-pill">
+                    <a href="/techguide" class="nav-pill">
                         <svg
                             style="width: 15px; height: 15px"
                             fill="currentColor"
@@ -2621,7 +2621,7 @@
                         TechGuide
                     </a>
                     <div class="nav-sep"></div>
-                    <a href="/summary.html" class="nav-pill">
+                    <a href="/summary" class="nav-pill">
                         <svg
                             style="width: 15px; height: 15px"
                             fill="currentColor"
@@ -2644,7 +2644,7 @@
                     </a>
                     <div class="nav-sep hidden" id="shiftNavSep"></div>
                     <a
-                        href="/shift.html"
+                        href="/shift"
                         class="nav-pill hidden"
                         id="shiftNavLink"
                         title="Shift Piket"
@@ -2666,7 +2666,7 @@
                     </a>
                     <div class="nav-sep hidden" id="adminStaffNavSep"></div>
                     <a
-                        href="/staff.html"
+                        href="/staff"
                         class="nav-pill nav-pill-staff hidden"
                         id="adminStaffNavLink"
                         title="Staff Management"
@@ -2921,7 +2921,7 @@
                             Create New Order
                         </button>
                         <a
-                            href="/kaizen.html"
+                            href="/kaizen"
                             class="hero-button inline-flex min-h-[52px] items-center justify-center gap-2 border border-white/15 bg-white/8 px-6 py-3 text-sm font-bold text-white no-underline backdrop-blur-md transition hover:bg-white/14"
                         >
                             <svg
@@ -3022,7 +3022,7 @@
                         Create New Order
                     </button>
                     <a
-                        href="/kaizen.html"
+                        href="/kaizen"
                         class="hero-button px-6 md:px-8 py-3 md:py-4 bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 transition-all duration-300 backdrop-blur-md flex items-center gap-2 min-h-[44px] no-underline"
                     >
                         <svg
@@ -4412,13 +4412,13 @@
 
                 // Redirect ke login jika belum ada token dan bukan guest user
                 if (!token && !isGuest) {
-                    window.location.href = "/login.html";
+                    window.location.href = "/login";
                     return;
                 }
 
                 // Guest diarahkan ke halaman khusus create order, tidak masuk dashboard internal.
                 if (isGuest) {
-                    window.location.replace("/guest.html");
+                    window.location.replace("/guest");
                     return;
                 }
 
