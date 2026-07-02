@@ -885,8 +885,8 @@
             const token = localStorage.getItem("userToken");
             const isGuest = localStorage.getItem("isGuestUser") === "true";
 
-            if (!token) window.location.replace("login.html");
-            if (token && !isGuest) window.location.replace("index.html");
+            if (!token) window.location.replace("/login");
+            if (token && !isGuest) window.location.replace("/index");
 
             const form = document.getElementById("guestOrderForm");
             const toast = document.getElementById("guestToast");
@@ -1312,7 +1312,7 @@
                     localStorage.removeItem("guestLoginTime");
                     localStorage.removeItem("userToken");
                     localStorage.removeItem("isAdmin");
-                    window.location.href = "login.html";
+                    window.location.href = "/login";
                 });
 
             document
