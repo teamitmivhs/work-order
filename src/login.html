@@ -351,7 +351,7 @@
             <p class="text-center text-sm text-gray-500 mt-5">
                 Belum punya akun?
                 <a
-                    href="register.html"
+                    href="/register"
                     class="text-blue-600 font-medium hover:underline"
                     >Daftar sekarang</a
                 >
@@ -451,7 +451,7 @@
                                     "Welcome Guest! Kamu akan diarahkan ke halaman buat work order.",
                                 );
                                 setTimeout(() => {
-                                    window.location.href = "guest.html";
+                                    window.location.href = "/guest";
                                 }, 1200);
                             } else {
                                 // Fallback: akun guest belum ada di DB, arahkan untuk setup dulu
@@ -499,7 +499,7 @@
                                 );
                                 showModal("Login berhasil! Mengalihkan...");
                                 setTimeout(() => {
-                                    window.location.href = "index.html";
+                                    window.location.href = "/index";
                                 }, 1000);
                             } else {
                                 showModal(
