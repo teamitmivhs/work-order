@@ -22,7 +22,7 @@ CREATE TABLE `members` (
   `Password` varchar(255) NOT NULL DEFAULT '',
   `Role`     varchar(50)  DEFAULT NULL,
   `Division` varchar(50)  DEFAULT NULL,
-  `Status`   enum('onjob','standby','support','nextshift','offduty') NOT NULL DEFAULT 'offduty',
+  `Status`   enum('onjob','standby','nextshift','offduty') NOT NULL DEFAULT 'offduty',
   `Avatar`   varchar(255) NOT NULL DEFAULT 'no avatar',
   `AccountStatus` enum('pending','active','rejected','disabled') NOT NULL DEFAULT 'active',
   `MembershipStatus` enum('active','alumni','inactive') NOT NULL DEFAULT 'active',
@@ -142,6 +142,23 @@ CREATE TABLE `safetychecklist` (
   `SafetyChecklist` varchar(255) NOT NULL,
   PRIMARY KEY (`order_id`, `SafetyChecklist`),
   CONSTRAINT `fk_safetychecklist_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ============================================================
+-- TABEL shift_day_counter
+-- ============================================================
+-- Menyimpan tanggal terakhir rollover shift.
+-- Saat hari berganti, semua member dengan status nextshift dipindah ke standby.
+DROP TABLE IF EXISTS `shift_day_counter`;
+CREATE TABLE `shift_day_counter` (
+  `ID` tinyint NOT NULL,
+  `LastDate` date NOT NULL,
+  `LastDay` int NOT NULL,
+  `LastMonth` int NOT NULL,
+  `LastYear` int NOT NULL,
+  `RolloverCount` int NOT NULL DEFAULT 0,
+  `UpdatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
