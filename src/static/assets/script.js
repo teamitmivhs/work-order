@@ -1019,7 +1019,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         !e.target.closest(".member-images") &&
         !e.target.closest(".more-members")
       ) {
-        if (checkGuestRestriction("Viewing/managing member status")) return;
+        if (checkGuestRestriction("Viewing member status")) return;
         const status = this.dataset.status;
         currentStatusFilter = status;
         updateFilterTabs(status);
@@ -1443,8 +1443,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (statusContainer) {
         const container = statusContainer.querySelector(".member-images");
         const img = document.createElement("img");
-        img.src = `/static/public/${member.avatar}`;
+        img.src = `/static/public/${member.avatar || "default-avatar.png"}`;
         img.alt = member.name;
+        img.onerror = () => {
+          img.onerror = null;
+          img.src = "/static/public/default-avatar.png";
+        };
         img.className =
           "w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm";
         img.dataset.memberId = member.id;
@@ -1467,6 +1471,24 @@ document.addEventListener("DOMContentLoaded", async function () {
       statusFilter === "all"
         ? members
         : members.filter((m) => m.status === statusFilter);
+    const statusMap = {
+      standby: {
+        text: "Stand By",
+        badge: "member-status-badge--standby",
+      },
+      onjob: {
+        text: "On Job",
+        badge: "member-status-badge--onjob",
+      },
+      nextshift: {
+        text: "Next Shift",
+        badge: "member-status-badge--nextshift",
+      },
+      offduty: {
+        text: "Off Duty",
+        badge: "member-status-badge--offduty",
+      },
+    };
 
     if (filtered.length === 0) {
       memberList.innerHTML =
@@ -1475,29 +1497,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     filtered.forEach((member) => {
+      const status = statusMap[member.status] || statusMap.offduty;
       const item = document.createElement("div");
       item.className = "member-status-item p-4 bg-gray-50 rounded-lg";
       item.innerHTML = `
         <div class="member-status-person flex items-center gap-3">
-          <img src="/static/public/${member.avatar}" alt="${member.name}" class="w-12 h-12 rounded-full object-cover">
-          <span class="member-status-name font-medium">${member.name}</span>
+          <img src="/static/public/${member.avatar || "default-avatar.png"}" alt="${member.name}" class="w-12 h-12 rounded-full object-cover" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';">
+          <span class="member-status-copy">
+            <span class="member-status-name font-medium">${member.name}</span>
+            <span class="member-status-division">${member.division || "Divisi belum diisi"}</span>
+          </span>
         </div>
-        <div class="member-status-control">
-          <span class="member-status-label">Status</span>
-          <select class="status-select px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" data-member-id="${member.id}">
-            <option value="standby"   ${member.status === "standby" ? "selected" : ""}>Stand By</option>
-            <option value="onjob"     ${member.status === "onjob" ? "selected" : ""}>On Job</option>
-            <option value="nextshift" ${member.status === "nextshift" ? "selected" : ""}>Next Shift</option>
-            <option value="offduty"   ${member.status === "offduty" ? "selected" : ""}>Off Duty</option>
-          </select>
-        </div>`;
+        <span class="member-status-badge ${status.badge}">${status.text}</span>`;
       memberList.appendChild(item);
-    });
-
-    document.querySelectorAll(".status-select").forEach((select) => {
-      select.addEventListener("change", function () {
-        updateMemberStatus(parseInt(this.dataset.memberId), this.value, this);
-      });
     });
   }
 
@@ -1578,8 +1590,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (newC) {
       const container = newC.querySelector(".member-images");
       const img = document.createElement("img");
-      img.src = `/static/public/${member.avatar}`;
+      img.src = `/static/public/${member.avatar || "default-avatar.png"}`;
       img.alt = member.name;
+      img.onerror = () => {
+        img.onerror = null;
+        img.src = "/static/public/default-avatar.png";
+      };
       img.className =
         "w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm";
       img.dataset.memberId = member.id;
