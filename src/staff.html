@@ -506,7 +506,7 @@
                 </div>
                 <div class="header-actions flex flex-wrap gap-2">
                     <a
-                        href="index.html"
+                        href="/index"
                         class="action-btn bg-white border border-gray-300 text-gray-700"
                         >Dashboard</a
                     >
@@ -875,7 +875,7 @@
             let activeFilter = "active";
             let staff = [];
 
-            if (!token) window.location.href = "login.html";
+            if (!token) window.location.href = "/login";
 
             function showToast(message, isError = false) {
                 toast.textContent = message;
@@ -1036,7 +1036,7 @@
                         )
                     ) {
                         setTimeout(
-                            () => (window.location.href = "index.html"),
+                            () => (window.location.href = "/index"),
                             1200,
                         );
                     }
