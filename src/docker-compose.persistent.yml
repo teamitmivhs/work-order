@@ -103,6 +103,7 @@ services:
       - ./summary.html:/usr/share/nginx/html/summary.html:ro,Z
       - ./kaizen.html:/usr/share/nginx/html/kaizen.html:ro,Z
       - ./techguide.html:/usr/share/nginx/html/techguide.html:ro,Z
+      - ./shift.html:/usr/share/nginx/html/shift.html:ro,Z
       - ./static:/usr/share/nginx/html/static:ro,z
       - ./settings.html:/usr/share/nginx/html/settings.html:ro,Z
       - ./staff.html:/usr/share/nginx/html/staff.html:ro,Z
