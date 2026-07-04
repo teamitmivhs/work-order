@@ -123,6 +123,7 @@ Catatan:
 - backend menulis file upload ke `/static/public`
 - nginx membaca file yang sama dari mount host yang sama
 - dengan model ini, foto tetap aman walaupun container backend/nginx di-rebuild
+- `db/complete_db.sql` berisi user dummy untuk simulasi lokal. Untuk production, jangan import seed user dummy tersebut. Pakai migration/schema saja, lalu buat user asli lewat register + approval atau import seed private di server.
 
 ## 7. Menjalankan Production
 
