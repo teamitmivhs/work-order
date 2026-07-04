@@ -137,7 +137,8 @@ Cek status:
 ```bash
 podman ps
 curl -I http://localhost:4323
-curl -I http://localhost:4323/login.html
+curl -I http://localhost:4323/login
+curl -I http://localhost:4323/index
 ```
 
 Kalau ingin expose langsung ke jaringan lokal:
@@ -148,7 +149,24 @@ http://IP-SERVER:4323
 
 Kalau nanti ingin final production yang lebih rapi, pindahkan nginx ke port `80` dan `443`.
 
-## 8. Restart dan Update Harian
+## 8. URL Convention
+
+Seluruh navigasi browser harus memakai clean URL:
+
+- `/index`
+- `/login`
+- `/register`
+- `/guest`
+- `/summary`
+- `/kaizen`
+- `/techguide`
+- `/shift`
+- `/settings`
+- `/staff`
+
+Redirect `.html` tetap boleh hidup di nginx untuk kompatibilitas, tetapi link internal baru jangan kembali memakai `.html`.
+
+## 9. Restart dan Update Harian
 
 Operasional minimal:
 
@@ -180,7 +198,7 @@ Restart backend saja:
 podman compose -f docker-compose.persistent.yml up -d --build backend
 ```
 
-## 9. Backup yang Wajib
+## 10. Backup yang Wajib
 
 Backup minimum:
 
@@ -194,7 +212,7 @@ Target retensi:
 - backup mingguan: simpan 4 minggu
 - backup bulanan: simpan 6 bulan bila storage cukup
 
-### 9.1 Backup Database
+### 10.1 Backup Database
 
 Contoh manual:
 
@@ -205,7 +223,7 @@ podman exec work-order-db \
   > /mnt/disk3/work-order/backups/db/dbwoit-$(date +%F-%H%M).sql
 ```
 
-### 9.2 Backup Upload Foto
+### 10.2 Backup Upload Foto
 
 Contoh manual:
 
@@ -215,7 +233,7 @@ tar -czf /mnt/disk3/work-order/backups/files/static-$(date +%F-%H%M).tar.gz \
   -C /mnt/disk3/work-order static
 ```
 
-## 10. Script Backup Otomatis
+## 11. Script Backup Otomatis
 
 Simpan sebagai `/opt/work-order/scripts/backup-work-order.sh`:
 
@@ -259,7 +277,7 @@ Tambahkan:
 30 1 * * * /opt/work-order/scripts/backup-work-order.sh >> /mnt/disk3/work-order/logs/backup.log 2>&1
 ```
 
-## 11. Uji Restore
+## 12. Uji Restore
 
 Backup tanpa uji restore belum cukup.
 
@@ -277,7 +295,7 @@ podman exec -i work-order-db \
   < /mnt/disk3/work-order/backups/db/nama-file.sql
 ```
 
-## 12. Storage Management
+## 13. Storage Management
 
 Karena sistem menyimpan foto audit jangka panjang, storage policy harus jelas.
 
@@ -297,7 +315,7 @@ Target praktis:
 
 Kalau ini tidak dilakukan, disk akan habis oleh foto, bukan oleh data order.
 
-## 13. Healthcheck Operasional
+## 14. Healthcheck Operasional
 
 Yang perlu dicek saat ada masalah:
 
@@ -312,7 +330,7 @@ curl -I http://localhost:4323/api/health
 
 Kalau route health API berbeda, sesuaikan dengan endpoint backend yang aktif.
 
-## 14. Recovery Plan Singkat
+## 15. Recovery Plan Singkat
 
 Kalau server restart:
 
@@ -333,7 +351,7 @@ podman compose -f docker-compose.persistent.yml up -d --build
 
 Jangan lakukan `git reset --hard` di server production tanpa alasan yang jelas.
 
-## 15. Low-Maintenance Checklist
+## 16. Low-Maintenance Checklist
 
 Project ini baru layak ditinggal kalau semua poin ini beres:
 
@@ -345,7 +363,7 @@ Project ini baru layak ditinggal kalau semua poin ini beres:
 - ada satu dokumen runbook seperti file ini
 - ada satu orang selain developer utama yang pernah mengikuti prosedur restart
 
-## 16. Rekomendasi Lanjutan
+## 17. Rekomendasi Lanjutan
 
 Urutan kerja yang paling masuk akal:
 
