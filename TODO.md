@@ -46,6 +46,8 @@ Estimasi readiness:
 
 ### Deployment groundwork
 - [x] `deployment.md` sudah dibuat sebagai draft panduan production low-maintenance
+- [x] Clean URL routing sudah diterapkan untuk browser navigation dan service worker
+- [x] `AGENTS.md` sudah ditambahkan sebagai contributor guide
 - [x] Compose internal, persistent, dan external-db sudah tersedia
 
 ## High Priority
@@ -73,6 +75,7 @@ Estimasi readiness:
 - [ ] Final pass light mode vs dark mode di semua popup utama
 - [ ] Final pass mobile layout di halaman dengan data panjang atau avatar rusak
 - [ ] Final pass desktop polish di dashboard popup dan status sections
+- [ ] Final audit clean URL di semua navigasi yang tersisa dari page statis atau redirect helper
 
 ## Medium Priority
 
