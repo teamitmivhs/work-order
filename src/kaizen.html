@@ -37,7 +37,14 @@
                 background: #1e293b !important;
                 border-left-color: #60a5fa !important;
             }
+            html[data-theme="dark"] #notesModal .bg-purple-100,
+            html[data-theme="dark"] #notesModal .bg-purple-50 {
+                background: #2e2148 !important;
+            }
             html[data-theme="dark"] #notesModal #modalOrderNotes {
+                color: #e5e7eb !important;
+            }
+            html[data-theme="dark"] #notesModal #modalGuestNotes {
                 color: #e5e7eb !important;
             }
             html[data-theme="dark"] #notesModal .bg-gray-50 {
@@ -293,15 +300,33 @@
                     <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">
                         Notes & Evaluations
                     </h3>
+                    <div class="grid gap-3">
                     <div
                         class="bg-blue-50 border-l-4 border-blue-400 p-3 md:p-4 rounded-r-lg"
                     >
+                        <p class="text-xs font-semibold uppercase tracking-wide text-blue-700 mb-2">
+                            Catatan Guest
+                        </p>
+                        <p
+                            class="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm md:text-base"
+                            id="modalGuestNotes"
+                        >
+                            No guest notes available
+                        </p>
+                    </div>
+                    <div
+                        class="bg-gray-50 border-l-4 border-purple-400 p-3 md:p-4 rounded-r-lg"
+                    >
+                        <p class="text-xs font-semibold uppercase tracking-wide text-purple-700 mb-2">
+                            Catatan Admin
+                        </p>
                         <p
                             class="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm md:text-base"
                             id="modalOrderNotes"
                         >
-                            No notes available
+                            No admin notes available
                         </p>
+                    </div>
                     </div>
                 </div>
                 <div class="mb-4 md:mb-6 hidden" id="modalPhotoWrap">
@@ -456,7 +481,7 @@
                         <h3
                             class="text-sm md:text-lg font-semibold text-purple-800"
                         >
-                            Notes Quality
+                            Average Notes
                         </h3>
                         <p
                             class="text-2xl md:text-3xl font-bold text-purple-600 mt-1"
@@ -805,7 +830,9 @@
                 const done = completedOrders.length;
                 const rate = total > 0 ? Math.round((done / total) * 100) : 0;
                 const evals = completedOrders.filter(
-                    (o) => o.notes && o.notes.trim(),
+                    (o) =>
+                        (o.notes && o.notes.trim()) ||
+                        (o.adminNotes && o.adminNotes.trim()),
                 ).length;
 
                 document.getElementById("totalOrders").textContent = total;
@@ -859,42 +886,25 @@
                     avgEl.textContent = "-";
                 }
 
-                const qualityOrders = completedOrders.filter(
-                    (o) => typeof o.notesQuality === "number",
-                );
-                const avgNotesQuality = qualityOrders.length
-                    ? qualityOrders.reduce(
-                          (sum, o) => sum + o.notesQuality,
-                          0,
-                      ) / qualityOrders.length
-                    : null;
-                const nq =
-                    avgNotesQuality == null
-                        ? null
-                        : Math.round((avgNotesQuality / 5) * 100);
-                const notedOrders = completedOrders.filter(
+                const guestNoteCount = completedOrders.filter(
                     (o) => o.notes && o.notes.trim(),
-                );
+                ).length;
+                const adminNoteCount = completedOrders.filter(
+                    (o) => o.adminNotes && o.adminNotes.trim(),
+                ).length;
+                const notesPercent = completedOrders.length
+                    ? Math.round(
+                          ((guestNoteCount + adminNoteCount) /
+                              (completedOrders.length * 2)) *
+                              100,
+                      )
+                    : null;
                 document.getElementById("notesQuality").textContent =
-                    nq == null
-                        ? notedOrders.length
-                            ? `${notedOrders.length} catatan`
-                            : "-"
-                        : Math.round(nq) + "%";
+                    notesPercent == null ? "-" : `${notesPercent}%`;
                 document.getElementById("notesQualityDetail").textContent =
-                    nq == null
-                        ? notedOrders.length
-                            ? "Catatan guest/summary sudah masuk, belum dinilai admin"
-                            : "Belum ada penilaian kualitas catatan"
-                        : nq >= 80
-                          ? "Dokumentasi sangat baik"
-                          : nq >= 60
-                            ? "Dokumentasi baik"
-                            : nq >= 40
-                              ? "Dokumentasi cukup"
-                              : nq > 0
-                                ? "Perlu lebih banyak review"
-                                : "Belum ada review.";
+                    completedOrders.length
+                        ? `${guestNoteCount} guest, ${adminNoteCount} admin dari ${completedOrders.length} work order`
+                        : "Belum ada work order selesai";
             }
 
             function renderTable(orders = completedOrders) {
@@ -922,12 +932,14 @@
           <td class="py-3 px-4 text-sm">
             <div class="max-w-xs">
               ${
-                  o.notes
-                      ? `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" title="${o.notes}">${o.notes.length > 50 ? o.notes.substring(0, 50) + "..." : o.notes}</span>`
-                      : '<span class="text-gray-400 text-sm">No notes</span>'
+              o.notes || o.adminNotes
+                  ? `<div class="space-y-1">
+                      <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" title="${o.notes || "-"}">Guest: ${o.notes ? (o.notes.length > 40 ? o.notes.substring(0, 40) + "..." : o.notes) : "-"}</span>
+                      <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full" title="${o.adminNotes || "-"}">Admin: ${o.adminNotes ? (o.adminNotes.length > 40 ? o.adminNotes.substring(0, 40) + "..." : o.adminNotes) : "-"}</span>
+                    </div>`
+                  : '<span class="text-gray-400 text-sm">No notes</span>'
               }
               <div class="text-xs text-amber-600 mt-1">${o.rating ? `Rating ${o.rating}/5` : "Belum dirating"}</div>
-              <div class="text-xs text-purple-600 mt-1">${o.notesQuality ? `Notes ${o.notesQuality}/5` : "Notes belum dinilai"}</div>
             </div>
           </td>
           <td class="py-3 px-4 text-sm">
@@ -974,10 +986,14 @@
                             typeof o.requester === "object"
                                 ? o.requester.name
                                 : o.requester || "-";
-                        const noteText =
-                            o.notes && o.notes.length > 70
-                                ? o.notes.substring(0, 70) + "…"
+                        const guestNoteText =
+                            o.notes && o.notes.length > 55
+                                ? o.notes.substring(0, 55) + "…"
                                 : o.notes;
+                        const adminNoteText =
+                            o.adminNotes && o.adminNotes.length > 55
+                                ? o.adminNotes.substring(0, 55) + "…"
+                                : o.adminNotes;
                         return `
         <div class="data-card">
           <div class="data-card-header">
@@ -996,14 +1012,16 @@
             <span class="data-card-label">Catatan</span>
             <span class="data-card-value">
               ${
-                  o.notes
-                      ? `<span class="kaizen-note-pill">${noteText}</span>`
+                  o.notes || o.adminNotes
+                      ? `<div class="flex flex-col gap-1">
+                          <span class="kaizen-note-pill">Guest: ${guestNoteText || "-"}</span>
+                          <span class="kaizen-note-pill">Admin: ${adminNoteText || "-"}</span>
+                        </div>`
                       : '<span class="text-gray-400">No notes</span>'
               }
             </span>
           </div>
           <div class="data-card-row"><span class="data-card-label">Rating</span><span class="data-card-value">${o.rating ? `${o.rating}/5` : "-"}</span></div>
-          <div class="data-card-row"><span class="data-card-label">Notes Quality</span><span class="data-card-value">${o.notesQuality ? `${o.notesQuality}/5` : "-"}</span></div>
           ${
               o.documentationPhoto
                   ? `<div class="data-card-row"><span class="data-card-label">Foto</span><button class="photo-preview-btn data-card-value" data-photo="/static/public/${o.documentationPhoto}" type="button"><img src="/static/public/${o.documentationPhoto}" alt="Foto bukti order #${o.id}" class="kaizen-photo-thumb border border-gray-200 shadow-sm" onerror="this.closest('button').outerHTML='<span class=&quot;kaizen-photo-missing&quot;>Foto belum tersedia</span>'"></button></div>`
@@ -1069,11 +1087,20 @@
                     o.completedAt || "N/A";
                 document.getElementById("modalOrderPriority").innerHTML =
                     `<span class="priority-badge priority-${o.priority}">${o.priority.charAt(0).toUpperCase() + o.priority.slice(1)}</span>`;
-                const notesEl = document.getElementById("modalOrderNotes");
-                notesEl.textContent = `${o.rating ? `Rating Admin: ${o.rating}/5\n` : "Rating Admin: belum dirating\n"}${o.notesQuality ? `Notes Quality: ${o.notesQuality}/5\n\n` : "Notes Quality: belum dinilai\n\n"}${o.notes && o.notes.trim() ? o.notes : "No notes available for this work order."}`;
-                notesEl.classList.toggle(
+                const guestNotesEl = document.getElementById("modalGuestNotes");
+                const adminNotesEl = document.getElementById("modalOrderNotes");
+                guestNotesEl.textContent =
+                    o.notes && o.notes.trim()
+                        ? o.notes
+                        : "No guest notes available for this work order.";
+                adminNotesEl.textContent = `${o.rating ? `Rating Admin: ${o.rating}/5\n\n` : "Rating Admin: belum dirating\n\n"}${o.adminNotes && o.adminNotes.trim() ? o.adminNotes : "No admin notes available for this work order."}`;
+                guestNotesEl.classList.toggle(
                     "text-gray-500",
                     !o.notes || !o.notes.trim(),
+                );
+                adminNotesEl.classList.toggle(
+                    "text-gray-500",
+                    !o.adminNotes || !o.adminNotes.trim(),
                 );
                 const photoWrap = document.getElementById("modalPhotoWrap");
                 const photoThumb = document.getElementById("modalPhotoThumb");
