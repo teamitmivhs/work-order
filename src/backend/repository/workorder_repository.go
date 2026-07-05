@@ -15,7 +15,7 @@ type WorkOrderRepository interface {
 	CompleteOrder(orderID int64, req models.CompleteWorkOrder) error
 	DeleteOrder(orderID int64) error
 	UpdateOrderExecutors(orderID int64, req models.UpdateWorkOrderRequest) error
-	UpdateOrderNotes(orderID int64, notes string, rating *int, notesQuality *int) error
+	UpdateOrderNotes(orderID int64, adminNotes string, rating *int, notesQuality *int) error
 	UpdateOrderNoteText(orderID int64, notes string) error
 	UpdateOrderDocumentationPhoto(orderID int64, filename string) error
 	HasDocumentationPhoto(orderID int64) (bool, error)
@@ -59,12 +59,12 @@ const progressTimerSelect = `
 // scanWorkOrderRow adalah helper untuk menghindari duplikasi scan di endpoint list work order.
 func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	var wo models.WorkOrder
-	var priority, timeDisplay, startedAt, trackingCode, requester, location, device, problem, workingHours, status, completedAt, notes, documentationPhoto sql.NullString
+	var priority, timeDisplay, startedAt, trackingCode, requester, location, device, problem, workingHours, status, completedAt, notes, adminNotes, documentationPhoto sql.NullString
 	var progressSeconds, rating, notesQuality sql.NullInt64
 
 	err := rows.Scan(
 		&wo.ID, &priority, &timeDisplay, &startedAt, &progressSeconds, &trackingCode, &requester, &location,
-		&device, &problem, &workingHours, &status, &completedAt, &notes, &rating, &notesQuality, &documentationPhoto,
+		&device, &problem, &workingHours, &status, &completedAt, &notes, &adminNotes, &rating, &notesQuality, &documentationPhoto,
 	)
 	if err != nil {
 		return wo, err
@@ -104,6 +104,9 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	if notes.Valid {
 		wo.Notes = notes.String
 	}
+	if adminNotes.Valid {
+		wo.AdminNotes = adminNotes.String
+	}
 	if rating.Valid {
 		value := int(rating.Int64)
 		wo.Rating = &value
@@ -134,7 +137,7 @@ func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,` + progressTimerSelect + `,
 		       o.TrackingCode,
 		       o.Requester, o.Location, o.Device, o.Problem, o.WorkingHours, o.Status,
-		       o.CompletedAt, o.Notes, o.Rating, o.NotesQuality, o.DocumentationPhoto
+		       o.CompletedAt, o.Notes, o.AdminNotes, o.Rating, o.NotesQuality, o.DocumentationPhoto
 		FROM orders o
 		ORDER BY o.ID DESC
 	`
@@ -180,7 +183,7 @@ func (r *workOrderRepository) GetTasksForOperator(operatorID int) ([]models.Work
 		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,` + progressTimerSelect + `,
 		       o.TrackingCode,
 		       o.Requester, o.Location, o.Device, o.Problem, o.WorkingHours, o.Status,
-		       o.CompletedAt, o.Notes, o.Rating, o.NotesQuality, o.DocumentationPhoto
+		       o.CompletedAt, o.Notes, o.AdminNotes, o.Rating, o.NotesQuality, o.DocumentationPhoto
 		FROM orders o
 		WHERE o.Status = 'pending'
 		   OR EXISTS (
@@ -227,7 +230,7 @@ func (r *workOrderRepository) GetTaskByTrackingCode(trackingCode string) (models
 		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,` + progressTimerSelect + `,
 		       o.TrackingCode,
 		       o.Requester, o.Location, o.Device, o.Problem, o.WorkingHours, o.Status,
-		       o.CompletedAt, o.Notes, o.Rating, o.NotesQuality, o.DocumentationPhoto
+		       o.CompletedAt, o.Notes, o.AdminNotes, o.Rating, o.NotesQuality, o.DocumentationPhoto
 		FROM orders o
 		WHERE UPPER(o.TrackingCode) = UPPER(?)
 		LIMIT 1
@@ -272,11 +275,11 @@ func (r *workOrderRepository) getOrderExecutors(orderID int) ([]int, error) {
 	return executors, nil
 }
 
-// UpdateOrderNotes menyimpan catatan evaluasi ke kolom Notes pada tabel orders
-func (r *workOrderRepository) UpdateOrderNotes(orderID int64, notes string, rating *int, notesQuality *int) error {
+// UpdateOrderNotes menyimpan catatan admin tanpa menimpa catatan guest.
+func (r *workOrderRepository) UpdateOrderNotes(orderID int64, adminNotes string, rating *int, notesQuality *int) error {
 	_, err := r.db.Exec(
-		"UPDATE orders SET Notes = ?, Rating = ?, NotesQuality = ? WHERE ID = ?",
-		notes, nullableInt(rating), nullableInt(notesQuality), orderID,
+		"UPDATE orders SET AdminNotes = ?, Rating = ?, NotesQuality = ? WHERE ID = ?",
+		adminNotes, nullableInt(rating), nullableInt(notesQuality), orderID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update notes for order %d: %w", orderID, err)
