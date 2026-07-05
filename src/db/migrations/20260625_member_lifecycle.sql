@@ -83,6 +83,13 @@ BEGIN
 
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'AdminNotes'
+  ) THEN
+    ALTER TABLE orders ADD COLUMN AdminNotes text DEFAULT NULL AFTER Notes;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'NotesQuality'
   ) THEN
     ALTER TABLE orders ADD COLUMN NotesQuality tinyint DEFAULT NULL AFTER Rating;
