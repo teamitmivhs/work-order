@@ -123,6 +123,7 @@ func runMigrations(dbName string) error {
 		{"orders", "TrackingCode", "ALTER TABLE orders ADD COLUMN TrackingCode varchar(20) DEFAULT NULL AFTER OrderNumber"},
 		{"orders", "StartedAt", "ALTER TABLE orders ADD COLUMN StartedAt datetime DEFAULT NULL AFTER TimeSort"},
 		{"orders", "Rating", "ALTER TABLE orders ADD COLUMN Rating tinyint DEFAULT NULL AFTER Notes"},
+		{"orders", "AdminNotes", "ALTER TABLE orders ADD COLUMN AdminNotes text DEFAULT NULL AFTER Notes"},
 		{"orders", "NotesQuality", "ALTER TABLE orders ADD COLUMN NotesQuality tinyint DEFAULT NULL AFTER Rating"},
 		{"orders", "DocumentationPhoto", "ALTER TABLE orders ADD COLUMN DocumentationPhoto varchar(255) DEFAULT NULL AFTER NotesQuality"},
 	}
