@@ -177,6 +177,7 @@ func (ctrl *WorkOrderController) TrackOrderHandler(c *gin.Context) {
 		"completedAt":        order.CompletedAt,
 		"workingHours":       order.WorkingHours,
 		"notes":              order.Notes,
+		"adminNotes":         order.AdminNotes,
 		"documentationPhoto": order.DocumentationPhoto,
 	})
 }
@@ -578,7 +579,13 @@ func (ctrl *WorkOrderController) UpdateNotesHandler(c *gin.Context) {
 		return
 	}
 
-	if err := ctrl.Repo.UpdateOrderNotes(orderID, req.Notes, req.Rating, req.NotesQuality); err != nil {
+	adminNotes := strings.TrimSpace(strings.NewReplacer("<", "", ">", "").Replace(req.AdminNotes))
+	if len(adminNotes) > 1000 {
+		utils.BadRequest(c, "Catatan admin maksimal 1000 karakter")
+		return
+	}
+
+	if err := ctrl.Repo.UpdateOrderNotes(orderID, adminNotes, req.Rating, req.NotesQuality); err != nil {
 		utils.InternalServerError(c, "Failed to save notes", err)
 		return
 	}
