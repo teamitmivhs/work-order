@@ -418,6 +418,73 @@ body[data-theme="dark"] .border-gray-300 {
     transform: scale(1.1);
 }
 
+.wo-action-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        filter 0.16s ease;
+}
+.wo-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.22);
+    filter: brightness(1.05);
+}
+.wo-action-btn:active {
+    transform: translateY(0) scale(0.96);
+}
+.wo-action-btn svg {
+    width: 1rem;
+    height: 1rem;
+    stroke-width: 2.25;
+}
+.wo-action-add,
+.wo-action-done {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+.wo-action-take {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+.wo-action-photo {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+}
+.wo-action-delete {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+.wo-action-text {
+    min-height: 2.5rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.8rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        filter 0.16s ease;
+}
+.wo-action-text:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+}
+.wo-action-text:active {
+    transform: scale(0.98);
+}
+
 .custom-checkbox {
     appearance: none;
     width: 20px;
