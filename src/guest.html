@@ -147,24 +147,28 @@
             }
             .guest-summary-card {
                 border: 1px solid #dbe3ee;
-                border-radius: 0.9rem;
-                background: #f8fafc;
+                border-radius: 1.1rem;
+                background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
                 overflow: hidden;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
             }
             .guest-summary-head {
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
                 gap: 0.75rem;
-                padding: 1rem;
+                padding: 1.05rem 1.05rem 0.95rem;
                 border-bottom: 1px solid #e2e8f0;
             }
             .guest-summary-body {
                 display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 0.75rem 1rem;
-                padding: 1rem;
+                grid-template-columns: minmax(0, 1fr);
+                gap: 0.85rem;
+                padding: 1rem 1.05rem;
                 font-size: 0.88rem;
+            }
+            .guest-summary-item {
+                min-width: 0;
             }
             .guest-summary-label {
                 display: block;
@@ -179,9 +183,29 @@
                 font-weight: 600;
                 overflow-wrap: anywhere;
             }
+            .guest-summary-block {
+                border: 1px solid #dbe3ee;
+                border-radius: 0.95rem;
+                background: rgba(255, 255, 255, 0.82);
+                padding: 0.9rem;
+            }
+            .guest-summary-meta {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.85rem 1rem;
+            }
+            .guest-summary-full {
+                grid-column: 1 / -1;
+            }
             .guest-note-box {
-                padding: 1rem;
+                padding: 1rem 1.05rem 1.05rem;
                 border-top: 1px solid #e2e8f0;
+                background: rgba(255, 255, 255, 0.56);
+            }
+            .guest-note-hint {
+                margin-top: 0.35rem;
+                color: #64748b;
+                font-size: 0.78rem;
             }
             .guest-executor-list {
                 display: flex;
@@ -243,10 +267,16 @@
             }
             .guest-proof-link img {
                 width: 100%;
-                max-height: 8rem;
+                max-height: 11rem;
                 border-radius: 0.75rem;
                 object-fit: cover;
                 border: 1px solid #dbe3ee;
+            }
+            .guest-proof-empty,
+            .guest-empty-inline {
+                color: #64748b;
+                font-size: 0.88rem;
+                line-height: 1.5;
             }
             .guest-operator-modal-panel {
                 width: min(100%, 22rem);
@@ -259,16 +289,42 @@
             }
             .guest-detail-modal-panel {
                 width: min(100%, 24rem);
-                max-height: min(40rem, calc(100dvh - 1.5rem));
+                max-height: min(42rem, calc(100dvh - 1rem));
                 overflow: hidden;
-                border-radius: 1rem;
+                display: flex;
+                flex-direction: column;
+                border-radius: 1.25rem;
                 background: #fff;
                 color: #0f172a;
                 box-shadow: 0 28px 80px rgba(2, 6, 23, 0.38);
             }
             .guest-detail-modal-body {
-                max-height: calc(100dvh - 8.5rem);
+                flex: 1 1 auto;
+                min-height: 0;
                 overflow-y: auto;
+                overscroll-behavior: contain;
+            }
+            .guest-detail-modal-close {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 2.25rem;
+                height: 2.25rem;
+                border: 1px solid #dbe3ee;
+                border-radius: 999px;
+                background: rgba(248, 250, 252, 0.92);
+                color: #64748b;
+                font-size: 1.45rem;
+                line-height: 1;
+                transition:
+                    background 0.18s,
+                    color 0.18s,
+                    border-color 0.18s;
+            }
+            .guest-detail-modal-close:hover {
+                background: #e2e8f0;
+                color: #0f172a;
+                border-color: #cbd5e1;
             }
             .track-status {
                 display: inline-flex;
@@ -322,6 +378,11 @@
                 background: #fff !important;
                 color: #0f172a !important;
             }
+            html[data-theme="dark"] .guest-detail-modal-close {
+                background: rgba(248, 250, 252, 0.92) !important;
+                border-color: #dbe3ee !important;
+                color: #64748b !important;
+            }
             html[data-theme="dark"] .guest-detail-modal-panel .guest-input {
                 background: #f8fafc !important;
                 border-color: #dbe3ee !important;
@@ -358,6 +419,15 @@
                 color: #0f172a !important;
             }
             html[data-theme="dark"] .guest-summary-label {
+                color: #64748b !important;
+            }
+            html[data-theme="dark"] .guest-summary-block {
+                background: rgba(255, 255, 255, 0.82) !important;
+                border-color: #dbe3ee !important;
+            }
+            html[data-theme="dark"] .guest-note-hint,
+            html[data-theme="dark"] .guest-proof-empty,
+            html[data-theme="dark"] .guest-empty-inline {
                 color: #64748b !important;
             }
             .toast {
@@ -485,8 +555,17 @@
                     gap: 0.65rem;
                     padding: 0.85rem;
                 }
+                .guest-summary-meta {
+                    grid-template-columns: 1fr;
+                    gap: 0.75rem;
+                }
                 .guest-note-box {
                     padding: 0.85rem;
+                }
+                .guest-detail-modal-panel {
+                    width: min(100%, 100%);
+                    max-height: calc(100dvh - 0.75rem);
+                    border-radius: 1.1rem;
                 }
                 .track-status {
                     min-height: 1.9rem;
@@ -848,12 +927,12 @@
 
         <div
             id="guestDetailModal"
-            class="hidden fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4"
+            class="hidden fixed inset-0 z-[70] overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-start sm:items-center justify-center p-3 sm:p-4"
             role="dialog"
             aria-modal="true"
             aria-labelledby="guestDetailTitle"
         >
-            <div class="guest-detail-modal-panel">
+            <div class="guest-detail-modal-panel my-auto">
                 <div
                     class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3"
                 >
@@ -873,7 +952,7 @@
                     <button
                         id="closeGuestDetailModal"
                         type="button"
-                        class="text-2xl leading-none text-slate-500 hover:text-slate-900"
+                        class="guest-detail-modal-close"
                         aria-label="Tutup"
                     >
                         &times;
@@ -1054,7 +1133,7 @@
 
             function renderProofPhoto(photo) {
                 if (!photo)
-                    return '<p class="text-sm text-gray-500">Belum ada foto bukti.</p>';
+                    return '<p class="guest-proof-empty">Belum ada foto bukti.</p>';
                 const src = `/static/public/${escapeHtml(photo)}`;
                 return `<a class="guest-proof-link block" href="${src}" target="_blank" rel="noopener">
                     <img class="guest-proof-img" src="${src}" alt="Foto bukti work order">
@@ -1075,17 +1154,28 @@
                             <span class="track-status track-status-${order.status || "pending"}">${statusLabel(order.status)}</span>
                         </div>
                         <div class="guest-summary-body">
-                            <p><span class="guest-summary-label">Requester</span><span class="guest-summary-value">${escapeHtml(order.requester || "-")}</span></p>
-                            <p><span class="guest-summary-label">Device</span><span class="guest-summary-value">${escapeHtml(order.device || "-")}</span></p>
-                            <p><span class="guest-summary-label">Lokasi</span><span class="guest-summary-value">${escapeHtml(order.location || "-")}</span></p>
-                            <p><span class="guest-summary-label">Selesai</span><span class="guest-summary-value">${escapeHtml(order.completedAt || "-")}</span></p>
-                            <p class="sm:col-span-2"><span class="guest-summary-label">Masalah</span><span class="guest-summary-value">${escapeHtml(order.problem || "-")}</span></p>
-                            <div class="sm:col-span-2"><span class="guest-summary-label">Pelaksana</span>${renderExecutors(order.executors)}</div>
-                            <div class="sm:col-span-2"><span class="guest-summary-label">Foto Bukti</span>${renderProofPhoto(order.documentationPhoto)}</div>
+                            <div class="guest-summary-block">
+                                <div class="guest-summary-meta">
+                                    <p class="guest-summary-item"><span class="guest-summary-label">Requester</span><span class="guest-summary-value">${escapeHtml(order.requester || "-")}</span></p>
+                                    <p class="guest-summary-item"><span class="guest-summary-label">Device</span><span class="guest-summary-value">${escapeHtml(order.device || "-")}</span></p>
+                                    <p class="guest-summary-item"><span class="guest-summary-label">Lokasi</span><span class="guest-summary-value">${escapeHtml(order.location || "-")}</span></p>
+                                    <p class="guest-summary-item"><span class="guest-summary-label">Selesai</span><span class="guest-summary-value">${escapeHtml(order.completedAt || "-")}</span></p>
+                                    <p class="guest-summary-item guest-summary-full"><span class="guest-summary-label">Masalah</span><span class="guest-summary-value">${escapeHtml(order.problem || "-")}</span></p>
+                                </div>
+                            </div>
+                            <div class="guest-summary-block">
+                                <span class="guest-summary-label">Pelaksana</span>
+                                <div class="mt-2">${renderExecutors(order.executors)}</div>
+                            </div>
+                            <div class="guest-summary-block">
+                                <span class="guest-summary-label">Foto Bukti</span>
+                                <div class="mt-2">${renderProofPhoto(order.documentationPhoto)}</div>
+                            </div>
                         </div>
                         <div class="guest-note-box">
                             <label class="block text-sm font-bold text-gray-700 mb-2" for="guestNoteText">Catatan Guest</label>
                             <textarea id="guestNoteText" class="guest-input min-h-[92px]" maxlength="1000" placeholder="Tambahkan catatan tambahan untuk evaluasi...">${escapeHtml(order.notes || "")}</textarea>
+                            <p class="guest-note-hint">Catatan ini akan dilihat admin untuk evaluasi dan tindak lanjut work order.</p>
                             <button type="button" class="save-guest-note-btn mt-3 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700" data-code="${code}">
                                 Simpan Catatan
                             </button>
