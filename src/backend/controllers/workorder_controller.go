@@ -75,8 +75,8 @@ func (ctrl *WorkOrderController) GetTaskListHandler(c *gin.Context) {
 func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 	var req models.WorkOrderRequest
 
-	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
-		utils.Forbidden(c, "Only admins can create work orders")
+	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" && role != "Guest" {
+		utils.Forbidden(c, "Only admins and guests can create work orders")
 		return
 	}
 
