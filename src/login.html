@@ -440,12 +440,12 @@
                         .then((r) => r.json())
                         .then((data) => {
                             if (data.data && data.data.token) {
-                                localStorage.setItem(
-                                    "userToken",
+                                sessionStorage.setItem(
+                                    "guestToken",
                                     data.data.token,
                                 );
-                                localStorage.setItem("isGuestUser", "true");
-                                localStorage.setItem(
+                                sessionStorage.setItem("isGuestUser", "true");
+                                sessionStorage.setItem(
                                     "guestLoginTime",
                                     new Date().toISOString(),
                                 );
@@ -494,6 +494,9 @@
                             if (data.data && data.data.token) {
                                 localStorage.removeItem("isGuestUser");
                                 localStorage.removeItem("guestLoginTime");
+                                sessionStorage.removeItem("isGuestUser");
+                                sessionStorage.removeItem("guestLoginTime");
+                                sessionStorage.removeItem("guestToken");
                                 localStorage.setItem("isAdmin", "true");
                                 localStorage.setItem(
                                     "userToken",
