@@ -221,6 +221,29 @@
                 }
             }
 
+            @media (max-width: 767px), (prefers-reduced-motion: reduce) {
+                .hero-container {
+                    animation: none !important;
+                }
+                .hero-blob {
+                    display: none !important;
+                    animation: none !important;
+                }
+                .split-char,
+                .welcome-accent,
+                .welcome-title,
+                .welcome-subtitle,
+                .welcome-buttons,
+                .hero-accent-line {
+                    animation-duration: 0.18s !important;
+                    animation-delay: 0s !important;
+                }
+                .hero-button:hover {
+                    transform: none;
+                    box-shadow: none;
+                }
+            }
+
             /* ── MOBILE: Card view untuk tabel work orders ── */
             /* Sembunyikan tabel biasa di mobile, tampilkan card */
             @media (max-width: 767px) {
@@ -2217,35 +2240,30 @@
                     top: 68px !important;
                     left: 10px !important;
                     right: 10px !important;
-                    transform: translateY(-8px) scale(0.98) !important;
+                    transform: translateY(-6px) !important;
                     width: auto !important;
-                    max-height: 0;
-                    overflow: hidden;
+                    max-height: calc(100dvh - 84px);
+                    overflow-y: auto;
                     opacity: 0;
                     pointer-events: none;
                     background: rgba(15, 23, 42, 0.98);
-                    padding: 0 12px;
+                    padding: 12px;
                     gap: 8px;
                     z-index: 999;
                     border: 1px solid rgba(148, 163, 184, 0.18);
-                    border-radius: 18px;
-                    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.48);
-                    backdrop-filter: blur(18px);
+                    border-radius: 16px;
+                    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
                     transition:
-                        opacity 0.2s ease,
-                        transform 0.2s ease,
-                        max-height 0.2s ease,
-                        padding 0.2s ease;
+                        opacity 0.16s ease,
+                        transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
                 }
                 #navMenu.mobile-menu-active {
-                    transform: translateY(0) scale(1) !important;
-                    max-height: 420px;
+                    transform: translateY(0) !important;
                     opacity: 1;
                     pointer-events: auto;
-                    padding: 12px;
                 }
-                #navMenu.mobile-menu-active .nav-pill {
-                    border-radius: 12px;
+                #navMenu .nav-pill {
+                    border-radius: 10px;
                     padding: 12px 14px;
                     font-size: 0.85rem;
                     justify-content: flex-start;
@@ -2257,7 +2275,7 @@
                 #navMenu.mobile-menu-active .nav-pill-staff {
                     background: rgba(37, 99, 235, 0.2);
                 }
-                #navMenu.mobile-menu-active .nav-sep {
+                #navMenu .nav-sep {
                     display: none;
                 }
                 .nav-profile-card {
@@ -2795,6 +2813,8 @@
                         class="nav-pill"
                         id="mobileMenuBtn"
                         aria-label="Toggle menu"
+                        aria-controls="navMenu"
+                        aria-expanded="false"
                         style="padding: 8px; display: none"
                     >
                         <svg
@@ -3404,6 +3424,7 @@
                     </div>
                     <div>
                         <h3
+                            id="takeOrderOperatorsTitle"
                             class="text-base md:text-lg font-semibold mb-3 md:mb-4"
                         >
                             Pilih Operator
@@ -3435,7 +3456,9 @@
                                     stroke-width="2"
                                 ></path>
                             </svg>
-                            Tambah Operator
+                            <span id="takeOrderHelperBtnText"
+                                >Tambah Operator</span
+                            >
                         </button>
                     </div>
                 </div>
@@ -4719,6 +4742,14 @@
                         order.executors.map(Number).includes(userID)
                     );
                 }
+                function isCurrentUserAssignedMobile(order) {
+                    const claims = getLocalClaims();
+                    const userID = Number(claims.id);
+                    return (
+                        Array.isArray(order.executors) &&
+                        order.executors.map(Number).includes(userID)
+                    );
+                }
                 function elapsedFromStartedAt(order) {
                     if (
                         !order ||
@@ -4812,14 +4843,17 @@
                     return html + "</button>";
                 }
 
-                // action buttons — logika sama persis dengan desktop
+                // action buttons mengikuti role: admin mulai progress, operator join sendiri.
                 function getActionButtonsHtml(order) {
                     const canActOnProgressOrder = canCurrentUserAct(order);
                     let btns = "";
                     if (order.status === "pending") {
-                        if ((order.executors || []).length > 0) {
-                            btns += `<button class="mc-add-worker-btn wo-action-text wo-action-add" data-order-id="${order.id}">+ Operator</button>`;
-                        } else {
+                        if (getLocalClaims().role === "Admin") {
+                            btns += `<button class="mc-take-btn wo-action-text wo-action-take" data-order-id="${order.id}">Mulai</button>`;
+                            if ((order.executors || []).length > 0) {
+                                btns += `<button class="mc-add-worker-btn wo-action-text wo-action-add" data-order-id="${order.id}">+ Operator</button>`;
+                            }
+                        } else if (!isCurrentUserAssignedMobile(order)) {
                             btns += `<button class="mc-take-btn wo-action-text wo-action-take" data-order-id="${order.id}">Ambil</button>`;
                         }
                     } else if (order.status === "progress") {
@@ -4971,7 +5005,13 @@
                 const heroContainer = document.querySelector(".hero-container");
                 const blobs = document.querySelectorAll(".hero-blob");
 
-                if (heroContainer) {
+                const canRunHeroPointer =
+                    heroContainer &&
+                    blobs.length &&
+                    window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+                    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+                if (canRunHeroPointer) {
                     heroContainer.addEventListener("mousemove", function (e) {
                         const rect = heroContainer.getBoundingClientRect();
                         const x = (e.clientX - rect.left) / rect.width;
@@ -4993,6 +5033,11 @@
                 }
 
                 // Scroll animation for hero elements
+                const reduceMotion = window.matchMedia(
+                    "(prefers-reduced-motion: reduce)",
+                ).matches;
+                if (reduceMotion) return;
+
                 const observerOptions = {
                     threshold: 0.1,
                     rootMargin: "0px 0px -100px 0px",
