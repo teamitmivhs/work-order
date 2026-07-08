@@ -737,11 +737,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   async function syncPushSubscription() {
-    if (!("PushManager" in window)) return;
     if (!("Notification" in window) || Notification.permission !== "granted")
       return;
+    if (!window.isSecureContext) return;
     const registration = await registerOrderNotificationWorker();
-    if (!registration) return;
+    if (!registration || !("pushManager" in registration)) return;
 
     const keyResponse = await fetch("/api/notifications/vapid-public-key", {
       headers: authHeaders(),
@@ -751,13 +751,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     const publicKey = unwrapData(keyJson).publicKey;
     if (!publicKey) return;
 
+    const savedKey = localStorage.getItem("workOrderPushVapidPublicKey");
     let subscription = await registration.pushManager.getSubscription();
+    if (subscription && savedKey && savedKey !== publicKey) {
+      await subscription.unsubscribe();
+      subscription = null;
+    }
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
     }
+    localStorage.setItem("workOrderPushVapidPublicKey", publicKey);
 
     await fetch("/api/notifications/subscribe", {
       method: "POST",
@@ -792,10 +798,18 @@ document.addEventListener("DOMContentLoaded", async function () {
       );
       return;
     }
-    if (!("PushManager" in window) || !("serviceWorker" in navigator)) {
+    if (!window.isSecureContext) {
+      showPopup(
+        "Butuh HTTPS",
+        "Push notification hanya aktif di HTTPS atau localhost. Buka dashboard lewat HTTPS agar Brave bisa subscribe.",
+        "warning",
+      );
+      return;
+    }
+    if (!("serviceWorker" in navigator)) {
       showPopup(
         "Push Tidak Didukung",
-        "Browser ini hanya bisa menerima notifikasi saat dashboard terbuka.",
+        "Service worker tidak tersedia di browser ini. Notifikasi hanya bisa diterima saat dashboard terbuka.",
         "warning",
       );
       return;
@@ -815,28 +829,39 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
-    showActionPopup(
-      "Aktifkan Notifikasi Work Order",
-      "Izinkan notifikasi supaya work order baru dari guest bisa tampil di browser dan ponsel yang sudah subscribe.",
-      "Aktifkan Notifikasi",
-      async () => {
-        const permission = await requestOrderNotificationPermission();
-        if (permission === "granted") {
-          showPopup(
-            "Notifikasi Aktif",
-            "Browser ini sudah subscribe notifikasi work order.",
-            "success",
-          );
-        } else {
-          showPopup(
-            "Notifikasi Belum Aktif",
-            "Permission belum diberikan. Aktifkan dari pengaturan site browser untuk menerima push.",
-            "warning",
-          );
-        }
-      },
-      "info",
-    );
+    registerOrderNotificationWorker().then((registration) => {
+      if (!registration || !("pushManager" in registration)) {
+        showPopup(
+          "Push Tidak Aktif di Brave",
+          "Aktifkan push messaging di pengaturan Brave, lalu reload dashboard dan klik Aktifkan Notifikasi lagi.",
+          "warning",
+        );
+        return;
+      }
+
+      showActionPopup(
+        "Aktifkan Notifikasi Work Order",
+        "Izinkan notifikasi supaya work order baru dari guest bisa tampil di browser dan ponsel yang sudah subscribe.",
+        "Aktifkan Notifikasi",
+        async () => {
+          const permission = await requestOrderNotificationPermission();
+          if (permission === "granted") {
+            showPopup(
+              "Notifikasi Aktif",
+              "Browser ini sudah subscribe notifikasi work order.",
+              "success",
+            );
+          } else {
+            showPopup(
+              "Notifikasi Belum Aktif",
+              "Permission belum diberikan. Aktifkan dari pengaturan site browser untuk menerima push.",
+              "warning",
+            );
+          }
+        },
+        "info",
+      );
+    });
   }
 
   async function showWorkOrderBrowserNotification(title, message, order) {
