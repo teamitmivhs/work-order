@@ -35,6 +35,13 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 		//kaizen
 		protected.GET("/kaizen", workOrderCtrl.GetKaizenHandler)
 
+		notifications := protected.Group("/notifications")
+		{
+			notifications.GET("/vapid-public-key", controllers.GetPushPublicKeyHandler)
+			notifications.POST("/subscribe", controllers.SubscribePushNotificationHandler)
+			notifications.POST("/unsubscribe", controllers.UnsubscribePushNotificationHandler)
+		}
+
 		//workorders
 		workorders := protected.Group("/workorders")
 		{
