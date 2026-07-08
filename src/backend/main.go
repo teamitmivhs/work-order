@@ -6,6 +6,7 @@ import (
 	"teamitmivhs/work-order-backend/config"
 	"teamitmivhs/work-order-backend/repository"
 	"teamitmivhs/work-order-backend/routes"
+	"teamitmivhs/work-order-backend/services"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -30,6 +31,7 @@ func main() {
 		} else if snapshot.MovedToStandby > 0 {
 			println("Shift rollover moved members to standby:", snapshot.MovedToStandby)
 		}
+		services.InitPushNotifications()
 	}
 	defer config.CloseDB()
 
