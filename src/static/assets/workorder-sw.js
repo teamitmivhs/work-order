@@ -8,6 +8,32 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+self.addEventListener('push', (event) => {
+  let payload = {};
+  if (event.data) {
+    try {
+      payload = event.data.json();
+    } catch (err) {
+      payload = { body: event.data.text() };
+    }
+  }
+
+  const title = payload.title || 'Work order baru masuk';
+  const options = {
+    body: payload.body || 'Ada work order baru.',
+    icon: '/static/public/itlogo.png',
+    badge: '/static/public/itlogo.png',
+    tag: payload.workOrderId ? `work-order-${payload.workOrderId}` : 'work-order-incoming',
+    renotify: true,
+    data: {
+      url: payload.url || DEFAULT_NOTIFICATION_URL,
+      workOrderId: payload.workOrderId || null,
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
