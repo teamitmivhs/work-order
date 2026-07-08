@@ -11,6 +11,7 @@ import (
 
 type WorkOrderRepository interface {
 	CreateTask(task models.WorkOrderRequest) (int64, error)
+	JoinPendingOrder(orderID int64, memberID int) error
 	TakeOrder(orderID int64, req models.TakeWorkOrder) error
 	CompleteOrder(orderID int64, req models.CompleteWorkOrder) error
 	DeleteOrder(orderID int64) error
@@ -448,6 +449,46 @@ func (r *workOrderRepository) CreateTask(task models.WorkOrderRequest) (int64, e
 	}
 
 	return lastInsertID, tx.Commit()
+}
+
+// TakeOrder mengambil work order untuk diproses oleh executor
+func (r *workOrderRepository) JoinPendingOrder(orderID int64, memberID int) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	var orderStatus string
+	if err := tx.QueryRow("SELECT Status FROM orders WHERE ID = ? FOR UPDATE", orderID).Scan(&orderStatus); err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("order not found")
+		}
+		return fmt.Errorf("failed to query order status: %w", err)
+	}
+	if orderStatus != "pending" {
+		return fmt.Errorf("only pending orders can be joined")
+	}
+
+	var memberStatus string
+	if err := tx.QueryRow("SELECT Status FROM members WHERE ID = ? FOR UPDATE", memberID).Scan(&memberStatus); err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("member not found")
+		}
+		return fmt.Errorf("failed to query member status: %w", err)
+	}
+	if memberStatus == "onjob" {
+		return fmt.Errorf("member is already on another job")
+	}
+
+	if _, err := tx.Exec(
+		"INSERT IGNORE INTO executors (order_id, member_id) VALUES (?, ?)",
+		orderID, memberID,
+	); err != nil {
+		return fmt.Errorf("failed to join pending order: %w", err)
+	}
+
+	return tx.Commit()
 }
 
 // TakeOrder mengambil work order untuk diproses oleh executor
