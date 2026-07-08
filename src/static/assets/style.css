@@ -993,7 +993,7 @@ body:not(.login-bg) > nav {
 }
 
 main > * {
-    animation: uiFadeUp 0.42s ease both;
+    animation: uiFadeUp 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 main > *:nth-child(2) {
@@ -1033,8 +1033,8 @@ main .step-card:hover {
 .fixed.inset-0 .bg-white.rounded-xl,
 .fixed.inset-0 .bg-white.rounded-2xl {
     border: 1px solid rgba(226, 232, 240, 0.9);
-    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22) !important;
-    animation: uiSoftIn 0.22s ease both;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.2) !important;
+    animation: uiSoftIn 0.16s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
@@ -1117,7 +1117,7 @@ tbody.divide-y tr:hover {
 
 .wo-card,
 .data-card {
-    animation: uiFadeUp 0.34s ease both;
+    animation: uiFadeUp 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .badge-status,
@@ -1138,6 +1138,16 @@ footer {
 }
 
 @media (max-width: 767px) {
+    body:not(.login-bg) > nav,
+    main .bg-white.rounded-xl,
+    main .bg-white.rounded-2xl,
+    main .settings-card,
+    main .data-card,
+    main .wo-card,
+    main .step-card {
+        backdrop-filter: none !important;
+    }
+
     main {
         padding-left: 1rem !important;
         padding-right: 1rem !important;
@@ -1158,6 +1168,22 @@ footer {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .skeleton {
+        animation: none !important;
+        background: #eef2f7 !important;
     }
 }
 
