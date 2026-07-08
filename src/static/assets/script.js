@@ -75,8 +75,12 @@ function isCurrentUserAdmin() {
   return getCurrentUserClaims().role === "Admin";
 }
 
+function getCurrentUserId() {
+  return Number(getCurrentUserClaims().id);
+}
+
 function isCurrentUserAssigned(order) {
-  const userID = Number(getCurrentUserClaims().id);
+  const userID = getCurrentUserId();
   return (
     Array.isArray(order.executors) &&
     order.executors.map(Number).includes(userID)
@@ -167,37 +171,38 @@ const mobileMenuBtn = document.getElementById("mobileMenuBtn");
 const navMenu = document.getElementById("navMenu");
 
 if (mobileMenuBtn && navMenu) {
+  function setMobileMenu(open) {
+    navMenu.classList.toggle("mobile-menu-active", open);
+    mobileMenuBtn.setAttribute("aria-expanded", String(open));
+  }
+
   mobileMenuBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    // CSS sudah handle show/hide via media query + .mobile-menu-active
-    // JS hanya toggle class — tidak perlu cek innerWidth
-    navMenu.classList.toggle("mobile-menu-active");
-    // Update aria untuk aksesibilitas
-    const isOpen = navMenu.classList.contains("mobile-menu-active");
-    mobileMenuBtn.setAttribute("aria-expanded", isOpen);
+    setMobileMenu(!navMenu.classList.contains("mobile-menu-active"));
   });
 
   // Tutup menu saat klik di luar area navbar
   document.addEventListener("click", (e) => {
     if (!mobileMenuBtn.contains(e.target) && !navMenu.contains(e.target)) {
-      navMenu.classList.remove("mobile-menu-active");
-      mobileMenuBtn.setAttribute("aria-expanded", "false");
+      setMobileMenu(false);
     }
   });
 
   // Tutup menu saat salah satu link/button di dalamnya diklik
   navMenu.querySelectorAll("a, button").forEach((el) => {
     el.addEventListener("click", () => {
-      navMenu.classList.remove("mobile-menu-active");
-      mobileMenuBtn.setAttribute("aria-expanded", "false");
+      setMobileMenu(false);
     });
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setMobileMenu(false);
   });
 
   // Reset saat resize ke desktop agar state tidak stuck
   window.addEventListener("resize", () => {
     if (window.innerWidth >= 768) {
-      navMenu.classList.remove("mobile-menu-active");
-      mobileMenuBtn.setAttribute("aria-expanded", "false");
+      setMobileMenu(false);
     }
   });
 }
@@ -274,9 +279,43 @@ function showPopup(title, message, type = "info") {
 
   if (type !== "error") {
     setTimeout(() => {
-      if (popup.parentNode) closePopup();
+      if (popup.parentNode && popup.dataset.persistent !== "true") closePopup();
     }, 5000);
   }
+}
+
+function showActionPopup(title, message, actionText, onAction, type = "info") {
+  showPopup(title, message, type);
+  const popup = document.getElementById("customPopup");
+  const okBtn = popup?.querySelector("button");
+  if (!popup || !okBtn) return;
+  popup.dataset.persistent = "true";
+
+  okBtn.textContent = "Nanti";
+  okBtn.className =
+    "px-5 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-100";
+
+  const actionBtn = document.createElement("button");
+  actionBtn.type = "button";
+  actionBtn.textContent = actionText;
+  actionBtn.className =
+    "px-5 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200";
+
+  const buttonRow = okBtn.parentElement;
+  buttonRow.className = "flex flex-col sm:flex-row justify-center gap-2";
+  buttonRow.appendChild(actionBtn);
+  actionBtn.addEventListener("click", async () => {
+    actionBtn.disabled = true;
+    actionBtn.textContent = "Mengaktifkan...";
+    try {
+      await onAction();
+      popup.remove();
+    } catch (err) {
+      console.warn("Action popup failed:", err);
+      actionBtn.disabled = false;
+      actionBtn.textContent = actionText;
+    }
+  });
 }
 
 // ===== CONFIRMATION POPUP =====
@@ -442,6 +481,13 @@ document.addEventListener("DOMContentLoaded", async function () {
   const availableStandbyOperatorsList = document.getElementById(
     "availableStandbyOperatorsList",
   );
+  const takeOrderOperatorsTitle = document.getElementById(
+    "takeOrderOperatorsTitle",
+  );
+  const takeOrderHelperBtnText = document.getElementById(
+    "takeOrderHelperBtnText",
+  );
+  const takeOrderSafetySection = document.querySelector(".take-order-safety");
 
   let currentStatusFilter = "all";
   let activeWorkOrderStatus = "pending";
@@ -677,40 +723,120 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
+  function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; i += 1) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  async function syncPushSubscription() {
+    if (!("PushManager" in window)) return;
+    if (!("Notification" in window) || Notification.permission !== "granted")
+      return;
+    const registration = await registerOrderNotificationWorker();
+    if (!registration) return;
+
+    const keyResponse = await fetch("/api/notifications/vapid-public-key", {
+      headers: authHeaders(),
+    });
+    if (!keyResponse.ok) return;
+    const keyJson = await keyResponse.json();
+    const publicKey = unwrapData(keyJson).publicKey;
+    if (!publicKey) return;
+
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+    }
+
+    await fetch("/api/notifications/subscribe", {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(subscription),
+    });
+  }
+
   async function requestOrderNotificationPermission() {
-    if (!("Notification" in window)) return;
-    if (Notification.permission !== "default") return;
+    if (!("Notification" in window)) return "unsupported";
+    if (Notification.permission !== "default") return Notification.permission;
     if (notificationPermissionRequestInFlight) return;
     notificationPermissionRequestInFlight = true;
     try {
-      await Notification.requestPermission();
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") await syncPushSubscription();
+      return permission;
     } catch (err) {
       console.warn("Notification permission request failed:", err);
+      return "error";
     } finally {
       notificationPermissionRequestInFlight = false;
     }
   }
 
-  function armMobileNotificationPermissionPrompt() {
-    if (!("Notification" in window) || Notification.permission !== "default")
+  function showNotificationSetupPrompt() {
+    if (!("Notification" in window)) {
+      showPopup(
+        "Notifikasi Tidak Didukung",
+        "Browser ini tidak mendukung notifikasi work order.",
+        "warning",
+      );
       return;
+    }
+    if (!("PushManager" in window) || !("serviceWorker" in navigator)) {
+      showPopup(
+        "Push Tidak Didukung",
+        "Browser ini hanya bisa menerima notifikasi saat dashboard terbuka.",
+        "warning",
+      );
+      return;
+    }
+    if (Notification.permission === "granted") {
+      syncPushSubscription().catch((err) =>
+        console.warn("Push subscription sync failed:", err),
+      );
+      return;
+    }
+    if (Notification.permission === "denied") {
+      showPopup(
+        "Notifikasi Diblokir",
+        "Buka pengaturan site di browser, izinkan Notifications untuk alamat ini, lalu reload dashboard.",
+        "warning",
+      );
+      return;
+    }
 
-    const requestOnGesture = () => {
-      requestOrderNotificationPermission();
-      document.removeEventListener("click", requestOnGesture);
-      document.removeEventListener("touchend", requestOnGesture);
-      document.removeEventListener("pointerup", requestOnGesture);
-    };
-
-    document.addEventListener("click", requestOnGesture, { once: true });
-    document.addEventListener("touchend", requestOnGesture, {
-      once: true,
-      passive: true,
-    });
-    document.addEventListener("pointerup", requestOnGesture, {
-      once: true,
-      passive: true,
-    });
+    showActionPopup(
+      "Aktifkan Notifikasi Work Order",
+      "Izinkan notifikasi supaya work order baru dari guest bisa tampil di browser dan ponsel yang sudah subscribe.",
+      "Aktifkan Notifikasi",
+      async () => {
+        const permission = await requestOrderNotificationPermission();
+        if (permission === "granted") {
+          showPopup(
+            "Notifikasi Aktif",
+            "Browser ini sudah subscribe notifikasi work order.",
+            "success",
+          );
+        } else {
+          showPopup(
+            "Notifikasi Belum Aktif",
+            "Permission belum diberikan. Aktifkan dari pengaturan site browser untuk menerima push.",
+            "warning",
+          );
+        }
+      },
+      "info",
+    );
   }
 
   async function showWorkOrderBrowserNotification(title, message, order) {
@@ -755,11 +881,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     registerOrderNotificationWorker();
 
     if ("Notification" in window && Notification.permission === "default") {
-      if (isTouchMobileLike()) {
-        armMobileNotificationPermissionPrompt();
-      } else {
-        requestOrderNotificationPermission();
-      }
+      setTimeout(showNotificationSetupPrompt, 600);
+    } else if ("Notification" in window && Notification.permission === "granted") {
+      syncPushSubscription().catch((err) =>
+        console.warn("Push subscription sync failed:", err),
+      );
+    } else if ("Notification" in window && Notification.permission === "denied") {
+      setTimeout(showNotificationSetupPrompt, 600);
     }
   }
 
@@ -1063,6 +1191,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   );
 
   function openSelectHelperOperatorModal() {
+    if (!isCurrentUserAdmin()) return;
     showAnimatedPopup(selectHelperOperatorModal);
     populateAvailableStandbyOperators();
   }
@@ -1675,11 +1804,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         isCurrentUserAdmin() || isCurrentUserAssigned(order);
       let actionButtons = '<div class="flex items-center gap-2">';
       if (order.status === "pending") {
-        if ((order.executors || []).length > 0) {
-          actionButtons += `<button class="add-worker-btn wo-action-btn wo-action-add" data-order-id="${order.id}" title="Tambah worker">
+        if (isCurrentUserAdmin()) {
+          actionButtons += `<button class="take-order-btn wo-action-btn wo-action-take" data-order-id="${order.id}" title="Approve dan mulai work order">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </button>`;
+          if ((order.executors || []).length > 0) {
+            actionButtons += `<button class="add-worker-btn wo-action-btn wo-action-add" data-order-id="${order.id}" title="Tambah worker">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
           </button>`;
-        } else {
+          }
+        } else if (!isCurrentUserAssigned(order)) {
           actionButtons += `<button class="take-order-btn wo-action-btn wo-action-take" data-order-id="${order.id}" title="Ambil order ini">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
           </button>`;
@@ -1794,8 +1928,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     const order = workOrders.find((o) => o.id === orderId);
     if (!order) return;
 
+    if (!isCurrentUserAdmin() && isCurrentUserAssigned(order)) {
+      showPopup(
+        "Menunggu Admin",
+        "Kamu sudah masuk sebagai operator. Tunggu admin approve untuk mulai progress work order.",
+        "info",
+      );
+      return;
+    }
+
     const standbyMembers = members.filter((m) => m.status === "standby");
-    if (standbyMembers.length === 0) {
+    if (isCurrentUserAdmin() && standbyMembers.length === 0) {
       showPopup(
         "Peringatan",
         "Tidak ada operator standby yang tersedia untuk mengambil order ini.",
@@ -1805,7 +1948,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     currentOrder = order;
-    additionalOperators = [];
+    additionalOperators = isCurrentUserAdmin()
+      ? (order.executors || []).map(Number).filter(Boolean)
+      : [getCurrentUserId()];
 
     document.getElementById("popupOrderId").textContent = order.id;
     document.getElementById("popupPriority").textContent =
@@ -1813,8 +1958,40 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById("popupLocation").textContent = order.location;
     document.getElementById("popupDevice").textContent = order.device;
     document.getElementById("popupProblem").textContent = order.problem;
+    if (takeOrderOperatorsTitle)
+      takeOrderOperatorsTitle.textContent = isCurrentUserAdmin()
+        ? "Pilih Operator"
+        : "Ambil Work Order";
+    if (takeOrderHelperBtnText)
+      takeOrderHelperBtnText.textContent = isCurrentUserAdmin()
+        ? "Tambah Operator"
+        : "Ambil Work Order";
+    if (openSelectHelperOperatorModalBtn)
+      openSelectHelperOperatorModalBtn.classList.toggle(
+        "hidden",
+        !isCurrentUserAdmin(),
+      );
+    if (takeOrderSafetySection)
+      takeOrderSafetySection.classList.toggle("hidden", !isCurrentUserAdmin());
 
-    populateStandbyOperatorsInTakeOrderPopup();
+    if (isCurrentUserAdmin()) {
+      populateStandbyOperatorsInTakeOrderPopup();
+    } else {
+      const currentUser = members.find(
+        (m) => Number(m.id) === getCurrentUserId(),
+      );
+      const listDiv = document.getElementById("standbyOperatorsList");
+      listDiv.innerHTML = currentUser
+        ? `
+        <div class="selected-helper-item flex items-center gap-3 p-2 rounded-lg shadow-sm">
+          <img src="/static/public/${currentUser.avatar || "default-avatar.png"}" alt="${currentUser.name}" class="w-10 h-10 rounded-full object-cover">
+          <div class="selected-helper-copy flex-1 min-w-0">
+            <div class="selected-helper-name font-medium">${currentUser.name}</div>
+            <div class="selected-helper-role text-xs">Menunggu approval admin</div>
+          </div>
+        </div>`
+        : '<p class="text-gray-500 text-center py-4">Akun operator tidak ditemukan.</p>';
+    }
     populateSafetyChecklist(order.location);
     showAnimatedPopup(takeOrderPopup);
   }
@@ -1967,10 +2144,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   // FIX: Kirim Authorization header
   function confirmTakeOrder() {
     if (!currentOrder) return;
-    if (additionalOperators.length === 0) {
+    if (isCurrentUserAdmin() && additionalOperators.length === 0) {
       showPopup(
         "Peringatan",
-        "Pilih minimal satu operator untuk mengambil order ini.",
+        "Pilih minimal satu operator sebelum mulai progress.",
         "warning",
       );
       return;
@@ -1983,12 +2160,19 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (cb.checked) safetyChecklist.push(cb.id);
     });
 
-    const payload = {
-      order_id: currentOrder.id,
-      executors: additionalOperators,
-      safety_checklist_items: safetyChecklist,
-      status: "progress",
-    };
+    const payload = isCurrentUserAdmin()
+      ? {
+          order_id: currentOrder.id,
+          executors: additionalOperators,
+          safety_checklist_items: safetyChecklist,
+          status: "progress",
+        }
+      : {
+          order_id: currentOrder.id,
+          executors: [getCurrentUserId()],
+          safety_checklist_items: [],
+          status: "pending",
+        };
 
     fetch(`/api/workorders/${currentOrder.id}/take`, {
       method: "POST",
@@ -2001,17 +2185,22 @@ document.addEventListener("DOMContentLoaded", async function () {
         return r.text().then((text) => (text ? JSON.parse(text) : {}));
       })
       .then(() => {
-        // Simpan waktu mulai pengerjaan di localStorage untuk live counter
-        const timerKey = `order_timer_${currentOrder.id}`;
-        localStorage.setItem(timerKey, Date.now().toString());
+        if (isCurrentUserAdmin()) {
+          const timerKey = `order_timer_${currentOrder.id}`;
+          localStorage.setItem(timerKey, Date.now().toString());
+        }
         showPopup(
-          "Order Berhasil Diambil!",
-          `Berhasil mengambil order #${currentOrder.id}!`,
+          isCurrentUserAdmin()
+            ? "Work Order Dimulai"
+            : "Work Order Diambil",
+          isCurrentUserAdmin()
+            ? `Order #${currentOrder.id} mulai progress.`
+            : `Kamu sudah masuk ke order #${currentOrder.id}. Tunggu admin approve untuk mulai progress.`,
           "success",
         );
         hideAnimatedPopup(takeOrderPopup);
         resetTakeOrderForm();
-        setActiveWorkOrderStatus("progress");
+        setActiveWorkOrderStatus(isCurrentUserAdmin() ? "progress" : "pending");
         refreshAllDataFromAPI();
       })
       .catch((err) => {
