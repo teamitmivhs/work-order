@@ -265,7 +265,17 @@
                 object-fit: cover;
                 flex: 0 0 auto;
             }
-            .guest-proof-link img {
+            .guest-proof-btn {
+                display: block;
+                width: 100%;
+                padding: 0;
+                border: 0;
+                background: transparent;
+                text-align: left;
+                cursor: pointer;
+            }
+            .guest-proof-link img,
+            .guest-proof-btn img {
                 width: 100%;
                 max-height: 11rem;
                 border-radius: 0.75rem;
@@ -962,9 +972,39 @@
             </div>
         </div>
 
+        <div
+            id="guestPhotoModal"
+            class="hidden fixed inset-0 z-[90] bg-black/80 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guestPhotoTitle"
+        >
+            <div class="relative w-full max-w-4xl">
+                <p id="guestPhotoTitle" class="sr-only">Preview foto bukti</p>
+                <button
+                    id="closeGuestPhotoModal"
+                    type="button"
+                    class="absolute -top-12 right-0 text-white text-3xl leading-none hover:text-blue-200"
+                    aria-label="Tutup preview foto"
+                >
+                    &times;
+                </button>
+                <img
+                    id="guestPhotoModalImg"
+                    src=""
+                    alt="Foto bukti work order"
+                    class="w-full max-h-[82vh] rounded-xl bg-black object-contain shadow-2xl"
+                >
+            </div>
+        </div>
+
         <script>
-            const token = localStorage.getItem("userToken");
-            const isGuest = localStorage.getItem("isGuestUser") === "true";
+            const token =
+                sessionStorage.getItem("guestToken") ||
+                localStorage.getItem("userToken");
+            const isGuest =
+                sessionStorage.getItem("isGuestUser") === "true" ||
+                localStorage.getItem("isGuestUser") === "true";
 
             if (!token) window.location.replace("/login");
             if (token && !isGuest) window.location.replace("/index");
@@ -1135,9 +1175,9 @@
                 if (!photo)
                     return '<p class="guest-proof-empty">Belum ada foto bukti.</p>';
                 const src = `/static/public/${escapeHtml(photo)}`;
-                return `<a class="guest-proof-link block" href="${src}" target="_blank" rel="noopener">
+                return `<button type="button" class="guest-proof-btn photo-preview-btn" data-photo="${src}">
                     <img class="guest-proof-img" src="${src}" alt="Foto bukti work order">
-                </a>`;
+                </button>`;
             }
 
             function renderTrackCard(order) {
@@ -1251,6 +1291,19 @@
                 guestDetailModal.classList.add("hidden");
             }
 
+            function openGuestPhotoModal(src) {
+                if (!src) return;
+                document.getElementById("guestPhotoModalImg").src = src;
+                document
+                    .getElementById("guestPhotoModal")
+                    .classList.remove("hidden");
+            }
+
+            function closeGuestPhotoModal() {
+                document.getElementById("guestPhotoModal").classList.add("hidden");
+                document.getElementById("guestPhotoModalImg").src = "";
+            }
+
             document
                 .getElementById("closeTrackingCodeModal")
                 .addEventListener("click", closeTrackingCodeModal);
@@ -1289,6 +1342,15 @@
             guestDetailModal.addEventListener("click", (event) => {
                 if (event.target === guestDetailModal) closeGuestDetail();
             });
+            document
+                .getElementById("closeGuestPhotoModal")
+                .addEventListener("click", closeGuestPhotoModal);
+            document
+                .getElementById("guestPhotoModal")
+                .addEventListener("click", (event) => {
+                    if (event.target === document.getElementById("guestPhotoModal"))
+                        closeGuestPhotoModal();
+                });
 
             async function trackOrder(code) {
                 const trackingCode = normalizeTrackingCode(code);
@@ -1383,6 +1445,11 @@
                     showGuestOperatorsModal();
                     return;
                 }
+                const photoBtn = event.target.closest(".photo-preview-btn");
+                if (photoBtn) {
+                    openGuestPhotoModal(photoBtn.dataset.photo);
+                    return;
+                }
                 const btn = event.target.closest(".save-guest-note-btn");
                 if (btn) saveGuestNote(btn.dataset.code);
             });
@@ -1391,7 +1458,7 @@
                 (event) => {
                     if (!event.target.classList.contains("guest-proof-img"))
                         return;
-                    event.target.closest(".guest-proof-link").outerHTML =
+                    event.target.closest(".guest-proof-btn").outerHTML =
                         '<p class="text-sm text-gray-500">Foto bukti belum tersedia di server.</p>';
                 },
                 true,
@@ -1404,6 +1471,9 @@
                     localStorage.removeItem("guestLoginTime");
                     localStorage.removeItem("userToken");
                     localStorage.removeItem("isAdmin");
+                    sessionStorage.removeItem("isGuestUser");
+                    sessionStorage.removeItem("guestLoginTime");
+                    sessionStorage.removeItem("guestToken");
                     window.location.href = "/login";
                 });
 
