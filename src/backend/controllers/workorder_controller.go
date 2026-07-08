@@ -15,6 +15,7 @@ import (
 	"teamitmivhs/work-order-backend/middleware"
 	"teamitmivhs/work-order-backend/models"
 	"teamitmivhs/work-order-backend/repository"
+	"teamitmivhs/work-order-backend/services"
 	"teamitmivhs/work-order-backend/utils"
 
 	"github.com/gin-gonic/gin"
@@ -140,6 +141,8 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 		return
 	}
 
+	go services.NotifyNewWorkOrder(newID, req.Device, req.Location, req.Priority)
+
 	utils.RespondWithMessage(c, http.StatusCreated, "Work order created successfully", gin.H{
 		"id":           newID,
 		"trackingCode": req.TrackingCode,
@@ -226,8 +229,8 @@ func (ctrl *WorkOrderController) UpdateTrackedOrderNotesHandler(c *gin.Context) 
 // TakeOrderHandler: POST /api/workorders/{id}/take
 // Hanya member yang di-assign yang bisa take order
 func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
-	// Guest tidak boleh ambil order
-	if role, _ := middleware.GetUserRoleFromContext(c); role == "Guest" {
+	role, _ := middleware.GetUserRoleFromContext(c)
+	if role == "Guest" {
 		utils.Forbidden(c, "Guest hanya bisa membuat work order")
 		return
 	}
@@ -245,8 +248,26 @@ func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
 		return
 	}
 
+	if role != "Admin" {
+		userID, ok := middleware.GetUserIDFromContext(c)
+		if !ok || userID == 0 {
+			utils.Unauthorized(c, "User not found")
+			return
+		}
+		if err := ctrl.Repo.JoinPendingOrder(orderID, userID); err != nil {
+			utils.InternalServerError(c, "Failed to join work order", err)
+			return
+		}
+		utils.RespondWithMessage(c, http.StatusOK, "Operator added. Waiting for admin approval.", gin.H{"id": orderID})
+		return
+	}
+
 	if req.Status != "progress" {
 		utils.BadRequest(c, "Status must be 'progress' to take order")
+		return
+	}
+	if len(req.Executors) == 0 {
+		utils.BadRequest(c, "At least one executor is required")
 		return
 	}
 
@@ -450,6 +471,11 @@ func (ctrl *WorkOrderController) GetSafetyChecklistHandler(c *gin.Context) {
 
 // UpdateSafetyChecklistHandler: PUT /api/workorders/{id}/checklist
 func (ctrl *WorkOrderController) UpdateSafetyChecklistHandler(c *gin.Context) {
+	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
+		utils.Forbidden(c, "Only admins can update safety checklist")
+		return
+	}
+
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
@@ -527,6 +553,11 @@ func GetShiftDayCounterHandler(c *gin.Context) {
 // UpdateOrderHandler: PATCH /api/workorders/{id}
 // Update executor list untuk order yang masih pending
 func (ctrl *WorkOrderController) UpdateOrderHandler(c *gin.Context) {
+	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
+		utils.Forbidden(c, "Only admins can update work orders")
+		return
+	}
+
 	orderIDStr := c.Param("id")
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil {
