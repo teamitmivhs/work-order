@@ -2028,14 +2028,34 @@
        ═══════════════════════════════════════════════════════════════ -->
         <style>
             .main-nav {
+                --nav-bg: rgba(2, 6, 23, 0.86);
+                --nav-surface: rgba(15, 23, 42, 0.72);
+                --nav-surface-hover: rgba(30, 41, 59, 0.9);
+                --nav-border: rgba(148, 163, 184, 0.22);
+                --nav-fg: #f8fafc;
+                --nav-muted: #94a3b8;
+                --nav-accent: rgba(37, 99, 235, 0.16);
+                --nav-accent-fg: #dbeafe;
+                --nav-primary: #f8fafc;
+                --nav-primary-fg: #0f172a;
                 min-height: 68px;
-                background: linear-gradient(
-                    135deg,
-                    rgba(15, 23, 42, 0.98),
-                    rgba(30, 41, 59, 0.96)
-                );
-                border-bottom: 1px solid rgba(148, 163, 184, 0.14);
-                backdrop-filter: blur(18px);
+                background: var(--nav-bg);
+                border-bottom: 1px solid var(--nav-border);
+                box-shadow: none !important;
+                backdrop-filter: blur(16px);
+            }
+            html[data-theme="light"] .main-nav,
+            body[data-theme="light"] .main-nav {
+                --nav-bg: rgba(255, 255, 255, 0.82);
+                --nav-surface: rgba(255, 255, 255, 0.86);
+                --nav-surface-hover: rgba(241, 245, 249, 0.96);
+                --nav-border: rgba(203, 213, 225, 0.72);
+                --nav-fg: #0f172a;
+                --nav-muted: #64748b;
+                --nav-accent: rgba(15, 23, 42, 0.06);
+                --nav-accent-fg: #0f172a;
+                --nav-primary: #0f172a;
+                --nav-primary-fg: #f8fafc;
             }
             .nav-inner {
                 display: flex;
@@ -2079,7 +2099,7 @@
                 border-radius: 12px;
                 font-size: 0.8rem;
                 font-weight: 600;
-                color: rgba(226, 232, 240, 0.82);
+                color: var(--nav-muted);
                 transition:
                     background 0.2s,
                     color 0.2s,
@@ -2089,21 +2109,21 @@
                 white-space: nowrap;
                 position: relative;
                 border: 1px solid transparent;
-                background: rgba(255, 255, 255, 0.02);
+                background: transparent;
                 cursor: pointer;
                 text-decoration: none;
                 min-height: 40px;
             }
             .nav-pill:hover {
-                background: rgba(255, 255, 255, 0.09);
-                border-color: rgba(255, 255, 255, 0.1);
-                color: #fff;
+                background: var(--nav-accent);
+                border-color: var(--nav-border);
+                color: var(--nav-fg);
                 transform: translateY(-1px);
             }
             .nav-pill.active {
-                background: rgba(59, 130, 246, 0.25);
-                color: #93c5fd;
-                border: 1px solid rgba(59, 130, 246, 0.3);
+                background: var(--nav-surface);
+                color: var(--nav-fg);
+                border-color: var(--nav-border);
             }
             .nav-pill svg {
                 flex-shrink: 0;
@@ -2121,39 +2141,28 @@
 
             /* Create order — aksen biru */
             .nav-pill-create {
-                background: rgba(37, 99, 235, 0.18);
-                color: #bfdbfe;
-                border: 1px solid rgba(96, 165, 250, 0.34);
-                border-radius: 14px 14px 14px 6px;
+                background: var(--nav-primary);
+                color: var(--nav-primary-fg);
+                border: 1px solid transparent;
+                border-radius: 12px;
             }
             .nav-pill-create:hover {
-                background: rgba(37, 99, 235, 0.28);
-                color: #dbeafe;
+                background: var(--nav-primary);
+                color: var(--nav-primary-fg);
+                box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
                 transform: translateY(-1px);
             }
             .nav-pill-staff {
-                background: linear-gradient(
-                    135deg,
-                    rgba(37, 99, 235, 0.26),
-                    rgba(14, 165, 233, 0.16)
-                );
-                border-color: rgba(125, 211, 252, 0.32);
-                color: #dbeafe;
-                box-shadow:
-                    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-                    0 10px 28px rgba(37, 99, 235, 0.12);
-                border-radius: 14px 6px 14px 14px;
+                background: var(--nav-accent);
+                border-color: var(--nav-border);
+                color: var(--nav-accent-fg);
+                box-shadow: none;
+                border-radius: 12px;
             }
             .nav-pill-staff:hover {
-                background: linear-gradient(
-                    135deg,
-                    rgba(37, 99, 235, 0.38),
-                    rgba(14, 165, 233, 0.24)
-                );
-                border-color: rgba(147, 197, 253, 0.5);
-                box-shadow:
-                    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                    0 14px 32px rgba(37, 99, 235, 0.18);
+                background: var(--nav-surface-hover);
+                border-color: var(--nav-border);
+                box-shadow: none;
             }
 
             /* Profile card */
@@ -2164,9 +2173,9 @@
                 min-width: 220px;
                 max-width: 260px;
                 padding: 7px 12px 7px 7px;
-                border-radius: 18px;
-                background: rgba(15, 23, 42, 0.82);
-                border: 1px solid rgba(148, 163, 184, 0.24);
+                border-radius: 14px;
+                background: var(--nav-surface);
+                border: 1px solid var(--nav-border);
                 cursor: pointer;
                 transition:
                     background 0.2s,
@@ -2174,14 +2183,12 @@
                     box-shadow 0.2s,
                     transform 0.16s;
                 position: relative;
-                box-shadow:
-                    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-                    0 12px 26px rgba(2, 6, 23, 0.18);
+                box-shadow: none;
                 z-index: 1001;
             }
             .nav-profile-card:hover {
-                background: rgba(30, 41, 59, 0.92);
-                border-color: rgba(147, 197, 253, 0.42);
+                background: var(--nav-surface-hover);
+                border-color: var(--nav-border);
                 transform: translateY(-1px);
             }
             .nav-profile-text {
@@ -2197,18 +2204,16 @@
                 height: 28px !important;
                 box-sizing: border-box;
                 padding: 7px;
-                border-radius: 999px;
-                color: rgba(191, 219, 254, 0.86) !important;
-                background: rgba(255, 255, 255, 0.055);
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 10px;
+                color: var(--nav-muted) !important;
+                background: var(--nav-accent);
+                border: 1px solid transparent;
             }
             .nav-profile-card:hover .nav-profile-chevron {
-                background: rgba(59, 130, 246, 0.22);
-                border-color: rgba(147, 197, 253, 0.28);
-                color: #dbeafe !important;
+                color: var(--nav-fg) !important;
             }
             .nav-profile-name {
-                color: #fff;
+                color: var(--nav-fg);
                 font-size: 0.82rem;
                 font-weight: 700;
                 line-height: 1.1;
@@ -2217,7 +2222,7 @@
                 white-space: nowrap;
             }
             .nav-profile-role {
-                color: rgba(186, 230, 253, 0.78);
+                color: var(--nav-muted);
                 font-size: 0.68rem;
                 font-weight: 500;
                 line-height: 1;
@@ -2229,11 +2234,11 @@
                 top: 72px;
                 left: 24px;
                 min-width: 220px;
-                background: rgba(15, 23, 42, 0.98);
-                border: 1px solid rgba(148, 163, 184, 0.18);
-                border-radius: 16px;
+                background: var(--nav-surface);
+                border: 1px solid var(--nav-border);
+                border-radius: 14px;
                 overflow: hidden;
-                box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+                box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18);
                 z-index: 1002;
                 backdrop-filter: blur(18px);
                 opacity: 1;
@@ -2260,7 +2265,7 @@
                 width: 100%;
                 padding: 11px 16px;
                 font-size: 0.82rem;
-                color: rgba(255, 255, 255, 0.8);
+                color: var(--nav-muted);
                 background: transparent;
                 border: none;
                 cursor: pointer;
@@ -2271,17 +2276,33 @@
                     color 0.15s;
             }
             .nav-dropdown a:hover {
-                background: rgba(59, 130, 246, 0.2);
-                color: #93c5fd;
+                background: var(--nav-accent);
+                color: var(--nav-fg);
             }
             .nav-dropdown button:hover {
-                background: rgba(239, 68, 68, 0.2);
-                color: #fca5a5;
+                background: rgba(239, 68, 68, 0.12);
+                color: #ef4444;
             }
             .nav-dropdown .divider {
                 height: 1px;
-                background: rgba(255, 255, 255, 0.08);
+                background: var(--nav-border);
                 margin: 4px 0;
+            }
+            .nav-dropdown > div:first-child {
+                border-bottom-color: var(--nav-border) !important;
+            }
+            #dropdownName,
+            #dropdownStatus {
+                color: var(--nav-fg) !important;
+            }
+            #dropdownRole,
+            #statusLabel {
+                color: var(--nav-muted) !important;
+            }
+            #setStatusBtn {
+                background: var(--nav-primary) !important;
+                color: var(--nav-primary-fg) !important;
+                border-radius: 8px !important;
             }
             .profile-status-row {
                 margin-top: 8px;
@@ -2291,6 +2312,17 @@
                 grid-template-columns: minmax(0, 1fr) auto;
                 align-items: center;
                 gap: 10px;
+            }
+
+            .main-nav .theme-toggle-btn {
+                border-radius: 12px;
+                border-color: var(--nav-border);
+                background: var(--nav-surface);
+                color: var(--nav-muted);
+            }
+            .main-nav .theme-toggle-btn:hover {
+                background: var(--nav-surface-hover);
+                color: var(--nav-fg);
             }
             .profile-status-copy {
                 min-width: 0;
@@ -2394,13 +2426,13 @@
                     overflow-y: auto;
                     opacity: 0;
                     pointer-events: none;
-                    background: rgba(15, 23, 42, 0.98);
+                    background: var(--nav-surface);
                     padding: 12px;
                     gap: 8px;
                     z-index: 999;
-                    border: 1px solid rgba(148, 163, 184, 0.18);
-                    border-radius: 16px;
-                    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+                    border: 1px solid var(--nav-border);
+                    border-radius: 14px;
+                    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18);
                     transition:
                         opacity 0.16s ease,
                         transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
@@ -2416,12 +2448,15 @@
                     font-size: 0.85rem;
                     justify-content: flex-start;
                     width: 100%;
-                    background: rgba(255, 255, 255, 0.04);
-                    border-color: rgba(255, 255, 255, 0.08);
+                    background: transparent;
+                    border-color: transparent;
                 }
-                #navMenu.mobile-menu-active .nav-pill-create,
+                #navMenu.mobile-menu-active .nav-pill-create {
+                    background: var(--nav-primary);
+                    color: var(--nav-primary-fg);
+                }
                 #navMenu.mobile-menu-active .nav-pill-staff {
-                    background: rgba(37, 99, 235, 0.2);
+                    background: var(--nav-accent);
                 }
                 #navMenu .nav-sep {
                     display: none;
