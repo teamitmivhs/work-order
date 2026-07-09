@@ -345,7 +345,7 @@
     function getExecutorHtml(executors) {
       if (!executors || executors.length === 0) return '<span class="text-gray-400">-</span>';
       const executorIds = executors.map(Number);
-      let html = `<button type="button" class="executors-profile-btn flex -space-x-1" data-member-ids="${executorIds.join(',')}" title="Lihat pelaksana">`;
+      let html = `<button type="button" class="executors-profile-btn flex -space-x-1" data-member-ids="${executorIds.join(',')}" title="Lihat pelaksana" aria-label="Lihat pelaksana" onclick="event.stopPropagation(); openExecutorsModal(this.dataset.memberIds.split(','));">`;
       executorIds.forEach(id => {
         const m = getMemberById(id);
         if (m) html += `<img src="/static/public/${m.avatar || 'default-avatar.png'}" alt="${m.name}" title="${m.name}" class="member-avatar-small border-2 border-white rounded-full w-8 h-8 object-cover shadow-sm">`;
