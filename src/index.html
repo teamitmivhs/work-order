@@ -1149,7 +1149,7 @@
                 position: absolute;
                 right: -0.75rem;
                 bottom: 2rem;
-                border-radius: 999px;
+                border-radius: 1rem;
                 background: rgba(255, 255, 255, 0.92);
                 color: #0f172a;
                 border: 1px solid rgba(255, 255, 255, 0.68);
@@ -1166,8 +1166,16 @@
             }
 
             .hero-button {
-                border-radius: 999px !important;
+                border-radius: 1rem !important;
                 will-change: transform;
+            }
+
+            .hero-actions .hero-button:first-child {
+                border-radius: 1.15rem 1.15rem 1.15rem 0.45rem !important;
+            }
+
+            .hero-actions .hero-button:last-child {
+                border-radius: 1.15rem 0.45rem 1.15rem 1.15rem !important;
             }
 
             .hero-button:hover {
@@ -2068,7 +2076,7 @@
                 align-items: center;
                 gap: 6px;
                 padding: 8px 13px;
-                border-radius: 999px;
+                border-radius: 12px;
                 font-size: 0.8rem;
                 font-weight: 600;
                 color: rgba(226, 232, 240, 0.82);
@@ -2116,6 +2124,7 @@
                 background: rgba(37, 99, 235, 0.18);
                 color: #bfdbfe;
                 border: 1px solid rgba(96, 165, 250, 0.34);
+                border-radius: 14px 14px 14px 6px;
             }
             .nav-pill-create:hover {
                 background: rgba(37, 99, 235, 0.28);
@@ -2133,6 +2142,7 @@
                 box-shadow:
                     inset 0 1px 0 rgba(255, 255, 255, 0.08),
                     0 10px 28px rgba(37, 99, 235, 0.12);
+                border-radius: 14px 6px 14px 14px;
             }
             .nav-pill-staff:hover {
                 background: linear-gradient(
