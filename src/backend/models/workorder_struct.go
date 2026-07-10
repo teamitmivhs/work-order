@@ -4,6 +4,7 @@ type WorkOrder struct {
 	ID                 int      `json:"id"`
 	Priority           string   `json:"priority"`
 	Time               string   `json:"time"`
+	CreatedAt          string   `json:"createdAt,omitempty"`
 	StartedAt          string   `json:"startedAt,omitempty"`
 	ProgressSeconds    *int     `json:"progressSeconds,omitempty"`
 	TrackingCode       string   `json:"trackingCode,omitempty"`
