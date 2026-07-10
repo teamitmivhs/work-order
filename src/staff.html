@@ -110,6 +110,27 @@
             .header-actions {
                 align-items: center;
             }
+            .staff-header-inner {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto minmax(44px, 1fr);
+                align-items: center;
+                gap: 0.75rem;
+            }
+            .staff-back {
+                justify-self: start;
+            }
+            .staff-title {
+                min-width: 0;
+                text-align: center;
+            }
+            .staff-title h1 {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .staff-header-inner .header-actions {
+                justify-self: end;
+            }
             .action-btn {
                 border-radius: 0.55rem;
                 padding: 0.55rem 0.8rem;
@@ -232,20 +253,19 @@
                 }
                 .header-actions {
                     display: flex;
-                    flex-wrap: wrap;
+                    flex-wrap: nowrap;
                     gap: 0.5rem;
-                    width: 100%;
                 }
-                .header-actions .action-btn:not(#graduateBatchBtn) {
-                    flex: 1;
+                .staff-title p {
+                    display: none;
                 }
                 .header-actions #graduateBatchBtn {
-                    width: 100%;
-                    order: 10;
+                    width: auto;
+                    order: 0;
                 }
                 .header-actions .theme-toggle-btn {
                     flex: 0 0 44px;
-                    order: 5;
+                    order: 0;
                 }
                 .header-actions .action-btn {
                     min-height: 42px;
@@ -379,6 +399,9 @@
             [data-theme="dark"] td.px-5 {
                 color: var(--wo-text, #e5e7eb);
             }
+            [data-theme="dark"] .staff-back {
+                color: var(--wo-text, #e5e7eb) !important;
+            }
             /* Mobile cards */
             [data-theme="dark"] .mobile-card {
                 background: var(--wo-surface, #111827) !important;
@@ -494,9 +517,28 @@
     <body>
         <header class="page-header">
             <div
-                class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
+                class="staff-header-inner max-w-7xl mx-auto px-4 sm:px-6 py-4"
             >
-                <div>
+                <a
+                    href="/"
+                    class="staff-back subpage-back flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors min-h-[44px]"
+                >
+                    <svg
+                        class="w-5 h-5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7"
+                        ></path>
+                    </svg>
+                    <span class="text-sm font-medium">Kembali</span>
+                </a>
+                <div class="staff-title">
                     <p
                         class="text-xs uppercase tracking-wide text-blue-600 font-semibold"
                     >
@@ -507,11 +549,6 @@
                     </h1>
                 </div>
                 <div class="header-actions flex flex-wrap gap-2">
-                    <a
-                        href="/"
-                        class="action-btn bg-white border border-gray-300 text-gray-700"
-                        >Dashboard</a
-                    >
                     <button
                         id="graduateBatchBtn"
                         class="action-btn bg-gray-900 text-white"
