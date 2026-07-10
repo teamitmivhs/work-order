@@ -469,6 +469,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   const workOrderStatusTabs = document.querySelectorAll(
     ".work-order-status-tab",
   );
+  const workOrderSearchInput = document.getElementById("workOrderSearchInput");
+  const workOrderDateFilter = document.getElementById("workOrderDateFilter");
+  const clearWorkOrderFiltersBtn = document.getElementById(
+    "clearWorkOrderFilters",
+  );
   const heroPrimaryActionBtns = document.querySelectorAll(
     "[data-hero-primary-action]",
   );
@@ -491,6 +496,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   let currentStatusFilter = "all";
   let activeWorkOrderStatus = "pending";
+  let workOrderSearchQuery = "";
+  let workOrderDateQuery = "";
 
   function scrollToPendingWorkOrders() {
     setActiveWorkOrderStatus("pending");
@@ -1164,6 +1171,27 @@ document.addEventListener("DOMContentLoaded", async function () {
       setActiveWorkOrderStatus(tab.dataset.workOrderStatus || "pending");
     });
   });
+  if (workOrderSearchInput) {
+    workOrderSearchInput.addEventListener("input", () => {
+      workOrderSearchQuery = workOrderSearchInput.value;
+      populateWorkOrdersTable();
+    });
+  }
+  if (workOrderDateFilter) {
+    workOrderDateFilter.addEventListener("change", () => {
+      workOrderDateQuery = workOrderDateFilter.value;
+      populateWorkOrdersTable();
+    });
+  }
+  if (clearWorkOrderFiltersBtn) {
+    clearWorkOrderFiltersBtn.addEventListener("click", () => {
+      workOrderSearchQuery = "";
+      workOrderDateQuery = "";
+      if (workOrderSearchInput) workOrderSearchInput.value = "";
+      if (workOrderDateFilter) workOrderDateFilter.value = "";
+      populateWorkOrdersTable();
+    });
+  }
 
   // ===== STATUS CONTAINER CLICK =====
   statusContainers.forEach((container) => {
@@ -1772,16 +1800,49 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // ===== WORK ORDERS TABLE =====
+  function requesterName(order) {
+    return typeof order.requester === "string"
+      ? order.requester
+      : order.requester || "Unknown";
+  }
+
+  function orderDateKey(order) {
+    const raw = order.createdAt || order.completedAt || "";
+    return String(raw).slice(0, 10);
+  }
+
+  function matchesWorkOrderFilters(order) {
+    const query = workOrderSearchQuery.trim().toLowerCase();
+    const matchesText =
+      !query ||
+      [
+        order.id,
+        requesterName(order),
+        order.device,
+        order.location,
+        order.problem,
+        order.priority,
+        order.trackingCode,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    const matchesDate = !workOrderDateQuery || orderDateKey(order) === workOrderDateQuery;
+    return matchesText && matchesDate;
+  }
+
   function populateWorkOrdersTable() {
     workOrdersTableBody.innerHTML = "";
     updateWorkOrderCategoryTabs();
 
-    const sorted = [...workOrders].sort((a, b) => {
-      return (
-        ({ high: 0, medium: 1, low: 2 }[a.priority] ?? 3) -
-        ({ high: 0, medium: 1, low: 2 }[b.priority] ?? 3)
-      );
-    }).filter((order) => order.status === activeWorkOrderStatus);
+    const sorted = [...workOrders]
+      .filter((order) => order.status === activeWorkOrderStatus)
+      .filter(matchesWorkOrderFilters)
+      .sort((a, b) => {
+        return (
+          ({ high: 0, medium: 1, low: 2 }[a.priority] ?? 3) -
+          ({ high: 0, medium: 1, low: 2 }[b.priority] ?? 3)
+        );
+      });
 
     if (sorted.length === 0) {
       workOrdersTableBody.innerHTML = `<tr><td colspan="11" class="py-8 px-2 text-center text-sm text-gray-400">Tidak ada work order ${workOrderStatusText(activeWorkOrderStatus)}.</td></tr>`;
@@ -1809,10 +1870,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       }</span>`;
 
       // Requester — backend sekarang selalu string, tapi handle juga fallback number
-      const requesterName =
-        typeof order.requester === "string"
-          ? order.requester
-          : order.requester || "Unknown";
+      const requester = requesterName(order);
 
       const executorIds = (order.executors || []).map(Number);
       let executorsHtml = `<button type="button" class="executors-profile-btn flex -space-x-2" data-member-ids="${executorIds.join(",")}" title="Lihat pelaksana">`;
@@ -1864,7 +1922,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         <td class="py-3 px-2 text-sm">${order.id}</td>
         <td class="py-3 px-2 text-sm">${priorityBadge}</td>
         <td class="py-3 px-2 text-sm">${order.time || "-"}</td>
-        <td class="py-3 px-2 text-sm">${requesterName}</td>
+        <td class="py-3 px-2 text-sm">${requester}</td>
         <td class="py-3 px-2 text-sm">${order.location || "-"}</td>
         <td class="py-3 px-2 text-sm">${order.device || "-"}</td>
         <td class="py-3 px-2 text-sm">${order.problem || "-"}</td>
