@@ -20,6 +20,17 @@
                         localStorage.getItem("theme") ||
                         "light";
                     document.documentElement.setAttribute("data-theme", theme);
+                    if (localStorage.getItem("userToken")) {
+                        window.location.replace("/index");
+                        return;
+                    }
+                    if (
+                        sessionStorage.getItem("guestToken") ||
+                        sessionStorage.getItem("isGuestUser") === "true" ||
+                        localStorage.getItem("isGuestUser") === "true"
+                    ) {
+                        window.location.replace("/guest");
+                    }
                 } catch (e) {}
             })();
         </script>
