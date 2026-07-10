@@ -121,6 +121,7 @@
             }
             .staff-title {
                 min-width: 0;
+                max-width: min(42vw, 22rem);
                 text-align: center;
             }
             .staff-title h1 {
@@ -251,10 +252,23 @@
                     top: 0;
                     z-index: 30;
                 }
+                .staff-header-inner {
+                    grid-template-columns: auto minmax(0, 1fr) auto;
+                    gap: 0.5rem;
+                    padding-left: 0.75rem !important;
+                    padding-right: 0.75rem !important;
+                }
+                .staff-title {
+                    max-width: none;
+                }
+                .staff-title h1 {
+                    font-size: 1.05rem !important;
+                    line-height: 1.15;
+                }
                 .header-actions {
                     display: flex;
                     flex-wrap: nowrap;
-                    gap: 0.5rem;
+                    gap: 0.4rem;
                 }
                 .staff-title p {
                     display: none;
@@ -262,6 +276,8 @@
                 .header-actions #graduateBatchBtn {
                     width: auto;
                     order: 0;
+                    padding-inline: 0.65rem;
+                    font-size: 0.72rem;
                 }
                 .header-actions .theme-toggle-btn {
                     flex: 0 0 44px;
@@ -303,6 +319,14 @@
                 .content-panel {
                     border-radius: 0.7rem;
                     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+                }
+            }
+            @media (max-width: 520px) {
+                .staff-back span {
+                    display: none;
+                }
+                .header-actions #graduateBatchBtn {
+                    display: none;
                 }
             }
             @media (prefers-reduced-motion: reduce) {
