@@ -258,6 +258,16 @@ func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
 			utils.InternalServerError(c, "Failed to join work order", err)
 			return
 		}
+		operatorName := fmt.Sprintf("Operator #%d", userID)
+		if member, err := ctrl.MemberRepo.GetMemberByID(userID); err == nil && member.Name != "" {
+			operatorName = member.Name
+		}
+		go services.NotifyWorkOrderAdmins(
+			"Approval work order menunggu",
+			fmt.Sprintf("%s mengambil work order #%d. Approve untuk mulai progress.", operatorName, orderID),
+			orderID,
+			nil,
+		)
 		utils.RespondWithMessage(c, http.StatusOK, "Operator added. Waiting for admin approval.", gin.H{"id": orderID})
 		return
 	}
@@ -278,6 +288,14 @@ func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
 		utils.InternalServerError(c, "Failed to take order", err)
 		return
 	}
+
+	go services.NotifyWorkOrderUsers(
+		req.Executors,
+		"Work order mulai progress",
+		fmt.Sprintf("Work order #%d sudah di-approve dan mulai progress.", orderID),
+		orderID,
+		nil,
+	)
 
 	utils.RespondWithMessage(c, http.StatusOK, "Order taken successfully", gin.H{"id": orderID})
 }
@@ -352,6 +370,13 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 		utils.InternalServerError(c, "Failed to complete order", err)
 		return
 	}
+
+	go services.NotifyWorkOrderBroadcast(
+		"Work order selesai",
+		fmt.Sprintf("Work order #%d sudah ditandai selesai.", orderID),
+		orderID,
+		nil,
+	)
 
 	utils.RespondWithMessage(c, http.StatusOK, "Order completed successfully", gin.H{"id": orderID})
 }
@@ -576,6 +601,14 @@ func (ctrl *WorkOrderController) UpdateOrderHandler(c *gin.Context) {
 		utils.InternalServerError(c, "Failed to update order", err)
 		return
 	}
+
+	go services.NotifyWorkOrderUsers(
+		req.Executors,
+		"Ditambahkan ke work order",
+		fmt.Sprintf("Kamu ditambahkan ke work order #%d.", orderID),
+		orderID,
+		nil,
+	)
 
 	utils.RespondWithMessage(c, http.StatusOK, "Order updated successfully", gin.H{"id": orderID})
 }
