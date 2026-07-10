@@ -448,6 +448,7 @@
             }
 
             .member-control {
+                position: relative;
                 display: flex;
                 align-items: center;
                 justify-content: flex-end;
@@ -460,7 +461,6 @@
             }
 
             .status-menu {
-                position: relative;
                 width: 44px;
                 height: 40px;
                 display: inline-flex;
@@ -469,21 +469,18 @@
                 border: 1px solid var(--shift-border);
                 border-radius: 12px;
                 background: var(--shift-panel);
+                color: #94a3b8;
+                cursor: pointer;
                 transition:
                     border-color 0.2s ease,
                     box-shadow 0.2s ease,
                     transform 0.2s ease;
             }
 
-            .status-menu::after {
-                content: "";
+            .status-menu svg {
                 width: 18px;
                 height: 18px;
-                background: currentColor;
-                color: #94a3b8;
-                pointer-events: none;
-                -webkit-mask: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 10l4 4 4-4' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
-                mask: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 10l4 4 4-4' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+                display: block;
             }
 
             .status-menu:hover {
@@ -491,31 +488,59 @@
                 transform: translateY(-1px);
             }
 
-            .status-menu:focus-within {
+            .status-menu:focus-visible,
+            .status-menu[aria-expanded="true"] {
                 border-color: var(--shift-primary);
                 box-shadow: 0 0 0 3px var(--shift-primary-soft);
-            }
-
-            .status-select {
-                appearance: none;
-                position: absolute;
-                inset: 0;
-                width: 44px;
-                height: 40px;
-                min-height: 40px;
-                border: 0;
-                background: transparent;
-                cursor: pointer;
-                font-size: 0;
-                opacity: 0;
-                padding: 0;
                 outline: none;
             }
 
-            .status-select option {
-                color: var(--shift-text);
+            .status-menu-panel {
+                position: absolute;
+                top: calc(100% + 8px);
+                right: 0;
+                z-index: 30;
+                min-width: 136px;
+                padding: 6px;
+                border: 1px solid var(--shift-border);
+                border-radius: 12px;
                 background: var(--shift-panel);
+                box-shadow: var(--shift-shadow);
+            }
+
+            .status-menu-panel[hidden] {
+                display: none;
+            }
+
+            .status-option {
+                width: 100%;
+                min-height: 34px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                border: 0;
+                border-radius: 8px;
+                background: transparent;
+                color: var(--shift-text);
+                cursor: pointer;
                 font-size: 0.85rem;
+                font-weight: 700;
+                padding: 0 9px;
+                text-align: left;
+            }
+
+            .status-option:hover,
+            .status-option:focus-visible {
+                background: var(--shift-panel-soft);
+                outline: none;
+            }
+
+            .status-option::before {
+                content: "";
+                width: 8px;
+                height: 8px;
+                border-radius: 999px;
+                background: var(--dot-color);
             }
 
             .access-panel,
@@ -1314,7 +1339,7 @@
                 const options = statusMeta
                     .map(
                         (status) =>
-                            `<option value="${status.key}" ${member.status === status.key ? "selected" : ""}>${status.label}</option>`,
+                            `<button class="status-option" type="button" role="menuitem" data-status-member="${member.id}" data-status-value="${status.key}" style="--dot-color:${status.color}">${status.label}</button>`,
                     )
                     .join("");
                 return `
@@ -1328,11 +1353,14 @@
                             </div>
                         </div>
                         <div class="member-control">
-                            <span class="status-menu">
-                                <select class="status-select" data-status-member="${member.id}" aria-label="Ubah status ${escapeHtml(member.name)}" title="Ubah status ${escapeHtml(member.name)}">
-                                    ${options}
-                                </select>
-                            </span>
+                            <button class="status-menu" type="button" data-status-menu="${member.id}" aria-label="Ubah status ${escapeHtml(member.name)}" aria-haspopup="menu" aria-expanded="false">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M8 10l4 4 4-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                            <div class="status-menu-panel" data-status-panel="${member.id}" role="menu" hidden>
+                                ${options}
+                            </div>
                         </div>
                     </article>
                 `;
@@ -1516,6 +1544,15 @@
                 showToast("Next Shift dipindahkan ke Stand By.");
             }
 
+            function closeStatusMenus() {
+                document.querySelectorAll("[data-status-panel]").forEach((panel) => {
+                    panel.hidden = true;
+                });
+                document.querySelectorAll("[data-status-menu]").forEach((button) => {
+                    button.setAttribute("aria-expanded", "false");
+                });
+            }
+
             function bindEvents() {
                 document
                     .getElementById("themeToggle")
@@ -1567,22 +1604,43 @@
                     });
                 document
                     .getElementById("statusBoard")
-                    .addEventListener("change", async (event) => {
-                        const select = event.target.closest(
-                            "[data-status-member]",
+                    .addEventListener("click", async (event) => {
+                        const menuButton = event.target.closest(
+                            "[data-status-menu]",
                         );
-                        if (select) {
-                            select.disabled = true;
+                        if (menuButton) {
+                            const panel = document.querySelector(
+                                `[data-status-panel="${menuButton.dataset.statusMenu}"]`,
+                            );
+                            const isOpen = menuButton.getAttribute(
+                                "aria-expanded",
+                            ) === "true";
+                            closeStatusMenus();
+                            if (panel && !isOpen) {
+                                panel.hidden = false;
+                                menuButton.setAttribute(
+                                    "aria-expanded",
+                                    "true",
+                                );
+                            }
+                            return;
+                        }
+
+                        const option = event.target.closest(
+                            "[data-status-value]",
+                        );
+                        if (option) {
+                            option.disabled = true;
                             try {
                                 await updateStatus(
-                                    Number(select.dataset.statusMember),
-                                    select.value,
+                                    Number(option.dataset.statusMember),
+                                    option.dataset.statusValue,
                                 );
                                 showToast("Status diperbarui.");
                             } catch (error) {
                                 showToast(error.message);
                             } finally {
-                                select.disabled = false;
+                                option.disabled = false;
                             }
                             return;
                         }
@@ -1596,6 +1654,11 @@
                             else state.selected.delete(id);
                         }
                     });
+                document.addEventListener("click", (event) => {
+                    if (!event.target.closest(".member-control")) {
+                        closeStatusMenus();
+                    }
+                });
                 document
                     .getElementById("mobileStatusFilter")
                     .addEventListener("change", (event) => {
