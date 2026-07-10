@@ -1,4 +1,4 @@
-const DEFAULT_NOTIFICATION_URL = '/index';
+const DEFAULT_NOTIFICATION_URL = '/';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
