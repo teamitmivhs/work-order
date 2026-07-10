@@ -877,7 +877,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       tag: `work-order-${order && order.id ? order.id : "incoming"}`,
       renotify: true,
       data: {
-        url: "/index",
+        url: "/",
         workOrderId: order && order.id ? order.id : null,
       },
     };
