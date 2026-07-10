@@ -112,7 +112,7 @@
             }
             .staff-header-inner {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) auto minmax(44px, 1fr);
+                grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
                 align-items: center;
                 gap: 0.75rem;
             }
@@ -131,6 +131,20 @@
             }
             .staff-header-inner .header-actions {
                 justify-self: end;
+            }
+            @media (max-width: 1024px) {
+                .staff-header-inner {
+                    grid-template-columns: auto minmax(0, 1fr) auto;
+                }
+                .staff-title {
+                    max-width: none;
+                }
+                .staff-title h1 {
+                    font-size: 1.35rem;
+                }
+                .header-actions #graduateBatchBtn {
+                    display: none;
+                }
             }
             .action-btn {
                 border-radius: 0.55rem;
