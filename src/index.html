@@ -4435,6 +4435,32 @@
                     </button>
                 </div>
 
+                <div
+                    class="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-2 mb-4"
+                    aria-label="Filter work order"
+                >
+                    <input
+                        id="workOrderSearchInput"
+                        type="search"
+                        class="co-input"
+                        placeholder="Cari requester, device, lokasi, atau masalah..."
+                        autocomplete="off"
+                    />
+                    <input
+                        id="workOrderDateFilter"
+                        type="date"
+                        class="co-input md:w-44"
+                        aria-label="Filter tanggal work order"
+                    />
+                    <button
+                        id="clearWorkOrderFilters"
+                        type="button"
+                        class="px-4 py-2 rounded-xl border border-gray-300 text-sm font-semibold hover:border-blue-500"
+                    >
+                        Reset
+                    </button>
+                </div>
+
                 <!-- Desktop table — hidden di mobile -->
                 <div
                     class="table-desktop table-container overflow-x-auto -mx-3 md:-mx-6 px-3 md:px-6"
