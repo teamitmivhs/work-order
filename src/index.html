@@ -2321,7 +2321,7 @@
             .profile-status-row {
                 margin-top: 8px;
                 padding-top: 8px;
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                border-top: 1px solid var(--nav-border);
                 display: grid;
                 grid-template-columns: minmax(0, 1fr) auto;
                 align-items: center;
@@ -2396,6 +2396,50 @@
                 color: #fde68a;
                 background: rgba(180, 83, 9, 0.18);
                 border-color: rgba(251, 191, 36, 0.34);
+            }
+            html[data-theme="light"] .profile-division-badge,
+            body[data-theme="light"] .profile-division-badge {
+                color: #475569;
+                background: #f8fafc;
+                border-color: #cbd5e1;
+            }
+            html[data-theme="light"] .profile-division-badge.division-programmer,
+            body[data-theme="light"] .profile-division-badge.division-programmer {
+                color: #1d4ed8;
+                background: #eff6ff;
+                border-color: #bfdbfe;
+            }
+            html[data-theme="light"] .profile-division-badge.division-data,
+            html[data-theme="light"] .profile-division-badge.division-analyst,
+            body[data-theme="light"] .profile-division-badge.division-data,
+            body[data-theme="light"] .profile-division-badge.division-analyst {
+                color: #6d28d9;
+                background: #f5f3ff;
+                border-color: #ddd6fe;
+            }
+            html[data-theme="light"] .profile-division-badge.division-network,
+            html[data-theme="light"] .profile-division-badge.division-server,
+            body[data-theme="light"] .profile-division-badge.division-network,
+            body[data-theme="light"] .profile-division-badge.division-server {
+                color: #0e7490;
+                background: #ecfeff;
+                border-color: #a5f3fc;
+            }
+            html[data-theme="light"] .profile-division-badge.division-design,
+            html[data-theme="light"] .profile-division-badge.division-ui,
+            body[data-theme="light"] .profile-division-badge.division-design,
+            body[data-theme="light"] .profile-division-badge.division-ui {
+                color: #be185d;
+                background: #fdf2f8;
+                border-color: #fbcfe8;
+            }
+            html[data-theme="light"] .profile-division-badge.division-sound,
+            html[data-theme="light"] .profile-division-badge.division-multimedia,
+            body[data-theme="light"] .profile-division-badge.division-sound,
+            body[data-theme="light"] .profile-division-badge.division-multimedia {
+                color: #92400e;
+                background: #fffbeb;
+                border-color: #fde68a;
             }
             .profile-drawer-backdrop {
                 display: none;
