@@ -116,6 +116,12 @@ func setupPageRoutes(r *gin.Engine) {
 	r.GET("/", func(c *gin.Context) {
 		c.File("../index.html")
 	})
+	r.GET("/index", func(c *gin.Context) {
+		c.Redirect(301, "/")
+	})
+	r.GET("/index.html", func(c *gin.Context) {
+		c.Redirect(301, "/")
+	})
 
 	// TechGuide page
 	r.GET("/techguide", func(c *gin.Context) {
@@ -164,6 +170,8 @@ func setupPageRoutes(r *gin.Engine) {
 			c.File("../staff.html")
 		case "/shift.html":
 			c.File("../shift.html")
+		case "/index.html":
+			c.Redirect(301, "/")
 		case "/techguide.html":
 			c.File("../techguide.html")
 		case "/summary.html":
