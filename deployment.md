@@ -139,7 +139,7 @@ Cek status:
 podman ps
 curl -I http://localhost:4323
 curl -I http://localhost:4323/login
-curl -I http://localhost:4323/index
+curl -I http://localhost:4323/
 ```
 
 Kalau ingin expose langsung ke jaringan lokal:
@@ -154,7 +154,7 @@ Kalau nanti ingin final production yang lebih rapi, pindahkan nginx ke port `80`
 
 Seluruh navigasi browser harus memakai clean URL:
 
-- `/index`
+- `/`
 - `/login`
 - `/register`
 - `/guest`
