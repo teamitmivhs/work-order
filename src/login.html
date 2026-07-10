@@ -21,7 +21,7 @@
                         "light";
                     document.documentElement.setAttribute("data-theme", theme);
                     if (localStorage.getItem("userToken")) {
-                        window.location.replace("/index");
+                        window.location.replace("/");
                         return;
                     }
                     if (
@@ -515,7 +515,7 @@
                                 );
                                 showModal("Login berhasil! Mengalihkan...");
                                 setTimeout(() => {
-                                    window.location.href = "/index";
+                                    window.location.href = "/";
                                 }, 1000);
                             } else {
                                 showModal(
