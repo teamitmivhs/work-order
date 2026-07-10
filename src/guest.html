@@ -1007,7 +1007,7 @@
                 localStorage.getItem("isGuestUser") === "true";
 
             if (!token) window.location.replace("/login");
-            if (token && !isGuest) window.location.replace("/index");
+            if (token && !isGuest) window.location.replace("/");
 
             const form = document.getElementById("guestOrderForm");
             const toast = document.getElementById("guestToast");
