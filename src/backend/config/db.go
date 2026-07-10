@@ -120,6 +120,7 @@ func runMigrations(dbName string) error {
 		{"members", "RegisteredAt", "ALTER TABLE members ADD COLUMN RegisteredAt datetime NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER CanHandleWorkOrder"},
 		{"members", "ApprovedAt", "ALTER TABLE members ADD COLUMN ApprovedAt datetime DEFAULT NULL AFTER RegisteredAt"},
 		{"members", "ApprovedBy", "ALTER TABLE members ADD COLUMN ApprovedBy int DEFAULT NULL AFTER ApprovedAt"},
+		{"orders", "CreatedAt", "ALTER TABLE orders ADD COLUMN CreatedAt datetime DEFAULT NULL AFTER ID"},
 		{"orders", "TrackingCode", "ALTER TABLE orders ADD COLUMN TrackingCode varchar(20) DEFAULT NULL AFTER OrderNumber"},
 		{"orders", "StartedAt", "ALTER TABLE orders ADD COLUMN StartedAt datetime DEFAULT NULL AFTER TimeSort"},
 		{"orders", "Rating", "ALTER TABLE orders ADD COLUMN Rating tinyint DEFAULT NULL AFTER Notes"},
