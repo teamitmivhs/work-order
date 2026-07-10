@@ -60,11 +60,11 @@ const progressTimerSelect = `
 // scanWorkOrderRow adalah helper untuk menghindari duplikasi scan di endpoint list work order.
 func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	var wo models.WorkOrder
-	var priority, timeDisplay, startedAt, trackingCode, requester, location, device, problem, workingHours, status, completedAt, notes, adminNotes, documentationPhoto sql.NullString
+	var priority, timeDisplay, createdAt, startedAt, trackingCode, requester, location, device, problem, workingHours, status, completedAt, notes, adminNotes, documentationPhoto sql.NullString
 	var progressSeconds, rating, notesQuality sql.NullInt64
 
 	err := rows.Scan(
-		&wo.ID, &priority, &timeDisplay, &startedAt, &progressSeconds, &trackingCode, &requester, &location,
+		&wo.ID, &priority, &timeDisplay, &createdAt, &startedAt, &progressSeconds, &trackingCode, &requester, &location,
 		&device, &problem, &workingHours, &status, &completedAt, &notes, &adminNotes, &rating, &notesQuality, &documentationPhoto,
 	)
 	if err != nil {
@@ -76,6 +76,9 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	}
 	if timeDisplay.Valid {
 		wo.Time = timeDisplay.String
+	}
+	if createdAt.Valid {
+		wo.CreatedAt = createdAt.String
 	}
 	if startedAt.Valid {
 		wo.StartedAt = startedAt.String
@@ -135,7 +138,8 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 // GetAllTasks mengambil semua work orders dari database
 func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 	query := `
-		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,` + progressTimerSelect + `,
+		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,
+		       DATE_FORMAT(COALESCE(o.CreatedAt, TIMESTAMP(CURDATE(), o.TimeSort)), '%Y-%m-%d %H:%i:%s') AS CreatedAt,` + progressTimerSelect + `,
 		       o.TrackingCode,
 		       o.Requester, o.Location, o.Device, o.Problem, o.WorkingHours, o.Status,
 		       o.CompletedAt, o.Notes, o.AdminNotes, o.Rating, o.NotesQuality, o.DocumentationPhoto
@@ -181,7 +185,8 @@ func (r *workOrderRepository) GetAllTasks() ([]models.WorkOrder, error) {
 // - order progress/completed yang memang ditugaskan ke operator tersebut
 func (r *workOrderRepository) GetTasksForOperator(operatorID int) ([]models.WorkOrder, error) {
 	query := `
-		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,` + progressTimerSelect + `,
+		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,
+		       DATE_FORMAT(COALESCE(o.CreatedAt, TIMESTAMP(CURDATE(), o.TimeSort)), '%Y-%m-%d %H:%i:%s') AS CreatedAt,` + progressTimerSelect + `,
 		       o.TrackingCode,
 		       o.Requester, o.Location, o.Device, o.Problem, o.WorkingHours, o.Status,
 		       o.CompletedAt, o.Notes, o.AdminNotes, o.Rating, o.NotesQuality, o.DocumentationPhoto
@@ -228,7 +233,8 @@ func (r *workOrderRepository) GetTasksForOperator(operatorID int) ([]models.Work
 
 func (r *workOrderRepository) GetTaskByTrackingCode(trackingCode string) (models.WorkOrder, error) {
 	query := `
-		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,` + progressTimerSelect + `,
+		SELECT DISTINCT o.ID, o.Priority, o.TimeDisplay,
+		       DATE_FORMAT(COALESCE(o.CreatedAt, TIMESTAMP(CURDATE(), o.TimeSort)), '%Y-%m-%d %H:%i:%s') AS CreatedAt,` + progressTimerSelect + `,
 		       o.TrackingCode,
 		       o.Requester, o.Location, o.Device, o.Problem, o.WorkingHours, o.Status,
 		       o.CompletedAt, o.Notes, o.AdminNotes, o.Rating, o.NotesQuality, o.DocumentationPhoto
@@ -434,8 +440,8 @@ func (r *workOrderRepository) CreateTask(task models.WorkOrderRequest) (int64, e
 
 	result, err := tx.Exec(
 		`INSERT INTO orders
-		(Priority, TimeDisplay, TimeSort, TrackingCode, Requester, Location, Device, Problem, WorkingHours, Status)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		(CreatedAt, Priority, TimeDisplay, TimeSort, TrackingCode, Requester, Location, Device, Problem, WorkingHours, Status)
+		VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		task.Priority, task.TimeDisplay, task.TimeSort, task.TrackingCode, task.Requester,
 		task.Location, task.Device, task.Problem, task.WorkingHours, task.Status,
 	)
