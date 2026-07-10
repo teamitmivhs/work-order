@@ -120,7 +120,7 @@ func NotifyNewWorkOrder(orderID int64, device, location, priority string) {
 	payload, _ := json.Marshal(map[string]any{
 		"title":       "Work order baru masuk",
 		"body":        body,
-		"url":         "/index",
+		"url":         "/",
 		"workOrderId": orderID,
 		"priority":    priority,
 	})
