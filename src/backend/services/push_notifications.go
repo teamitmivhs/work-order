@@ -101,6 +101,37 @@ func DeletePushSubscription(endpoint string) error {
 }
 
 func NotifyNewWorkOrder(orderID int64, device, location, priority string) {
+	body := fmt.Sprintf("#%d %s - %s", orderID, fallback(device, "Device"), fallback(location, "Lokasi belum diisi"))
+	NotifyWorkOrderBroadcast("Work order baru masuk", body, orderID, map[string]any{
+		"priority": priority,
+	})
+}
+
+func NotifyWorkOrderBroadcast(title, body string, orderID int64, extra map[string]any) {
+	notifyWorkOrder(title, body, orderID, extra, "")
+}
+
+func NotifyWorkOrderAdmins(title, body string, orderID int64, extra map[string]any) {
+	notifyWorkOrder(title, body, orderID, extra, "admin")
+}
+
+func NotifyWorkOrderUsers(userIDs []int, title, body string, orderID int64, extra map[string]any) {
+	if len(userIDs) == 0 {
+		return
+	}
+	ids := make(map[int]bool, len(userIDs))
+	for _, id := range userIDs {
+		if id > 0 {
+			ids[id] = true
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+	notifyWorkOrder(title, body, orderID, extra, "users", ids)
+}
+
+func notifyWorkOrder(title, body string, orderID int64, extra map[string]any, target string, userIDs ...map[int]bool) {
 	if vapidPublicKey == "" || vapidPrivateKey == "" {
 		return
 	}
@@ -109,27 +140,43 @@ func NotifyNewWorkOrder(orderID int64, device, location, priority string) {
 		return
 	}
 
-	rows, err := db.Query("SELECT ID, Endpoint, P256DH, Auth FROM push_subscriptions")
+	rows, err := db.Query(`
+		SELECT ps.ID, ps.UserID, ps.Endpoint, ps.P256DH, ps.Auth, COALESCE(m.Role, '')
+		FROM push_subscriptions ps
+		JOIN members m ON m.ID = ps.UserID
+	`)
 	if err != nil {
 		log.Printf("[WARNING] failed to query push subscriptions: %v", err)
 		return
 	}
 	defer rows.Close()
 
-	body := fmt.Sprintf("#%d %s - %s", orderID, fallback(device, "Device"), fallback(location, "Lokasi belum diisi"))
-	payload, _ := json.Marshal(map[string]any{
+	payloadMap := map[string]any{
 		"title":       "Work order baru masuk",
 		"body":        body,
 		"url":         "/",
 		"workOrderId": orderID,
-		"priority":    priority,
-	})
+	}
+	for key, value := range extra {
+		payloadMap[key] = value
+	}
+	if title != "" {
+		payloadMap["title"] = title
+	}
+	payload, _ := json.Marshal(payloadMap)
 
 	for rows.Next() {
 		var id int64
-		var endpoint, p256dh, auth string
-		if err := rows.Scan(&id, &endpoint, &p256dh, &auth); err != nil {
+		var userID int
+		var endpoint, p256dh, auth, role string
+		if err := rows.Scan(&id, &userID, &endpoint, &p256dh, &auth, &role); err != nil {
 			log.Printf("[WARNING] failed to scan push subscription: %v", err)
+			continue
+		}
+		if target == "admin" && role != "Admin" {
+			continue
+		}
+		if target == "users" && (len(userIDs) == 0 || !userIDs[0][userID]) {
 			continue
 		}
 		sendPush(id, endpoint, p256dh, auth, payload)
