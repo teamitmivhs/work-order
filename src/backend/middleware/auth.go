@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"strings"
+	"teamitmivhs/work-order-backend/repository"
 	"teamitmivhs/work-order-backend/utils"
 
 	"github.com/gin-gonic/gin"
@@ -32,10 +33,28 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Simpan claims di context untuk dipakai controller
+		memberRepo := repository.NewMemberRepository()
+		member, err := memberRepo.GetMemberByID(claims.ID)
+		if err != nil || member == nil {
+			utils.Unauthorized(c, "User is no longer active")
+			c.Abort()
+			return
+		}
+		if member.AccountStatus != "" && member.AccountStatus != "active" {
+			utils.Forbidden(c, "User account is not active")
+			c.Abort()
+			return
+		}
+		if member.MembershipStatus == "alumni" || member.MembershipStatus == "inactive" {
+			utils.Forbidden(c, "User account is no longer active")
+			c.Abort()
+			return
+		}
+
+		// Ambil role terbaru dari DB agar token lama tidak tetap membawa privilege.
 		c.Set("user_id", claims.ID)
-		c.Set("user_name", claims.Name)
-		c.Set("user_role", claims.Role)
+		c.Set("user_name", member.Name)
+		c.Set("user_role", member.Role)
 
 		c.Next()
 	}
