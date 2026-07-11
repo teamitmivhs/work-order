@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -26,10 +28,15 @@ func getJWTSecret() []byte {
 	jwtSecretOnce.Do(func() {
 		secret := os.Getenv("JWT_SECRET")
 		if secret == "" {
-			// FIX: log WARNING yang jelas agar tidak luput di production
 			log.Println("[WARNING] JWT_SECRET environment variable is not set. " +
-				"Using default secret — this is UNSAFE in production!")
-			secret = "your-secret-key-change-in-production-12345"
+				"Using random process-local secret. Existing tokens will expire on restart.")
+			buf := make([]byte, 32)
+			if _, err := rand.Read(buf); err != nil {
+				log.Printf("[ERROR] failed to generate random JWT secret: %v", err)
+				secret = fmt.Sprintf("fallback-%d", time.Now().UnixNano())
+			} else {
+				secret = hex.EncodeToString(buf)
+			}
 		}
 		jwtSecret = []byte(secret)
 	})
