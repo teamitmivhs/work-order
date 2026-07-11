@@ -388,6 +388,10 @@
                 background: #dcfce7;
                 color: #166534;
             }
+            .badge-status-rejected {
+                background: #fee2e2;
+                color: #991b1b;
+            }
             .badge-status {
                 font-size: 0.65rem;
                 font-weight: 600;
@@ -1646,6 +1650,10 @@
 
             .status-dot-completed {
                 background: #22c55e;
+            }
+
+            .status-dot-rejected {
+                background: #ef4444;
             }
 
             .work-order-status-count {
@@ -4433,6 +4441,19 @@
                             >0</span
                         >
                     </button>
+                    <button
+                        type="button"
+                        class="work-order-status-tab"
+                        data-work-order-status="rejected"
+                    >
+                        <span class="status-dot status-dot-rejected"></span>
+                        Rejected
+                        <span
+                            class="work-order-status-count"
+                            id="categoryRejectedCount"
+                            >0</span
+                        >
+                    </button>
                 </div>
 
                 <div
@@ -4970,6 +4991,7 @@
                     pending: "Pending",
                     progress: "On Progress",
                     completed: "Completed",
+                    rejected: "Rejected",
                 };
                 const priorityClass = {
                     urgent: "badge-urgent",
@@ -4981,6 +5003,7 @@
                     pending: "badge-status-pending",
                     progress: "badge-status-progress",
                     completed: "badge-status-completed",
+                    rejected: "badge-status-rejected",
                 };
 
                 function getLocalClaims() {
