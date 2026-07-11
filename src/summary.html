@@ -81,7 +81,7 @@
     <!-- SUMMARY STATS -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
       <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
-        <p class="text-xs md:text-sm text-gray-600">Total Completed</p>
+        <p class="text-xs md:text-sm text-gray-600">WO Review</p>
         <p class="text-3xl md:text-4xl font-bold text-green-600" id="totalCompleted"><span class="skeleton inline-block w-12 h-9 rounded">&nbsp;</span></p>
       </div>
       <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
@@ -119,7 +119,7 @@
 
     <!-- TABLE (desktop) / CARDS (mobile) -->
     <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6">
-      <h2 class="text-lg md:text-2xl font-semibold mb-3 md:mb-4">Riwayat Work Order Selesai</h2>
+      <h2 class="text-lg md:text-2xl font-semibold mb-3 md:mb-4">Riwayat Work Order Selesai / Rejected</h2>
 
       <!-- Desktop table -->
       <div class="table-section-desktop table-container overflow-x-auto">
@@ -330,7 +330,7 @@
         if (!r.ok) throw new Error(r.statusText);
         const json = await r.json();
         allWorkOrders = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
-        completedOrders = allWorkOrders.filter(o => o.status === 'completed');
+        completedOrders = allWorkOrders.filter(o => o.status === 'completed' || o.status === 'rejected');
       } catch (e) {
         console.error('Error fetching work orders:', e);
         allWorkOrders = [];
@@ -376,6 +376,16 @@
       return m === 0 ? hourText : `${hourText} ${minuteText}`;
     }
 
+    function isRejected(order) {
+      return order.status === 'rejected';
+    }
+
+    function statusBadge(order) {
+      return isRejected(order)
+        ? '<span class="inline-block px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">Rejected</span>'
+        : '<span class="inline-block px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">Completed</span>';
+    }
+
     function updateStats() {
       document.getElementById('totalCompleted').textContent = completedOrders.length;
       document.getElementById('highPriority').textContent   = completedOrders.filter(o => o.priority === 'high').length;
@@ -389,9 +399,10 @@
       const guestNoteCount = completedOrders.filter(o => o.notes && o.notes.trim()).length;
       const adminNoteCount = completedOrders.filter(o => o.adminNotes && o.adminNotes.trim()).length;
       const notesPercent = total ? Math.round(((guestNoteCount + adminNoteCount) / (total * 2)) * 100) : null;
-      const ratedOrders = completedOrders.filter(o => typeof o.rating === 'number');
+      const doneOrders = completedOrders.filter(o => o.status === 'completed');
+      const ratedOrders = doneOrders.filter(o => typeof o.rating === 'number');
       const avgRating = ratedOrders.length ? ratedOrders.reduce((sum, o) => sum + o.rating, 0) / ratedOrders.length : null;
-      const durations = completedOrders.map(o => minutesFromWorkingTime(o.workingHours)).filter(v => v != null);
+      const durations = doneOrders.map(o => minutesFromWorkingTime(o.workingHours)).filter(v => v != null);
       const avgMinutes = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : null;
       const ratingScore = avgRating == null ? 0 : Math.round((avgRating / 5) * 100);
       const rating =
@@ -403,14 +414,14 @@
       document.getElementById('summaryRating').textContent = rating;
       document.getElementById('summaryRatingDetail').textContent = avgRating == null ? 'Belum ada rating admin' : `${avgRating.toFixed(1)}/5 dari ${ratedOrders.length} rating admin`;
       document.getElementById('summaryNotesQuality').textContent = notesPercent == null ? '-' : `${notesPercent}%`;
-      document.getElementById('summaryNotesDetail').textContent = total ? `${guestNoteCount} guest, ${adminNoteCount} admin dari ${total} work order` : 'Belum ada work order selesai';
+      document.getElementById('summaryNotesDetail').textContent = total ? `${guestNoteCount} guest, ${adminNoteCount} admin dari ${total} work order` : 'Belum ada work order review';
       document.getElementById('summaryAvgTime').textContent = avgMinutes == null ? '-' : formatWorkingTime(avgMinutes);
     }
 
     function renderTable(orders = completedOrders) {
       const tbody = document.getElementById('completedTableBody');
       if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="13" class="text-center py-8 text-gray-500">Tidak ada work order yang selesai</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center py-8 text-gray-500">Tidak ada work order selesai atau rejected</td></tr>';
         renderMobileCards(orders);
         return;
       }
@@ -424,8 +435,8 @@
           <td class="py-3 px-4 text-sm">${order.device || '-'}</td>
           <td class="py-3 px-4 text-sm">${order.problem || '-'}</td>
           <td class="py-3 px-4 text-sm">${getExecutorHtml(order.executors)}</td>
-          <td class="py-3 px-4 text-sm">${formatWorkingTime(order.workingHours)}</td>
-          <td class="py-3 px-4 text-sm text-green-600">${order.completedAt || 'N/A'}</td>
+          <td class="py-3 px-4 text-sm">${isRejected(order) ? '-' : formatWorkingTime(order.workingHours)}</td>
+          <td class="py-3 px-4 text-sm ${isRejected(order) ? 'text-red-600' : 'text-green-600'}">${statusBadge(order)}<div class="mt-1">${isRejected(order) ? 'Rejected' : (order.completedAt || 'N/A')}</div></td>
           <td class="py-3 px-4 text-sm">
             <span class="inline-block max-w-xs truncate" title="${order.notes || '-'}">Guest: ${order.notes ? order.notes.substring(0, 20) + (order.notes.length > 20 ? '...' : '') : '-'}</span>
             <div class="text-xs text-blue-600 mt-1 truncate" title="${order.adminNotes || '-'}">Admin: ${order.adminNotes ? order.adminNotes.substring(0, 24) + (order.adminNotes.length > 24 ? '...' : '') : '-'}</div>
@@ -438,12 +449,12 @@
               </button>` : '<span class="text-gray-400">-</span>'}
           </td>
           <td class="py-3 px-4 text-sm">
-            ${isAdmin ? `
+            ${isAdmin && !isRejected(order) ? `
             <button class="edit-note-btn text-blue-500 hover:text-blue-700" data-order-id="${order.id}" title="Edit Catatan">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
               </svg>
-            </button>` : '<span class="text-gray-400">Admin only</span>'}
+            </button>` : '<span class="text-gray-400">Locked</span>'}
           </td>
         </tr>`).join('');
       renderMobileCards(orders);
@@ -454,7 +465,7 @@
       if (!cardBody) return;
       const priClass = { urgent:'badge-urgent', high:'badge-high', medium:'badge-medium', low:'badge-low' };
       if (!orders || orders.length === 0) {
-        cardBody.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Tidak ada work order yang selesai</p>';
+        cardBody.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Tidak ada work order selesai atau rejected</p>';
         return;
       }
       cardBody.innerHTML = orders.map((o, i) => {
@@ -466,24 +477,25 @@
               <span class="text-xs font-bold text-gray-400">#${i+1}</span>
               <span class="badge-priority ${priClass[o.priority] || 'badge-low'}">${o.priority || '-'}</span>
             </div>
-            <span class="text-xs text-green-600 font-medium">${o.completedAt || '-'}</span>
+            <span class="text-xs ${isRejected(o) ? 'text-red-600' : 'text-green-600'} font-medium">${isRejected(o) ? 'Rejected' : (o.completedAt || '-')}</span>
           </div>
           <div class="data-card-row"><span class="data-card-label">Requester</span><span class="data-card-value">${requester}</span></div>
           <div class="data-card-row"><span class="data-card-label">Device</span><span class="data-card-value">${o.device || '-'}</span></div>
           <div class="data-card-row"><span class="data-card-label">Lokasi</span><span class="data-card-value">${o.location || '-'}</span></div>
           <div class="data-card-row"><span class="data-card-label">Masalah</span><span class="data-card-value" style="max-width:60%">${o.problem || '-'}</span></div>
           <div class="data-card-row"><span class="data-card-label">Pelaksana</span><span class="data-card-value">${getExecutorHtml(o.executors)}</span></div>
-          <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${formatWorkingTime(o.workingHours)}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Status</span><span class="data-card-value">${statusBadge(o)}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${isRejected(o) ? '-' : formatWorkingTime(o.workingHours)}</span></div>
           ${o.notes ? `<div class="data-card-row"><span class="data-card-label">Catatan Guest</span><span class="data-card-value text-blue-700" style="max-width:60%">${o.notes.substring(0,40)}${o.notes.length>40?'…':''}</span></div>` : ''}
           ${o.adminNotes ? `<div class="data-card-row"><span class="data-card-label">Catatan Admin</span><span class="data-card-value text-blue-700" style="max-width:60%">${o.adminNotes.substring(0,40)}${o.adminNotes.length>40?'…':''}</span></div>` : ''}
           ${o.documentationPhoto ? `<div class="data-card-row"><span class="data-card-label">Foto Operator</span><button class="photo-preview-btn data-card-value" data-photo="/static/public/${o.documentationPhoto}" type="button"><img src="/static/public/${o.documentationPhoto}" alt="Foto bukti order #${o.id}" class="w-16 h-16 rounded-lg object-cover border border-gray-200 shadow-sm ml-auto"></button></div>` : ''}
           <div class="data-card-row"><span class="data-card-label">Rating</span><span class="data-card-value">${o.rating ? `${o.rating}/5` : '-'}</span></div>
           <div class="data-card-actions">
-            ${isAdmin ? `
+            ${isAdmin && !isRejected(o) ? `
             <button class="edit-note-btn flex items-center gap-1 text-xs text-blue-500 font-semibold px-3 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" data-order-id="${o.id}">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               Edit Catatan
-            </button>` : '<span class="text-xs text-gray-400">Admin only</span>'}
+            </button>` : '<span class="text-xs text-gray-400">Locked</span>'}
           </div>
         </div>`;
       }).join('');
