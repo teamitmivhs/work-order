@@ -339,6 +339,14 @@ func UploadAvatarHandler(c *gin.Context) {
 		utils.BadRequest(c, "Invalid file type. Allowed: jpg, jpeg, png, webp")
 		return
 	}
+	if err := utils.ValidateImageUpload(file, map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}); err != nil {
+		utils.BadRequest(c, "Invalid image file")
+		return
+	}
 
 	// Generate nama file unik — pakai userID + timestamp agar tidak bentrok
 	filename := fmt.Sprintf("avatar_%d_%d%s", userID, time.Now().Unix(), ext)
