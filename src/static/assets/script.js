@@ -2526,6 +2526,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       },
     );
   }
+  window.rejectOrder = rejectOrder;
 
   // ===== LIVE WORKING HOURS COUNTER =====
 
