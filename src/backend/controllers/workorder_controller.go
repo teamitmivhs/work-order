@@ -381,6 +381,48 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 	utils.RespondWithMessage(c, http.StatusOK, "Order completed successfully", gin.H{"id": orderID})
 }
 
+func (ctrl *WorkOrderController) RejectOrderHandler(c *gin.Context) {
+	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
+		utils.Forbidden(c, "Only admins can reject work orders")
+		return
+	}
+
+	orderID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(c, "Invalid Order ID")
+		return
+	}
+
+	var req models.RejectWorkOrderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+	reason := strings.TrimSpace(strings.NewReplacer("<", "", ">", "").Replace(req.Reason))
+	if len(reason) < 3 {
+		utils.BadRequest(c, "Reject reason is required")
+		return
+	}
+	if len(reason) > 1000 {
+		utils.BadRequest(c, "Reject reason max 1000 characters")
+		return
+	}
+
+	if err := ctrl.Repo.RejectOrder(orderID, reason); err != nil {
+		utils.BadRequest(c, "Failed to reject order", err.Error())
+		return
+	}
+
+	go services.NotifyWorkOrderBroadcast(
+		"Work order ditolak",
+		fmt.Sprintf("Work order #%d ditolak. Alasan: %s", orderID, reason),
+		orderID,
+		nil,
+	)
+
+	utils.RespondWithMessage(c, http.StatusOK, "Order rejected successfully", gin.H{"id": orderID})
+}
+
 // UploadDocumentationPhotoHandler: POST /api/workorders/{id}/documentation
 // Upload foto bukti pekerjaan. Hanya admin atau operator assigned yang boleh upload.
 func (ctrl *WorkOrderController) UploadDocumentationPhotoHandler(c *gin.Context) {
