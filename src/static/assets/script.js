@@ -361,6 +361,58 @@ function showConfirmationPopup(title, message, onConfirm) {
   document.getElementById("cancelBtn").addEventListener("click", closeThis);
 }
 
+function showTextInputPopup(title, message, onSubmit) {
+  const existingPopup = document.getElementById("customTextInputPopup");
+  if (existingPopup) existingPopup.remove();
+
+  const popup = document.createElement("div");
+  popup.id = "customTextInputPopup";
+  popup.className =
+    "fixed inset-0 bg-black bg-opacity-50 z-[101] flex items-center justify-center";
+
+  const popupContent = document.createElement("div");
+  popupContent.className =
+    "popup-inner bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all popup-fade-in";
+  popupContent.innerHTML = `
+    <div>
+      <h3 class="popup-title text-xl font-bold text-gray-900 mb-2"></h3>
+      <p class="popup-message text-gray-600 mb-4 leading-relaxed"></p>
+      <textarea id="textInputPopupValue" class="w-full min-h-[120px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" maxlength="1000" placeholder="Tulis catatan untuk requester..."></textarea>
+      <p class="text-xs text-gray-500 mt-2">Catatan wajib diisi dan akan terlihat oleh requester saat tracking.</p>
+      <div class="flex justify-end gap-3 mt-5">
+        <button id="textInputCancelBtn" type="button" class="px-5 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200">Batal</button>
+        <button id="textInputSubmitBtn" type="button" class="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200">Kirim</button>
+      </div>
+    </div>`;
+
+  popupContent.querySelector(".popup-title").textContent = title;
+  popupContent.querySelector(".popup-message").textContent = message;
+  popup.appendChild(popupContent);
+  document.body.appendChild(popup);
+
+  const input = document.getElementById("textInputPopupValue");
+  const submitBtn = document.getElementById("textInputSubmitBtn");
+  const cancelBtn = document.getElementById("textInputCancelBtn");
+
+  const closeThis = () => {
+    popupContent.classList.replace("popup-fade-in", "popup-fade-out");
+    setTimeout(() => popup.remove(), 300);
+  };
+
+  submitBtn.addEventListener("click", () => {
+    const value = input.value.trim();
+    if (!value) {
+      input.focus();
+      input.classList.add("border-red-400", "focus:border-red-500", "focus:ring-red-100");
+      return;
+    }
+    onSubmit(value);
+    closeThis();
+  });
+  cancelBtn.addEventListener("click", closeThis);
+  input.focus();
+}
+
 // ===== POPUP ANIMATION HELPERS =====
 function showAnimatedPopup(popupElement) {
   const content = popupElement.firstElementChild;
@@ -1864,9 +1916,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       }</span>`;
 
       const statusBadge = `<span class="status-badge status-${order.status}">${
-        { pending: "Pending", progress: "On Progress", completed: "Completed" }[
-          order.status
-        ] || order.status
+        {
+          pending: "Pending",
+          progress: "On Progress",
+          completed: "Completed",
+          rejected: "Rejected",
+        }[order.status] || order.status
       }</span>`;
 
       // Requester — backend sekarang selalu string, tapi handle juga fallback number
@@ -1890,6 +1945,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (isCurrentUserAdmin()) {
           actionButtons += `<button class="take-order-btn wo-action-btn wo-action-take" data-order-id="${order.id}" title="Approve dan mulai work order">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </button>`;
+          actionButtons += `<button class="reject-order-btn wo-action-btn wo-action-delete" data-order-id="${order.id}" title="Reject work order">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>`;
           if ((order.executors || []).length > 0) {
             actionButtons += `<button class="add-worker-btn wo-action-btn wo-action-add" data-order-id="${order.id}" title="Tambah worker">
@@ -1949,6 +2007,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       b.addEventListener("click", function () {
         if (checkGuestRestriction("Deleting orders")) return;
         deleteOrder(parseInt(this.dataset.orderId));
+      });
+    });
+    document.querySelectorAll(".reject-order-btn").forEach((b) => {
+      b.addEventListener("click", function () {
+        if (checkGuestRestriction("Rejecting orders")) return;
+        rejectOrder(parseInt(this.dataset.orderId));
       });
     });
     document.querySelectorAll(".documentation-btn").forEach((b) => {
@@ -2421,6 +2485,48 @@ document.addEventListener("DOMContentLoaded", async function () {
     );
   }
 
+  function rejectOrder(orderId) {
+    showConfirmationPopup(
+      "Konfirmasi Reject Order",
+      `Apakah benar ingin reject work order #${orderId}?`,
+      () => {
+        showTextInputPopup(
+          "Berikan catatan untuk requester",
+          `Catatan ini akan tampil di tracking work order #${orderId}.`,
+          (reason) => {
+            fetch(`/api/workorders/${orderId}/reject`, {
+              method: "PATCH",
+              headers: authHeaders(),
+              body: JSON.stringify({ reason }),
+            })
+              .then((r) => {
+                if (!r.ok)
+                  throw new Error("Gagal reject order. Status: " + r.status);
+                return r.text().then((text) => (text ? JSON.parse(text) : {}));
+              })
+              .then(() => {
+                setActiveWorkOrderStatus("rejected");
+                refreshAllDataFromAPI();
+                showPopup(
+                  "Order Ditolak",
+                  `Work order #${orderId} sudah direject dan catatan bisa dilihat requester.`,
+                  "success",
+                );
+              })
+              .catch((err) => {
+                console.error("Error saat reject order:", err);
+                showPopup(
+                  "Error",
+                  "Terjadi kesalahan saat reject order.",
+                  "error",
+                );
+              });
+          },
+        );
+      },
+    );
+  }
+
   // ===== LIVE WORKING HOURS COUNTER =====
 
   // Format detik → HH.MM.SS (stopwatch style)
@@ -2493,9 +2599,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   // ===== SUMMARY COUNTS =====
   function workOrderStatusText(status) {
     return (
-      { pending: "pending", progress: "on progress", completed: "completed" }[
-        status
-      ] || status
+      {
+        pending: "pending",
+        progress: "on progress",
+        completed: "completed",
+        rejected: "rejected",
+      }[status] || status
     );
   }
 
@@ -2509,11 +2618,13 @@ document.addEventListener("DOMContentLoaded", async function () {
       pending: workOrders.filter((o) => o.status === "pending").length,
       progress: workOrders.filter((o) => o.status === "progress").length,
       completed: workOrders.filter((o) => o.status === "completed").length,
+      rejected: workOrders.filter((o) => o.status === "rejected").length,
     };
 
     setText("categoryPendingCount", counts.pending);
     setText("categoryProgressCount", counts.progress);
     setText("categoryCompletedCount", counts.completed);
+    setText("categoryRejectedCount", counts.rejected);
 
     workOrderStatusTabs.forEach((tab) => {
       const isActive = tab.dataset.workOrderStatus === activeWorkOrderStatus;
