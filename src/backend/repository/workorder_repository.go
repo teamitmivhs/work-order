@@ -7,6 +7,7 @@ import (
 
 	"teamitmivhs/work-order-backend/models"
 	"teamitmivhs/work-order-backend/services"
+	"teamitmivhs/work-order-backend/utils"
 )
 
 type WorkOrderRepository interface {
@@ -73,10 +74,10 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 	}
 
 	if priority.Valid {
-		wo.Priority = priority.String
+		wo.Priority = utils.SanitizeText(priority.String)
 	}
 	if timeDisplay.Valid {
-		wo.Time = timeDisplay.String
+		wo.Time = utils.SanitizeText(timeDisplay.String)
 	}
 	if createdAt.Valid {
 		wo.CreatedAt = createdAt.String
@@ -89,28 +90,28 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 		wo.ProgressSeconds = &value
 	}
 	if trackingCode.Valid {
-		wo.TrackingCode = trackingCode.String
+		wo.TrackingCode = utils.SanitizeText(trackingCode.String)
 	}
 	if requester.Valid {
-		wo.Requester = requester.String
+		wo.Requester = utils.SanitizeText(requester.String)
 	}
 	if location.Valid {
-		wo.Location = location.String
+		wo.Location = utils.SanitizeText(location.String)
 	}
 	if device.Valid {
-		wo.Device = device.String
+		wo.Device = utils.SanitizeText(device.String)
 	}
 	if problem.Valid {
-		wo.Problem = problem.String
+		wo.Problem = utils.SanitizeText(problem.String)
 	}
 	if status.Valid {
-		wo.Status = status.String
+		wo.Status = utils.SanitizeText(status.String)
 	}
 	if notes.Valid {
-		wo.Notes = notes.String
+		wo.Notes = utils.SanitizeText(notes.String)
 	}
 	if adminNotes.Valid {
-		wo.AdminNotes = adminNotes.String
+		wo.AdminNotes = utils.SanitizeText(adminNotes.String)
 	}
 	if rating.Valid {
 		value := int(rating.Int64)
@@ -121,7 +122,7 @@ func scanWorkOrderRow(rows *sql.Rows) (models.WorkOrder, error) {
 		wo.NotesQuality = &value
 	}
 	if documentationPhoto.Valid {
-		wo.DocumentationPhoto = documentationPhoto.String
+		wo.DocumentationPhoto = utils.SanitizeText(documentationPhoto.String)
 	}
 	if completedAt.Valid && completedAt.String != "" {
 		wo.CompletedAt = completedAt.String
