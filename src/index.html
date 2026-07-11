@@ -5140,6 +5140,7 @@
                     if (order.status === "pending") {
                         if (getLocalClaims().role === "Admin") {
                             btns += `<button class="mc-take-btn wo-action-text wo-action-take" data-order-id="${order.id}">Mulai</button>`;
+                            btns += `<button class="mc-reject-btn wo-action-text wo-action-delete" data-order-id="${order.id}">Reject</button>`;
                             if ((order.executors || []).length > 0) {
                                 btns += `<button class="mc-add-worker-btn wo-action-text wo-action-add" data-order-id="${order.id}">+ Operator</button>`;
                             }
@@ -5263,6 +5264,17 @@
                             return;
                         if (typeof deleteOrder === "function")
                             deleteOrder(parseInt(this.dataset.orderId));
+                    });
+                });
+                cardBody.querySelectorAll(".mc-reject-btn").forEach((b) => {
+                    b.addEventListener("click", function () {
+                        if (
+                            typeof checkGuestRestriction === "function" &&
+                            checkGuestRestriction("Rejecting orders")
+                        )
+                            return;
+                        if (typeof window.rejectOrder === "function")
+                            window.rejectOrder(parseInt(this.dataset.orderId));
                     });
                 });
             };
