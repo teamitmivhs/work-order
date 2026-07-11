@@ -106,3 +106,7 @@ type UpdateNotesRequest struct {
 	Rating       *int   `json:"rating"`
 	NotesQuality *int   `json:"notesQuality"`
 }
+
+type RejectWorkOrderRequest struct {
+	Reason string `json:"reason" binding:"required"`
+}
