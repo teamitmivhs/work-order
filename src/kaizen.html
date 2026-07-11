@@ -266,6 +266,14 @@
                         </div>
                         <div>
                             <span class="font-medium text-gray-600"
+                                >Status:</span
+                            >
+                            <span class="inline-block" id="modalOrderStatus"
+                                >-</span
+                            >
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-600"
                                 >Completed At:</span
                             >
                             <span
@@ -509,7 +517,7 @@
                     Filter & Search
                 </h2>
                 <div
-                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4"
+                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 md:gap-4"
                 >
                     <div>
                         <label
@@ -548,6 +556,20 @@
                             <option value="high">High Priority</option>
                             <option value="medium">Medium Priority</option>
                             <option value="low">Low Priority</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2"
+                            >Status</label
+                        >
+                        <select
+                            id="filterStatus"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        >
+                            <option value="">All Status</option>
+                            <option value="completed">Completed</option>
+                            <option value="rejected">Rejected</option>
                         </select>
                     </div>
                     <div class="flex items-end">
@@ -624,7 +646,7 @@
                                 <th
                                     class="text-left py-3 px-4 font-semibold text-sm"
                                 >
-                                    Waktu Selesai
+                                    Status / Waktu
                                 </th>
                                 <th
                                     class="text-left py-3 px-4 font-semibold text-sm"
@@ -788,6 +810,7 @@
             // FIX #4: Data dari API, bukan localStorage
             let allWorkOrders = [];
             let completedOrders = [];
+            let reviewOrders = [];
             let members = [];
             const authToken = localStorage.getItem("userToken") || "";
             if (!authToken) window.location.href = "/login";
@@ -827,10 +850,14 @@
                     completedOrders = allWorkOrders.filter(
                         (o) => o.status === "completed",
                     );
+                    reviewOrders = allWorkOrders.filter(
+                        (o) => o.status === "completed" || o.status === "rejected",
+                    );
                 } catch (e) {
                     console.error("Error fetching work orders:", e);
                     allWorkOrders = [];
                     completedOrders = [];
+                    reviewOrders = [];
                 }
             }
 
@@ -875,11 +902,21 @@
                 return m === 0 ? hourText : `${hourText} ${minuteText}`;
             }
 
+            function isRejected(order) {
+                return order.status === "rejected";
+            }
+
+            function statusBadge(order) {
+                return isRejected(order)
+                    ? '<span class="inline-block px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">Rejected</span>'
+                    : '<span class="inline-block px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">Completed</span>';
+            }
+
             function updateOverviewStats() {
                 const total = allWorkOrders.length;
                 const done = completedOrders.length;
                 const rate = total > 0 ? Math.round((done / total) * 100) : 0;
-                const evals = completedOrders.filter(
+                const evals = reviewOrders.filter(
                     (o) =>
                         (o.notes && o.notes.trim()) ||
                         (o.adminNotes && o.adminNotes.trim()),
@@ -936,28 +973,28 @@
                     avgEl.textContent = "-";
                 }
 
-                const guestNoteCount = completedOrders.filter(
+                const guestNoteCount = reviewOrders.filter(
                     (o) => o.notes && o.notes.trim(),
                 ).length;
-                const adminNoteCount = completedOrders.filter(
+                const adminNoteCount = reviewOrders.filter(
                     (o) => o.adminNotes && o.adminNotes.trim(),
                 ).length;
-                const notesPercent = completedOrders.length
+                const notesPercent = reviewOrders.length
                     ? Math.round(
                           ((guestNoteCount + adminNoteCount) /
-                              (completedOrders.length * 2)) *
+                              (reviewOrders.length * 2)) *
                               100,
                       )
                     : null;
                 document.getElementById("notesQuality").textContent =
                     notesPercent == null ? "-" : `${notesPercent}%`;
                 document.getElementById("notesQualityDetail").textContent =
-                    completedOrders.length
-                        ? `${guestNoteCount} guest, ${adminNoteCount} admin dari ${completedOrders.length} work order`
-                        : "Belum ada work order selesai";
+                    reviewOrders.length
+                        ? `${guestNoteCount} guest, ${adminNoteCount} admin dari ${reviewOrders.length} work order`
+                        : "Belum ada work order review";
             }
 
-            function renderTable(orders = completedOrders) {
+            function renderTable(orders = reviewOrders) {
                 const tbody = document.getElementById("ordersTableBody");
                 if (orders.length === 0) {
                     tbody.innerHTML =
@@ -977,8 +1014,8 @@
           <td class="py-3 px-4 text-sm">${o.device || "-"}</td>
           <td class="py-3 px-4 text-sm">${o.problem || "-"}</td>
           <td class="py-3 px-4 text-sm">${getExecutorHtml(o.executors)}</td>
-          <td class="py-3 px-4 text-sm">${convertWorkingTime(o.workingHours)}</td>
-          <td class="py-3 px-4 text-sm text-green-600">${o.completedAt || "N/A"}</td>
+          <td class="py-3 px-4 text-sm">${isRejected(o) ? "-" : convertWorkingTime(o.workingHours)}</td>
+          <td class="py-3 px-4 text-sm ${isRejected(o) ? "text-red-600" : "text-green-600"}">${statusBadge(o)}<div class="mt-1">${isRejected(o) ? "Rejected" : o.completedAt || "N/A"}</div></td>
           <td class="py-3 px-4 text-sm">
             <div class="max-w-xs">
               ${
@@ -1016,7 +1053,7 @@
                 renderMobileCards(orders);
             }
 
-            function renderMobileCards(orders = completedOrders) {
+            function renderMobileCards(orders = reviewOrders) {
                 const cardBody = document.getElementById("ordersCardBody");
                 if (!cardBody) return;
                 const priClass = {
@@ -1051,14 +1088,15 @@
               <span class="text-xs font-bold text-gray-400">#${i + 1}</span>
               <span class="badge-priority ${priClass[o.priority] || "badge-low"}">${o.priority || "-"}</span>
             </div>
-            <span class="text-xs text-green-600 font-medium">${o.completedAt || "-"}</span>
+            <span class="text-xs ${isRejected(o) ? "text-red-600" : "text-green-600"} font-medium">${isRejected(o) ? "Rejected" : o.completedAt || "-"}</span>
           </div>
           <div class="data-card-row"><span class="data-card-label">Requester</span><span class="data-card-value">${requester}</span></div>
           <div class="data-card-row"><span class="data-card-label">Device</span><span class="data-card-value">${o.device || "-"}</span></div>
           <div class="data-card-row"><span class="data-card-label">Lokasi</span><span class="data-card-value">${o.location || "-"}</span></div>
           <div class="data-card-row"><span class="data-card-label">Masalah</span><span class="data-card-value">${o.problem || "-"}</span></div>
           <div class="data-card-row"><span class="data-card-label">Pelaksana</span><span class="data-card-value">${getExecutorHtml(o.executors)}</span></div>
-          <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${convertWorkingTime(o.workingHours)}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Status</span><span class="data-card-value">${statusBadge(o)}</span></div>
+          <div class="data-card-row"><span class="data-card-label">Working</span><span class="data-card-value">${isRejected(o) ? "-" : convertWorkingTime(o.workingHours)}</span></div>
           <div class="data-card-row">
             <span class="data-card-label">Catatan</span>
             <span class="data-card-value">
@@ -1100,9 +1138,10 @@
                     .getElementById("searchDevice")
                     .value.toLowerCase();
                 const pri = document.getElementById("filterPriority").value;
+                const status = document.getElementById("filterStatus").value;
 
                 renderTable(
-                    completedOrders.filter((o) => {
+                    reviewOrders.filter((o) => {
                         const r =
                             typeof o.requester === "object"
                                 ? o.requester.name
@@ -1110,7 +1149,8 @@
                         return (
                             r.toLowerCase().includes(req) &&
                             (o.device || "").toLowerCase().includes(dev) &&
-                            (pri === "" || o.priority === pri)
+                            (pri === "" || o.priority === pri) &&
+                            (status === "" || o.status === status)
                         );
                     }),
                 );
@@ -1133,18 +1173,20 @@
                 document.getElementById("modalOrderExecutors").innerHTML =
                     getExecutorHtml(o.executors);
                 document.getElementById("modalOrderWorkingHours").textContent =
-                    convertWorkingTime(o.workingHours);
+                    isRejected(o) ? "-" : convertWorkingTime(o.workingHours);
                 document.getElementById("modalOrderCompletedAt").textContent =
-                    o.completedAt || "N/A";
+                    isRejected(o) ? "Rejected" : o.completedAt || "N/A";
                 document.getElementById("modalOrderPriority").innerHTML =
                     `<span class="priority-badge priority-${o.priority}">${o.priority.charAt(0).toUpperCase() + o.priority.slice(1)}</span>`;
+                document.getElementById("modalOrderStatus").innerHTML =
+                    statusBadge(o);
                 const guestNotesEl = document.getElementById("modalGuestNotes");
                 const adminNotesEl = document.getElementById("modalOrderNotes");
                 guestNotesEl.textContent =
                     o.notes && o.notes.trim()
                         ? o.notes
                         : "No guest notes available for this work order.";
-                adminNotesEl.textContent = `${o.rating ? `Rating Admin: ${o.rating}/5\n\n` : "Rating Admin: belum dirating\n\n"}${o.adminNotes && o.adminNotes.trim() ? o.adminNotes : "No admin notes available for this work order."}`;
+                adminNotesEl.textContent = `${isRejected(o) ? "Status: Rejected\n\n" : o.rating ? `Rating Admin: ${o.rating}/5\n\n` : "Rating Admin: belum dirating\n\n"}${o.adminNotes && o.adminNotes.trim() ? o.adminNotes : "No admin notes available for this work order."}`;
                 guestNotesEl.classList.toggle(
                     "text-gray-500",
                     !o.notes || !o.notes.trim(),
@@ -1236,11 +1278,15 @@
                 .getElementById("filterPriority")
                 .addEventListener("change", filterTable);
             document
+                .getElementById("filterStatus")
+                .addEventListener("change", filterTable);
+            document
                 .getElementById("clearFilters")
                 .addEventListener("click", () => {
                     document.getElementById("searchRequester").value = "";
                     document.getElementById("searchDevice").value = "";
                     document.getElementById("filterPriority").value = "";
+                    document.getElementById("filterStatus").value = "";
                     renderTable();
                 });
             document
