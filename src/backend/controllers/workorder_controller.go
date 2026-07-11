@@ -467,6 +467,20 @@ func (ctrl *WorkOrderController) UploadDocumentationPhotoHandler(c *gin.Context)
 		utils.BadRequest(c, "Invalid file type. Allowed: jpg, jpeg, png, webp")
 		return
 	}
+	openedFile, err := file.Open()
+	if err != nil {
+		utils.BadRequest(c, "Invalid documentation photo")
+		return
+	}
+	defer openedFile.Close()
+	if err := utils.ValidateImageUpload(openedFile, map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}); err != nil {
+		utils.BadRequest(c, "Invalid image file")
+		return
+	}
 
 	uploadDir := filepath.Join(utils.PublicUploadDir(), "workorder-docs")
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
