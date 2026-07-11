@@ -7,6 +7,7 @@ import (
 
 	"teamitmivhs/work-order-backend/config"
 	"teamitmivhs/work-order-backend/models"
+	"teamitmivhs/work-order-backend/utils"
 )
 
 type MemberRepository interface {
@@ -369,6 +370,14 @@ func scanMemberWithPassword(rows memberScanner, m *models.Member) error {
 }
 
 func applyNullableMemberFields(m *models.Member, graduationYear sql.NullInt64, registeredAt sql.NullString, approvedAt sql.NullString, approvedBy sql.NullInt64) {
+	m.Name = utils.SanitizeText(m.Name)
+	m.Role = utils.SanitizeText(m.Role)
+	m.Division = utils.SanitizeText(m.Division)
+	m.Status = utils.SanitizeText(m.Status)
+	m.Avatar = utils.SanitizeText(m.Avatar)
+	m.AccountStatus = utils.SanitizeText(m.AccountStatus)
+	m.MembershipStatus = utils.SanitizeText(m.MembershipStatus)
+	m.BatchYear = utils.SanitizeText(m.BatchYear)
 	if graduationYear.Valid {
 		v := int(graduationYear.Int64)
 		m.GraduationYear = &v
