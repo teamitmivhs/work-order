@@ -57,6 +57,9 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 			//complete
 			workorders.PATCH("/:id/complete", workOrderCtrl.CompleteOrderHandler)
 
+			//reject
+			workorders.PATCH("/:id/reject", workOrderCtrl.RejectOrderHandler)
+
 			//documentation
 			workorders.POST("/:id/documentation", workOrderCtrl.UploadDocumentationPhotoHandler)
 
