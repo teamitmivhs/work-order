@@ -356,6 +356,11 @@ body[data-theme="dark"] .border-gray-300 {
     color: #14532d;
     border: 1.5px solid #22c55e;
 }
+.status-rejected {
+    background-color: rgba(239, 68, 68, 0.16);
+    color: #991b1b;
+    border: 1.5px solid rgba(239, 68, 68, 0.35);
+}
 
 .priority-badge {
     display: inline-block;
@@ -1431,6 +1436,10 @@ html[data-theme="dark"] body:not(.login-bg)::before,
     background: rgba(34, 197, 94, 0.18) !important;
     color: #86efac !important;
 }
+[data-theme="dark"] .badge-status-rejected {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #fca5a5 !important;
+}
 
 /* Status badges (tabel) */
 [data-theme="dark"] .status-pending {
@@ -1442,6 +1451,10 @@ html[data-theme="dark"] body:not(.login-bg)::before,
 [data-theme="dark"] .status-completed {
     color: #86efac !important;
     border-color: rgba(34, 197, 94, 0.35) !important;
+}
+[data-theme="dark"] .status-rejected {
+    color: #fca5a5 !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
 }
 
 /* Priority badges (tabel) */
