@@ -360,6 +360,10 @@
                 background: #dcfce7;
                 color: #166534;
             }
+            .track-status-rejected {
+                background: #fee2e2;
+                color: #991b1b;
+            }
             .tracking-modal-panel {
                 width: min(100%, 22rem);
                 border-radius: 1rem;
@@ -1069,6 +1073,7 @@
                         pending: "Pending",
                         progress: "On Progress",
                         completed: "Completed",
+                        rejected: "Rejected",
                     }[status] ||
                     status ||
                     "-"
@@ -1183,6 +1188,13 @@
             function renderTrackCard(order) {
                 if (!order) return "";
                 const code = escapeHtml(order.trackingCode || "");
+                const rejectNote =
+                    order.status === "rejected" && order.adminNotes
+                        ? `<div class="guest-note-box border-red-200 bg-red-50">
+                            <p class="text-sm font-bold text-red-800 mb-1">Catatan Reject</p>
+                            <p class="text-sm text-red-700 whitespace-pre-wrap">${escapeHtml(order.adminNotes)}</p>
+                          </div>`
+                        : "";
                 return `
                     <div class="guest-summary-card">
                         <div class="guest-summary-head">
@@ -1212,6 +1224,7 @@
                                 <div class="mt-2">${renderProofPhoto(order.documentationPhoto)}</div>
                             </div>
                         </div>
+                        ${rejectNote}
                         <div class="guest-note-box">
                             <label class="block text-sm font-bold text-gray-700 mb-2" for="guestNoteText">Catatan Guest</label>
                             <textarea id="guestNoteText" class="guest-input min-h-[92px]" maxlength="1000" placeholder="Tambahkan catatan tambahan untuk evaluasi...">${escapeHtml(order.notes || "")}</textarea>
