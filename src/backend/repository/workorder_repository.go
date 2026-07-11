@@ -14,6 +14,7 @@ type WorkOrderRepository interface {
 	JoinPendingOrder(orderID int64, memberID int) error
 	TakeOrder(orderID int64, req models.TakeWorkOrder) error
 	CompleteOrder(orderID int64, req models.CompleteWorkOrder) error
+	RejectOrder(orderID int64, reason string) error
 	DeleteOrder(orderID int64) error
 	UpdateOrderExecutors(orderID int64, req models.UpdateWorkOrderRequest) error
 	UpdateOrderNotes(orderID int64, adminNotes string, rating *int, notesQuality *int) error
@@ -659,6 +660,24 @@ func (r *workOrderRepository) CompleteOrder(orderID int64, req models.CompleteWo
 		log.Printf("[WARNING] Failed to update WorkingHours for order %d: %v", orderID, err)
 	}
 
+	return nil
+}
+
+func (r *workOrderRepository) RejectOrder(orderID int64, reason string) error {
+	result, err := r.db.Exec(
+		"UPDATE orders SET Status = 'rejected', AdminNotes = ? WHERE ID = ? AND Status = 'pending'",
+		reason, orderID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to reject order %d: %w", orderID, err)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to verify rejected order %d: %w", orderID, err)
+	}
+	if affected == 0 {
+		return fmt.Errorf("only pending orders can be rejected")
+	}
 	return nil
 }
 
