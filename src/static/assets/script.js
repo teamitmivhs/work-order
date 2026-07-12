@@ -1524,7 +1524,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         refreshAllDataFromAPI();
         showPopup(
           "Work Order Berhasil Dibuat!",
-          `Work Order #${data.id} telah berhasil dibuat dan disimpan.`,
+          `Work order ${data.trackingCode || ""} berhasil dibuat dan disimpan.`,
           "success",
         );
       })
@@ -1896,7 +1896,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
-    sorted.forEach((order) => {
+    sorted.forEach((order, index) => {
       const row = document.createElement("tr");
       if (order.priority === "high" && order.status !== "completed")
         row.classList.add("high-priority");
@@ -1969,7 +1969,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       actionButtons += "</div>";
 
       row.innerHTML = `
-        <td class="py-3 px-2 text-sm">${order.id}</td>
+        <td class="py-3 px-2 text-sm">${index + 1}</td>
         <td class="py-3 px-2 text-sm">${priorityBadge}</td>
         <td class="py-3 px-2 text-sm">${order.time || "-"}</td>
         <td class="py-3 px-2 text-sm">${requester}</td>
@@ -2091,7 +2091,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       ? (order.executors || []).map(Number).filter(Boolean)
       : [getCurrentUserId()];
 
-    document.getElementById("popupOrderId").textContent = order.id;
+    document.getElementById("popupOrderId").textContent =
+      order.trackingCode || "-";
     document.getElementById("popupPriority").textContent =
       order.priority.charAt(0).toUpperCase() + order.priority.slice(1);
     document.getElementById("popupLocation").textContent = order.location;
@@ -2150,7 +2151,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     currentOrder = order;
     additionalOperators = [];
 
-    document.getElementById("popupOrderId").textContent = order.id;
+    document.getElementById("popupOrderId").textContent =
+      order.trackingCode || "-";
     document.getElementById("popupPriority").textContent =
       order.priority.charAt(0).toUpperCase() + order.priority.slice(1);
     document.getElementById("popupLocation").textContent = order.location;
@@ -2333,8 +2335,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             ? "Work Order Dimulai"
             : "Work Order Diambil",
           isCurrentUserAdmin()
-            ? `Order #${currentOrder.id} mulai progress.`
-            : `Kamu sudah masuk ke order #${currentOrder.id}. Tunggu admin approve untuk mulai progress.`,
+            ? `Work order ${currentOrder.trackingCode || ""} mulai progress.`
+            : `Kamu sudah masuk ke work order ${currentOrder.trackingCode || ""}. Tunggu admin approve untuk mulai progress.`,
           "success",
         );
         hideAnimatedPopup(takeOrderPopup);
@@ -2426,7 +2428,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         refreshAllDataFromAPI();
         showPopup(
           "Order Selesai!",
-          `Order #${orderId} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`,
+          `Work order ${order.trackingCode || ""} berhasil ditandai selesai!\nWaktu selesai: ${completionTime}`,
           "success",
         );
       })
@@ -2444,9 +2446,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   // ===== DELETE ORDER =====
   // FIX: Kirim Authorization header
   function deleteOrder(orderId) {
+    const order = workOrders.find((item) => item.id === orderId);
+    const reference = order?.trackingCode || "ini";
     showConfirmationPopup(
       "Konfirmasi Hapus Order",
-      `Apakah Anda yakin ingin menghapus order #${orderId}?`,
+      `Apakah Anda yakin ingin menghapus work order ${reference}?`,
       () => {
         fetch(`/api/workorders/${orderId}`, {
           method: "DELETE",
@@ -2461,7 +2465,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             refreshAllDataFromAPI();
             showPopup(
               "Order Dihapus!",
-              `Order #${orderId} telah berhasil dihapus dari database.`,
+              `Work order ${reference} telah berhasil dihapus dari database.`,
               "success",
             );
           })
