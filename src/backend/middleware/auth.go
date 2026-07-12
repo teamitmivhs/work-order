@@ -8,25 +8,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthMiddleware validates JWT token dari header Authorization
+// AuthMiddleware validates JWT from the HttpOnly session cookie or Bearer header.
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			utils.Unauthorized(c, "Missing authorization header")
+		token := ""
+		parts := strings.SplitN(c.GetHeader("Authorization"), " ", 2)
+		if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
+			token = strings.TrimSpace(parts[1])
+		}
+		if token == "" {
+			token, _ = c.Cookie(utils.SessionCookieName)
+		}
+		if token == "" {
+			utils.Unauthorized(c, "Missing authentication session")
 			c.Abort()
 			return
 		}
 
-		// Format yang diharapkan: "Bearer <token>"
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || parts[0] != "Bearer" || parts[1] == "" {
-			utils.Unauthorized(c, "Invalid authorization header format")
-			c.Abort()
-			return
-		}
-
-		claims, err := utils.ValidateToken(parts[1])
+		claims, err := utils.ValidateToken(token)
 		if err != nil {
 			utils.Unauthorized(c, "Invalid or expired token")
 			c.Abort()
