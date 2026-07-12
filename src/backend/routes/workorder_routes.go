@@ -5,6 +5,7 @@ import (
 	"teamitmivhs/work-order-backend/controllers"
 	"teamitmivhs/work-order-backend/middleware"
 	"teamitmivhs/work-order-backend/repository"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,8 +21,8 @@ func RegisterWorkorderRoutes(api *gin.RouterGroup) {
 	workOrderRepo := repository.NewWorkOrderRepository(db)
 	workOrderCtrl := controllers.NewWorkOrderController(workOrderRepo)
 
-	api.GET("/workorders/track/:code", workOrderCtrl.TrackOrderHandler)
-	api.PATCH("/workorders/track/:code/notes", workOrderCtrl.UpdateTrackedOrderNotesHandler)
+	api.GET("/workorders/track/:code", middleware.RateLimit(60, time.Minute), workOrderCtrl.TrackOrderHandler)
+	api.PATCH("/workorders/track/:code/notes", middleware.RateLimit(20, time.Minute), workOrderCtrl.UpdateTrackedOrderNotesHandler)
 
 	//protected routes
 	protected := api.Group("")
