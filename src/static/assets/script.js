@@ -1,8 +1,10 @@
-// ===== UTILITY: JWT TOKEN =====
-// Helper terpusat untuk mengambil token dari localStorage.
-// Semua fetch ke protected endpoint memanggil ini.
-function getAuthToken() {
-  return localStorage.getItem("userToken") || "";
+// Identity data is safe for display; the JWT itself stays in an HttpOnly cookie.
+function getCurrentUserClaims() {
+  try {
+    return JSON.parse(localStorage.getItem("currentUser") || "{}");
+  } catch {
+    return {};
+  }
 }
 
 function getSavedTheme() {
@@ -54,21 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
 function authHeaders(extra = {}) {
   return {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${getAuthToken()}`,
     ...extra,
   };
-}
-
-function getCurrentUserClaims() {
-  const token = getAuthToken();
-  if (!token) return {};
-  try {
-    const payload = token.split(".")[1];
-    if (!payload) return {};
-    return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-  } catch (err) {
-    return {};
-  }
 }
 
 function isCurrentUserAdmin() {
@@ -144,11 +133,13 @@ if (btn && menu) {
   // Logout button — cari berdasarkan ID, bukan index yang rapuh
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", function () {
+    logoutBtn.addEventListener("click", async function () {
+      await fetch("/api/logout", { method: "POST" }).catch(() => {});
       localStorage.removeItem("isGuestUser");
       localStorage.removeItem("guestLoginTime");
       localStorage.removeItem("isAdmin");
       localStorage.removeItem("userToken");
+      localStorage.removeItem("currentUser");
       window.location.href = "/login";
     });
   }
@@ -468,7 +459,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   let notificationPermissionRequestInFlight = false;
 
   const isGuestUser = localStorage.getItem("isGuestUser") === "true";
-  if (!getAuthToken()) {
+  if (!localStorage.getItem("currentUser")) {
     window.location.replace("/login");
     return;
   }
@@ -705,7 +696,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     formData.append("photo", photoFile, photoFile.name || "documentation.jpg");
     const r = await fetch(`/api/workorders/${orderId}/documentation`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${getAuthToken()}` },
       body: formData,
     });
     if (!r.ok) {
@@ -1439,10 +1429,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
 
   if (exitGuestBtn) {
-    exitGuestBtn.addEventListener("click", function () {
+    exitGuestBtn.addEventListener("click", async function () {
+      await fetch("/api/logout", { method: "POST" }).catch(() => {});
       localStorage.removeItem("isGuestUser");
       localStorage.removeItem("guestLoginTime");
       localStorage.removeItem("userToken");
+      localStorage.removeItem("currentUser");
       localStorage.removeItem("isAdmin");
       // Reload agar closure isGuestUser ter-refresh dan tabel dimuat ulang bersih
       window.location.reload();
