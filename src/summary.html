@@ -170,7 +170,7 @@
         </button>
       </div>
       <div class="bg-gray-50 p-3 md:p-4 rounded-lg mb-4 md:mb-6 space-y-2">
-        <div class="flex justify-between text-sm"><span class="font-medium text-gray-600">No. Order:</span><span class="text-gray-700" id="noteOrderId">-</span></div>
+        <div class="flex justify-between text-sm"><span class="font-medium text-gray-600">Kode Tracking:</span><span class="text-gray-700" id="noteOrderId">-</span></div>
         <div class="flex justify-between text-sm"><span class="font-medium text-gray-600">Requester:</span><span class="text-gray-700" id="noteOrderRequester">-</span></div>
         <div class="flex justify-between text-sm"><span class="font-medium text-gray-600">Device:</span><span class="text-gray-700" id="noteOrderDevice">-</span></div>
       </div>
@@ -521,7 +521,7 @@
     function openNoteModal(orderId) {
       const order = allWorkOrders.find(o => o.id === orderId);
       if (!order) { showErrorModal('Work order tidak ditemukan!'); return; }
-      document.getElementById('noteOrderId').textContent        = order.id;
+      document.getElementById('noteOrderId').textContent        = order.trackingCode || '-';
       document.getElementById('noteOrderDevice').textContent    = order.device;
       document.getElementById('noteOrderRequester').textContent = typeof order.requester === 'object' ? order.requester.name : order.requester;
       document.getElementById('noteGuestText').value = order.notes || 'Belum ada catatan dari guest.';
