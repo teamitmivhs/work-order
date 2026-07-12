@@ -612,24 +612,6 @@
                 return "/static/public/" + avatar + "?t=" + Date.now();
             }
 
-            function decodeJwtPayload(token) {
-                try {
-                    const payload = token.split(".")[1];
-                    if (!payload) return null;
-                    const normalized = payload
-                        .replace(/-/g, "+")
-                        .replace(/_/g, "/");
-                    const padded = normalized.padEnd(
-                        normalized.length + ((4 - (normalized.length % 4)) % 4),
-                        "=",
-                    );
-                    return JSON.parse(atob(padded));
-                } catch (err) {
-                    console.warn("Failed to decode JWT payload:", err);
-                    return null;
-                }
-            }
-
             function applyProfileData(data) {
                 if (!data) return;
                 const name = data.name || data.Name || "—";
@@ -899,8 +881,7 @@
             saveAvatarBtn.addEventListener("click", async () => {
                 if (!pendingAvatarFile) return;
 
-                const token = localStorage.getItem("userToken");
-                if (!token) {
+                if (!localStorage.getItem("currentUser")) {
                     showAvatarFeedback(
                         "Sesi habis, silakan login ulang.",
                         true,
@@ -917,7 +898,6 @@
 
                     const res = await fetch("/api/profile/avatar", {
                         method: "POST",
-                        headers: { Authorization: "Bearer " + token },
                         body: formData,
                     });
 
@@ -980,13 +960,11 @@
 
             // Hapus avatar → kirim DELETE ke server
             removeAvatarBtn.addEventListener("click", async () => {
-                const token = localStorage.getItem("userToken");
-                if (!token) return;
+                if (!localStorage.getItem("currentUser")) return;
 
                 try {
                     const res = await fetch("/api/profile/avatar", {
                         method: "DELETE",
-                        headers: { Authorization: "Bearer " + token },
                     });
 
                     if (!res.ok) throw new Error("Gagal menghapus avatar");
@@ -1025,25 +1003,24 @@
                     setTimeout(() => fb.classList.add("hidden"), 4000);
             }
 
-            // ── Load profil user dari JWT ──
+            // Load display identity locally; validate the HttpOnly session via API.
             (function loadProfile() {
-                const token = localStorage.getItem("userToken");
-                if (!token) {
+                const currentUser = JSON.parse(
+                    localStorage.getItem("currentUser") || "null",
+                );
+                if (!currentUser) {
                     window.location.href = "/login";
                     return;
                 }
 
-                const payload = decodeJwtPayload(token);
-                if (payload) applyProfileData(payload);
+                applyProfileData(currentUser);
 
                 // Ambil data lengkap dari API (avatar + status)
                 const updateProfileStatus = () => {
-                    fetch("/api/profile", {
-                        headers: { Authorization: "Bearer " + token },
-                    })
+                    fetch("/api/profile")
                         .then(async (r) => {
                             if (r.status === 401) {
-                                localStorage.removeItem("userToken");
+                                localStorage.removeItem("currentUser");
                                 window.location.href = "/login";
                                 return null;
                             }
@@ -1210,8 +1187,7 @@
                         return;
                     }
 
-                    const token = localStorage.getItem("userToken");
-                    if (!token) {
+                    if (!localStorage.getItem("currentUser")) {
                         window.location.href = "/login";
                         return;
                     }
@@ -1228,7 +1204,6 @@
                             method: "PATCH",
                             headers: {
                                 "Content-Type": "application/json",
-                                Authorization: "Bearer " + token,
                             },
                             body: JSON.stringify({
                                 currentPassword: current,
@@ -1245,7 +1220,7 @@
                             ) {
                                 throw new Error("Password saat ini salah.");
                             }
-                            localStorage.removeItem("userToken");
+                            localStorage.removeItem("currentUser");
                             window.location.href = "/login";
                             return;
                         }
@@ -1272,8 +1247,12 @@
             // ── Logout ──
             document
                 .getElementById("logoutBtn")
-                .addEventListener("click", function () {
+                .addEventListener("click", async function () {
+                    await fetch("/api/logout", { method: "POST" }).catch(
+                        () => {},
+                    );
                     localStorage.removeItem("userToken");
+                    localStorage.removeItem("currentUser");
                     localStorage.removeItem("isGuestUser");
                     localStorage.removeItem("guestLoginTime");
                     localStorage.removeItem("isAdmin");
