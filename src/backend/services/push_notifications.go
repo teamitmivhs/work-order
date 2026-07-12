@@ -22,14 +22,8 @@ func InitPushNotifications() {
 	vapidPublicKey = os.Getenv("VAPID_PUBLIC_KEY")
 	vapidPrivateKey = os.Getenv("VAPID_PRIVATE_KEY")
 	if vapidPublicKey == "" || vapidPrivateKey == "" {
-		privateKey, publicKey, err := webpush.GenerateVAPIDKeys()
-		if err != nil {
-			log.Printf("[WARNING] failed to generate VAPID keys: %v", err)
-			return
-		}
-		vapidPrivateKey = privateKey
-		vapidPublicKey = publicKey
-		log.Println("[WARNING] VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY not set; generated temporary push keys")
+		log.Println("[WARNING] VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY not set; push notifications disabled")
+		return
 	}
 
 	if err := ensurePushSubscriptionTable(); err != nil {
