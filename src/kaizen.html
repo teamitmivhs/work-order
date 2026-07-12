@@ -218,7 +218,7 @@
                     >
                         <div>
                             <span class="font-medium text-gray-600"
-                                >No. Order:</span
+                                >Kode Tracking:</span
                             >
                             <span
                                 class="text-gray-800 font-semibold"
@@ -1157,7 +1157,8 @@
             function openNotesModal(orderId) {
                 const o = allWorkOrders.find((o) => o.id === orderId);
                 if (!o) return;
-                document.getElementById("modalOrderId").textContent = o.id;
+                document.getElementById("modalOrderId").textContent =
+                    o.trackingCode || "-";
                 document.getElementById("modalOrderRequester").textContent =
                     typeof o.requester === "object"
                         ? o.requester.name
