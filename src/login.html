@@ -20,12 +20,12 @@
                         localStorage.getItem("theme") ||
                         "light";
                     document.documentElement.setAttribute("data-theme", theme);
-                    if (localStorage.getItem("userToken")) {
+                    if (localStorage.getItem("currentUser")) {
                         window.location.replace("/");
                         return;
                     }
                     if (
-                        sessionStorage.getItem("guestToken") ||
+                        sessionStorage.getItem("currentUser") ||
                         sessionStorage.getItem("isGuestUser") === "true" ||
                         localStorage.getItem("isGuestUser") === "true"
                     ) {
@@ -450,10 +450,10 @@
                     })
                         .then((r) => r.json())
                         .then((data) => {
-                            if (data.data && data.data.token) {
+                            if (data.data && data.data.member) {
                                 sessionStorage.setItem(
-                                    "guestToken",
-                                    data.data.token,
+                                    "currentUser",
+                                    JSON.stringify(data.data.member),
                                 );
                                 sessionStorage.setItem("isGuestUser", "true");
                                 sessionStorage.setItem(
@@ -502,17 +502,21 @@
                     })
                         .then((r) => r.json())
                         .then((data) => {
-                            if (data.data && data.data.token) {
+                            if (data.data && data.data.member) {
                                 localStorage.removeItem("isGuestUser");
                                 localStorage.removeItem("guestLoginTime");
                                 sessionStorage.removeItem("isGuestUser");
                                 sessionStorage.removeItem("guestLoginTime");
-                                sessionStorage.removeItem("guestToken");
-                                localStorage.setItem("isAdmin", "true");
+                                sessionStorage.removeItem("currentUser");
                                 localStorage.setItem(
-                                    "userToken",
-                                    data.data.token,
+                                    "isAdmin",
+                                    String(data.data.member.role === "Admin"),
                                 );
+                                localStorage.setItem(
+                                    "currentUser",
+                                    JSON.stringify(data.data.member),
+                                );
+                                localStorage.removeItem("userToken");
                                 showModal("Login berhasil! Mengalihkan...");
                                 setTimeout(() => {
                                     window.location.href = "/";
