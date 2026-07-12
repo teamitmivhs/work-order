@@ -4720,11 +4720,12 @@
                     if (cls) badge.classList.add(cls);
                     badge.classList.add("is-visible");
                 }
-                const token = localStorage.getItem("userToken");
+                const currentUser = JSON.parse(
+                    localStorage.getItem("currentUser") || "null",
+                );
                 const isGuest = localStorage.getItem("isGuestUser") === "true";
 
-                // Redirect ke login jika belum ada token dan bukan guest user
-                if (!token && !isGuest) {
+                if (!currentUser && !isGuest) {
                     window.location.href = "/login";
                     return;
                 }
@@ -4736,8 +4737,7 @@
                 }
 
                 try {
-                    // Decode JWT payload (base64) tanpa verifikasi — hanya untuk display
-                    const payload = JSON.parse(atob(token.split(".")[1]));
+                    const payload = currentUser;
                     if (payload.name) {
                         document.getElementById("navProfileName").textContent =
                             payload.name;
@@ -4794,9 +4794,7 @@
                     }
                     setDivisionBadge(payload.division);
                     // Avatar dan Status dari API /api/profile
-                    fetch("/api/profile", {
-                        headers: { Authorization: "Bearer " + token },
-                    })
+                    fetch("/api/profile")
                         .then((r) => (r.ok ? r.json() : null))
                         .then((raw) => {
                             const data = unwrapProfileResponse(raw);
@@ -4830,11 +4828,8 @@
 
                     // Auto-refresh navbar profile every 5 seconds agar tetap sync dengan settings page
                     setInterval(() => {
-                        const token = localStorage.getItem("userToken");
-                        if (!token) return;
-                        fetch("/api/profile", {
-                            headers: { Authorization: "Bearer " + token },
-                        })
+                        if (!localStorage.getItem("currentUser")) return;
+                        fetch("/api/profile")
                             .then((r) => (r.ok ? r.json() : null))
                             .then((raw) => {
                                 const data = unwrapProfileResponse(raw);
@@ -4872,8 +4867,7 @@
                     if (setStatusBtn) {
                         setStatusBtn.addEventListener("click", function (e) {
                             e.preventDefault();
-                            const token = localStorage.getItem("userToken");
-                            if (!token) return;
+                            if (!localStorage.getItem("currentUser")) return;
 
                             setStatusBtn.disabled = true;
                             setStatusBtn.textContent = "Loading...";
@@ -4882,7 +4876,6 @@
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
-                                    Authorization: "Bearer " + token,
                                 },
                                 body: JSON.stringify({ status: "standby" }),
                             })
@@ -5008,17 +5001,9 @@
 
                 function getLocalClaims() {
                     try {
-                        const token = localStorage.getItem("userToken") || "";
-                        const payload = token.split(".")[1];
-                        return payload
-                            ? JSON.parse(
-                                  atob(
-                                      payload
-                                          .replace(/-/g, "+")
-                                          .replace(/_/g, "/"),
-                                  ),
-                              )
-                            : {};
+                        return JSON.parse(
+                            localStorage.getItem("currentUser") || "{}",
+                        );
                     } catch (e) {
                         return {};
                     }
