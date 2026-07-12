@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net"
+	"net/url"
 	"time"
 
 	"teamitmivhs/work-order-backend/config"
@@ -65,17 +67,29 @@ func main() {
 
 func setupMiddleware(r *gin.Engine) {
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:4323",
-			"http://127.0.0.1:4323",
-			"http://localhost:8080",
-			"http://127.0.0.1:8080",
-		},
+		AllowOriginFunc:  isAllowedOrigin,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: false,
 		MaxAge:           12 * time.Hour,
 	}))
+}
+
+func isAllowedOrigin(origin string) bool {
+	parsed, err := url.Parse(origin)
+	if err != nil || parsed.User != nil || parsed.Path != "" {
+		return false
+	}
+	host := parsed.Hostname()
+	ip := net.ParseIP(host)
+	if host != "localhost" && (ip == nil || (!ip.IsLoopback() && !ip.IsPrivate())) {
+		return false
+	}
+	ports := map[string]map[string]bool{
+		"http":  {"4323": true, "8080": true},
+		"https": {"443": true, "8443": true},
+	}
+	return ports[parsed.Scheme][parsed.Port()]
 }
 
 func setupStaticRoutes(r *gin.Engine) {
