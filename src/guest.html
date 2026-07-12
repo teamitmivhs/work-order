@@ -1210,7 +1210,7 @@
                             <div>
                                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tracking</p>
                                 <p class="text-lg font-extrabold text-slate-900">${code || "-"}</p>
-                                <p class="text-sm text-gray-500">#${order.id || "-"} - ${priorityLabel(order.priority)}</p>
+                                <p class="text-sm text-gray-500">${priorityLabel(order.priority)}</p>
                             </div>
                             <span class="track-status track-status-${order.status || "pending"}">${statusLabel(order.status)}</span>
                         </div>
@@ -1388,7 +1388,6 @@
                     trackResult.innerHTML = "";
                     showGuestDetail(order);
                     saveTrackedOrder({
-                        id: order.id,
                         trackingCode: order.trackingCode,
                         device: order.device,
                         createdAt: order.time,
@@ -1549,23 +1548,20 @@
                         return response.json();
                     })
                     .then((json) => {
-                        const id =
-                            json.data && json.data.id ? json.data.id : "-";
                         const trackingCode =
                             json.data && json.data.trackingCode
                                 ? json.data.trackingCode
                                 : "";
                         form.reset();
                         saveTrackedOrder({
-                            id,
                             trackingCode,
                             device: payload.device,
                             createdAt: payload.time_display,
                         });
                         showToast(
                             trackingCode
-                                ? `Work Order #${id} berhasil dibuat. Kode: ${trackingCode}`
-                                : `Work Order #${id} berhasil dibuat.`,
+                                ? `Work order berhasil dibuat. Kode: ${trackingCode}`
+                                : "Work order berhasil dibuat.",
                         );
                         if (trackingCode) {
                             document.getElementById("trackingCodeInput").value =
@@ -1573,7 +1569,6 @@
                             trackResult.classList.add("hidden");
                             trackResult.innerHTML = "";
                             currentTrackedOrder = {
-                                id,
                                 trackingCode,
                                 status: "pending",
                                 priority: payload.priority,
