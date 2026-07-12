@@ -144,7 +144,6 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 	go services.NotifyNewWorkOrder(newID, req.Device, req.Location, req.Priority)
 
 	utils.RespondWithMessage(c, http.StatusCreated, "Work order created successfully", gin.H{
-		"id":           newID,
 		"trackingCode": req.TrackingCode,
 	})
 }
@@ -167,7 +166,6 @@ func (ctrl *WorkOrderController) TrackOrderHandler(c *gin.Context) {
 	}
 
 	utils.RespondSuccess(c, http.StatusOK, gin.H{
-		"id":                 order.ID,
 		"trackingCode":       order.TrackingCode,
 		"status":             order.Status,
 		"priority":           order.Priority,
@@ -220,7 +218,6 @@ func (ctrl *WorkOrderController) UpdateTrackedOrderNotesHandler(c *gin.Context) 
 	}
 
 	utils.RespondWithMessage(c, http.StatusOK, "Notes saved successfully", gin.H{
-		"id":           order.ID,
 		"trackingCode": order.TrackingCode,
 		"notes":        notes,
 	})
