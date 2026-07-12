@@ -1003,15 +1003,15 @@
         </div>
 
         <script>
-            const token =
-                sessionStorage.getItem("guestToken") ||
-                localStorage.getItem("userToken");
+            const currentUser = JSON.parse(
+                sessionStorage.getItem("currentUser") || "null",
+            );
             const isGuest =
                 sessionStorage.getItem("isGuestUser") === "true" ||
                 localStorage.getItem("isGuestUser") === "true";
 
-            if (!token) window.location.replace("/login");
-            if (token && !isGuest) window.location.replace("/");
+            if (!currentUser) window.location.replace("/login");
+            if (currentUser && !isGuest) window.location.replace("/");
 
             const form = document.getElementById("guestOrderForm");
             const toast = document.getElementById("guestToast");
@@ -1104,9 +1104,7 @@
             async function loadMembers() {
                 if (membersById.size) return;
                 try {
-                    const response = await fetch("/api/members", {
-                        headers: { Authorization: "Bearer " + token },
-                    });
+                    const response = await fetch("/api/members");
                     if (!response.ok) return;
                     const json = await response.json();
                     membersById = new Map(
@@ -1479,14 +1477,19 @@
 
             document
                 .getElementById("exitGuestBtn")
-                .addEventListener("click", () => {
+                .addEventListener("click", async () => {
+                    await fetch("/api/logout", { method: "POST" }).catch(
+                        () => {},
+                    );
                     localStorage.removeItem("isGuestUser");
                     localStorage.removeItem("guestLoginTime");
                     localStorage.removeItem("userToken");
+                    localStorage.removeItem("currentUser");
                     localStorage.removeItem("isAdmin");
                     sessionStorage.removeItem("isGuestUser");
                     sessionStorage.removeItem("guestLoginTime");
                     sessionStorage.removeItem("guestToken");
+                    sessionStorage.removeItem("currentUser");
                     window.location.href = "/login";
                 });
 
@@ -1533,7 +1536,6 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: "Bearer " + token,
                     },
                     body: JSON.stringify(payload),
                 })
