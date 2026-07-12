@@ -940,7 +940,7 @@
         ></div>
 
         <script>
-            const token = localStorage.getItem("userToken");
+            const hasSession = Boolean(localStorage.getItem("currentUser"));
             const rowsEl = document.getElementById("staffRows");
             const cardsEl = document.getElementById("staffCards");
             const emptyState = document.getElementById("emptyState");
@@ -952,7 +952,7 @@
             let activeFilter = "active";
             let staff = [];
 
-            if (!token) window.location.href = "/login";
+            if (!hasSession) window.location.href = "/login";
 
             function showToast(message, isError = false) {
                 toast.textContent = message;
@@ -967,7 +967,6 @@
                     ...options,
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: "Bearer " + token,
                         ...(options.headers || {}),
                     },
                 });
