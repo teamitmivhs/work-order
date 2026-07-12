@@ -1193,6 +1193,17 @@
                             <p class="text-sm text-red-700 whitespace-pre-wrap">${escapeHtml(order.adminNotes)}</p>
                           </div>`
                         : "";
+                const guestNote =
+                    order.status === "rejected"
+                        ? ""
+                        : `<div class="guest-note-box">
+                            <label class="block text-sm font-bold text-gray-700 mb-2" for="guestNoteText">Catatan Guest</label>
+                            <textarea id="guestNoteText" class="guest-input min-h-[92px]" maxlength="1000" placeholder="Tambahkan catatan tambahan untuk evaluasi...">${escapeHtml(order.notes || "")}</textarea>
+                            <p class="guest-note-hint">Catatan ini akan dilihat admin untuk evaluasi dan tindak lanjut work order.</p>
+                            <button type="button" class="save-guest-note-btn mt-3 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700" data-code="${code}">
+                                Simpan Catatan
+                            </button>
+                          </div>`;
                 return `
                     <div class="guest-summary-card">
                         <div class="guest-summary-head">
@@ -1223,14 +1234,7 @@
                             </div>
                         </div>
                         ${rejectNote}
-                        <div class="guest-note-box">
-                            <label class="block text-sm font-bold text-gray-700 mb-2" for="guestNoteText">Catatan Guest</label>
-                            <textarea id="guestNoteText" class="guest-input min-h-[92px]" maxlength="1000" placeholder="Tambahkan catatan tambahan untuk evaluasi...">${escapeHtml(order.notes || "")}</textarea>
-                            <p class="guest-note-hint">Catatan ini akan dilihat admin untuk evaluasi dan tindak lanjut work order.</p>
-                            <button type="button" class="save-guest-note-btn mt-3 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700" data-code="${code}">
-                                Simpan Catatan
-                            </button>
-                        </div>
+                        ${guestNote}
                     </div>`;
             }
 
