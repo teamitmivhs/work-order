@@ -3631,7 +3631,7 @@
                         >
                             <div class="flex justify-between gap-2">
                                 <span class="font-medium text-gray-500"
-                                    >No. Order</span
+                                    >Kode Tracking</span
                                 ><span
                                     class="text-gray-700 text-right"
                                     id="popupOrderId"
@@ -5145,7 +5145,7 @@
                 }
 
                 cardBody.innerHTML = sorted
-                    .map((order) => {
+                    .map((order, index) => {
                         const requesterName =
                             typeof order.requester === "string"
                                 ? order.requester
@@ -5162,7 +5162,7 @@
           <div class="wo-card-header">
             <div class="wo-card-title">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="wo-card-id">#${order.id}</span>
+                <span class="wo-card-id">#${index + 1}</span>
               </div>
               <div class="wo-card-device">${order.device || "-"}</div>
               <div class="wo-card-location">${order.location || "-"}</div>
