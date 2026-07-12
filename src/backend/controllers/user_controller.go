@@ -222,11 +222,11 @@ func Login(c *gin.Context) {
 		utils.InternalServerError(c, "Failed to generate token", err)
 		return
 	}
+	utils.SetSessionCookie(c, token, 24*60*60)
 
 	// Don't send password to frontend
 	member.Password = ""
 	utils.RespondWithMessage(c, http.StatusOK, "Login successful", gin.H{
-		"token":  token,
 		"member": member,
 	})
 }
