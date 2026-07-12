@@ -82,6 +82,8 @@ DB_NAME=dbwoit
 MYSQL_ROOT_PASSWORD=ganti_dengan_root_password_panjang
 JWT_SECRET=ganti_dengan_secret_random_minimal_32_karakter
 INTERNAL_API_KEY=ganti_dengan_secret_internal_random
+VAPID_PUBLIC_KEY=ganti_dengan_vapid_public_key
+VAPID_PRIVATE_KEY=ganti_dengan_vapid_private_key
 PUBLIC_UPLOAD_DIR=/static/public
 ```
 
@@ -95,6 +97,7 @@ Gunakan hasil random untuk:
 
 - `JWT_SECRET`
 - `INTERNAL_API_KEY`
+- `VAPID_PUBLIC_KEY` dan `VAPID_PRIVATE_KEY` (harus tetap sama agar subscription push tidak putus setelah restart)
 - password database
 
 ## 6. Compose Production yang Disarankan
