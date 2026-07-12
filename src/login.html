@@ -20,17 +20,39 @@
                         localStorage.getItem("theme") ||
                         "light";
                     document.documentElement.setAttribute("data-theme", theme);
-                    if (localStorage.getItem("currentUser")) {
-                        window.location.replace("/");
-                        return;
-                    }
-                    if (
-                        sessionStorage.getItem("currentUser") ||
-                        sessionStorage.getItem("isGuestUser") === "true" ||
-                        localStorage.getItem("isGuestUser") === "true"
-                    ) {
-                        window.location.replace("/guest");
-                    }
+                    fetch("/api/profile", { cache: "no-store" })
+                        .then((response) =>
+                            response.ok ? response.json() : null,
+                        )
+                        .then((payload) => {
+                            const member = payload?.data || payload;
+                            if (!member?.id) {
+                                localStorage.removeItem("currentUser");
+                                sessionStorage.removeItem("currentUser");
+                                localStorage.removeItem("isGuestUser");
+                                sessionStorage.removeItem("isGuestUser");
+                                return;
+                            }
+                            if (member.role === "Guest") {
+                                localStorage.removeItem("currentUser");
+                                sessionStorage.setItem(
+                                    "currentUser",
+                                    JSON.stringify(member),
+                                );
+                                sessionStorage.setItem("isGuestUser", "true");
+                                window.location.replace("/guest");
+                                return;
+                            }
+                            localStorage.removeItem("isGuestUser");
+                            sessionStorage.removeItem("isGuestUser");
+                            sessionStorage.removeItem("currentUser");
+                            localStorage.setItem(
+                                "currentUser",
+                                JSON.stringify(member),
+                            );
+                            window.location.replace("/");
+                        })
+                        .catch(() => {});
                 } catch (e) {}
             })();
         </script>
