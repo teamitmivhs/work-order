@@ -257,9 +257,9 @@
                 justify-content: flex-end;
                 gap: 0.65rem;
                 margin-top: 1rem;
-                padding-top: 1rem;
-                border-top: 1px solid #e2e8f0;
-                background: #fff;
+                padding-top: 0;
+                border-top: 0;
+                background: transparent;
             }
             .guest-step-button {
                 display: inline-flex;
@@ -923,8 +923,9 @@
                     left: 0;
                     margin: 0;
                     padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom));
-                    border-top: 1px solid #e2e8f0;
-                    box-shadow: 0 -8px 22px rgba(15, 23, 42, 0.06);
+                    border-top: 0;
+                    background: transparent;
+                    box-shadow: none;
                 }
                 .guest-step-actions .guest-step-button-primary {
                     flex: 1;
