@@ -198,6 +198,18 @@ if (mobileMenuBtn && navMenu) {
   });
 }
 
+document.querySelectorAll("#navMenu a[href]").forEach((link) => {
+  const currentPath = window.location.pathname.replace(/\/$/, "") || "/";
+  const linkPath = new URL(link.href, window.location.origin).pathname.replace(
+    /\/$/,
+    "",
+  );
+  if (linkPath === currentPath) {
+    link.classList.add("active");
+    link.setAttribute("aria-current", "page");
+  }
+});
+
 // ===== GSAP ANIMATION =====
 // FIX: Cek keberadaan GSAP sebelum memanggilnya.
 // Jika library tidak ter-load (network error, CDN down),
@@ -2644,6 +2656,136 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById("completedOrdersCount").textContent =
       workOrders.filter((o) => o.status === "completed").length;
     updateWorkOrderCategoryTabs();
+    renderHeroOperations();
+  }
+
+  function renderHeroOperations() {
+    const list = document.getElementById("heroWorkOrderList");
+    if (!list) return;
+
+    const activeOrders = workOrders.filter((order) =>
+      ["pending", "progress"].includes(order.status),
+    );
+    const progressOrders = activeOrders.filter(
+      (order) => order.status === "progress",
+    );
+    const highPriorityOrders = activeOrders.filter(
+      (order) => order.priority === "high",
+    );
+    const trackableOrders = workOrders.filter(
+      (order) => order.status !== "rejected",
+    );
+    const completionRate = trackableOrders.length
+      ? Math.round(
+          (trackableOrders.filter((order) => order.status === "completed")
+            .length /
+            trackableOrders.length) *
+            100,
+        )
+      : 0;
+    const onDutyStaff = members.filter((member) =>
+      ["standby", "onjob"].includes(member.status),
+    ).length;
+
+    setText("heroActiveOrders", activeOrders.length);
+    setText("heroOnDutyStaff", onDutyStaff);
+    setText("heroCompletionRate", `${completionRate}%`);
+    setText("heroPreviewActive", activeOrders.length);
+    setText("heroPreviewProgress", progressOrders.length);
+    setText("heroPreviewHigh", highPriorityOrders.length);
+    setText("heroPreviewCompletion", `${completionRate}%`);
+
+    const progress = document.getElementById("heroCompletionProgress");
+    const progressBar = document.getElementById("heroCompletionBar");
+    progress?.setAttribute("aria-valuenow", String(completionRate));
+    if (progressBar) progressBar.style.width = `${completionRate}%`;
+
+    list.replaceChildren();
+    const previewOrders = [...activeOrders]
+      .sort(
+        (a, b) =>
+          ({ high: 0, medium: 1, low: 2 }[a.priority] ?? 3) -
+            ({ high: 0, medium: 1, low: 2 }[b.priority] ?? 3) ||
+          Number(b.id) - Number(a.id),
+      )
+      .slice(0, 3);
+
+    if (previewOrders.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "operations-empty";
+      empty.textContent = "Tidak ada work order aktif saat ini.";
+      list.appendChild(empty);
+      return;
+    }
+
+    const priorityLabels = {
+      high: "Tinggi",
+      medium: "Sedang",
+      low: "Rendah",
+    };
+    const statusLabels = {
+      pending: "Menunggu",
+      progress: "Dikerjakan",
+    };
+
+    previewOrders.forEach((order) => {
+      const row = document.createElement("article");
+      row.className = "operations-row";
+
+      const main = document.createElement("div");
+      main.className = "operations-row-main";
+      const top = document.createElement("div");
+      top.className = "operations-row-top";
+      const title = document.createElement("p");
+      title.className = "operations-row-title";
+      title.textContent = `${order.device || "Perangkat IT"} · ${order.problem || `Work order #${order.id}`}`;
+      const priority = document.createElement("span");
+      const priorityKey = priorityLabels[order.priority]
+        ? order.priority
+        : "low";
+      priority.className = `operations-priority operations-priority-${priorityKey}`;
+      priority.textContent = priorityLabels[priorityKey];
+      priority.setAttribute(
+        "aria-label",
+        `Prioritas ${priorityLabels[priorityKey]}`,
+      );
+      top.append(title, priority);
+
+      const meta = document.createElement("div");
+      meta.className = "operations-row-meta";
+      const location = document.createElement("span");
+      location.textContent = order.location || "Lokasi belum diisi";
+      meta.appendChild(location);
+
+      const assignees = document.createElement("span");
+      assignees.className = "operations-assignees";
+      (order.executors || []).slice(0, 2).forEach((executorId) => {
+        const member = members.find(
+          (item) => Number(item.id) === Number(executorId),
+        );
+        if (!member) return;
+        const photo = document.createElement("img");
+        photo.className = "operations-assignee";
+        const memberName = String(member.name || "Staf IT");
+        photo.src = `/static/public/${member.avatar || "default-avatar.png"}`;
+        photo.alt = memberName;
+        photo.title = memberName;
+        photo.onerror = () => {
+          photo.onerror = null;
+          photo.src = "/static/public/default-avatar.png";
+        };
+        assignees.appendChild(photo);
+      });
+      meta.appendChild(assignees);
+      main.append(top, meta);
+
+      const statusKey = statusLabels[order.status] ? order.status : "pending";
+      const status = document.createElement("span");
+      status.className = `operations-status operations-status-${statusKey}`;
+      status.textContent = statusLabels[statusKey];
+      row.append(main, status);
+      list.appendChild(row);
+    });
   }
 
   // ===== OPERATOR PROFILE MODAL (dari search bar) =====
