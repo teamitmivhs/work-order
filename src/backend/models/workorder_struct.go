@@ -58,15 +58,18 @@ type TechGuide struct {
 	DraftArticles     int `json:"draftArticles"`
 }
 type WorkOrderRequest struct {
-	ID           int    `json:"id"`
-	Priority     string `json:"priority"`
-	TimeDisplay  string `json:"time_display"`
-	TimeSort     string `json:"time_sort"`
-	TrackingCode string `json:"trackingCode,omitempty"`
-	Requester    string `json:"requester"`
-	Location     string `json:"location"`
-	Device       string `json:"device"`
-	Problem      string `json:"problem"`
+	ID                  int    `json:"id"`
+	Priority            string `json:"priority"`
+	ImpactScope         string `json:"impact_scope,omitempty"`
+	Disruption          string `json:"disruption,omitempty"`
+	WorkaroundAvailable *bool  `json:"workaround_available,omitempty"`
+	TimeDisplay         string `json:"time_display"`
+	TimeSort            string `json:"time_sort"`
+	TrackingCode        string `json:"trackingCode,omitempty"`
+	Requester           string `json:"requester"`
+	Location            string `json:"location"`
+	Device              string `json:"device"`
+	Problem             string `json:"problem"`
 
 	// Executors harus diisi dari tabel relasi task_executors
 	Executors []int `json:"executors"`
