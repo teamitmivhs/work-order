@@ -34,6 +34,25 @@ func generateTrackingCode() (string, error) {
 	return "WO-" + string(code), nil
 }
 
+func deriveGuestPriority(req models.WorkOrderRequest) (string, error) {
+	scope := strings.ToLower(strings.TrimSpace(req.ImpactScope))
+	disruption := strings.ToLower(strings.TrimSpace(req.Disruption))
+	validScopes := map[string]bool{"individual": true, "room": true, "multiple": true}
+	validDisruptions := map[string]bool{"minor": true, "partial": true, "stopped": true}
+
+	if !validScopes[scope] || !validDisruptions[disruption] || req.WorkaroundAvailable == nil {
+		return "", fmt.Errorf("impact scope, disruption, and workaround availability are required")
+	}
+
+	if disruption == "stopped" && !*req.WorkaroundAvailable && scope != "individual" {
+		return "high", nil
+	}
+	if scope == "individual" && disruption == "minor" && *req.WorkaroundAvailable {
+		return "low", nil
+	}
+	return "medium", nil
+}
+
 type WorkOrderController struct {
 	Repo       repository.WorkOrderRepository
 	MemberRepo repository.MemberRepository
@@ -76,7 +95,8 @@ func (ctrl *WorkOrderController) GetTaskListHandler(c *gin.Context) {
 func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 	var req models.WorkOrderRequest
 
-	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" && role != "Guest" {
+	role, _ := middleware.GetUserRoleFromContext(c)
+	if role != "Admin" && role != "Guest" {
 		utils.Forbidden(c, "Only admins and guests can create work orders")
 		return
 	}
@@ -84,6 +104,14 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(c, "Invalid request payload", err.Error())
 		return
+	}
+	if role == "Guest" {
+		priority, err := deriveGuestPriority(req)
+		if err != nil {
+			utils.BadRequest(c, "Guest triage data is incomplete or invalid", err.Error())
+			return
+		}
+		req.Priority = priority
 	}
 
 	// Validasi input
@@ -145,6 +173,7 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 
 	utils.RespondWithMessage(c, http.StatusCreated, "Work order created successfully", gin.H{
 		"trackingCode": req.TrackingCode,
+		"priority":     req.Priority,
 	})
 }
 
