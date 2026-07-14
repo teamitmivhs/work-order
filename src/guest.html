@@ -96,24 +96,261 @@
                 box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
                 background: #fff;
             }
-            .priority-card {
+            .triage-section {
+                padding: 0;
+            }
+            .triage-question + .triage-question {
+                margin-top: 1rem;
+            }
+            .triage-question legend {
+                color: #334155;
+                font-size: 0.8rem;
+                font-weight: 700;
+            }
+            .triage-control-grid {
+                display: grid;
+                gap: 0.5rem;
+                margin-top: 0.5rem;
+            }
+            .triage-control-grid[data-columns="3"] {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .triage-control-grid[data-columns="2"] {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .triage-option {
+                display: block;
+                min-width: 0;
+            }
+            .triage-card {
+                position: relative;
+                display: flex;
+                min-height: 66px;
+                flex-direction: column;
+                justify-content: center;
                 border: 1.5px solid #dbe3ee;
                 border-radius: 0.75rem;
                 background: #f8fafc;
-                padding: 0.85rem 0.75rem;
-                text-align: center;
+                padding: 0.7rem 2rem 0.7rem 0.75rem;
                 cursor: pointer;
                 transition:
                     border-color 0.18s,
-                    background 0.18s,
-                    transform 0.18s;
+                    background 0.18s;
             }
-            .priority-card:hover {
-                transform: translateY(-1px);
+            .triage-card::after {
+                content: "\2713";
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                display: grid;
+                width: 1rem;
+                height: 1rem;
+                place-items: center;
+                border: 1px solid #cbd5e1;
+                border-radius: 999px;
+                color: transparent;
+                background: #fff;
+                font-size: 0.65rem;
+                font-weight: 800;
             }
-            .priority-opt input:checked + .priority-card {
+            .triage-card strong {
+                color: #334155;
+                font-size: 0.76rem;
+            }
+            .triage-card span {
+                margin-top: 0.15rem;
+                color: #64748b;
+                font-size: 0.65rem;
+                line-height: 1.35;
+            }
+            .triage-card:hover {
+                border-color: #93c5fd;
+            }
+            .triage-option input:checked + .triage-card {
                 border-color: #2563eb;
                 background: #eff6ff;
+            }
+            .triage-option input:checked + .triage-card::after {
+                border-color: #2563eb;
+                color: #fff;
+                background: #2563eb;
+            }
+            .triage-option input:focus-visible + .triage-card {
+                outline: 3px solid rgba(37, 99, 235, 0.28);
+                outline-offset: 2px;
+            }
+            .guest-step-header {
+                padding-bottom: 1rem;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .guest-step-counter {
+                color: #2563eb;
+                font-size: 0.7rem;
+                font-weight: 800;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+            .guest-step-title {
+                margin-top: 0.2rem;
+                color: #0f172a;
+                font-size: 1.05rem;
+                font-weight: 800;
+            }
+            .guest-step-description {
+                margin-top: 0.3rem;
+                color: #64748b;
+                font-size: 0.76rem;
+                line-height: 1.45;
+            }
+            .guest-step-progress {
+                height: 0.3rem;
+                margin-top: 0.75rem;
+                overflow: hidden;
+                border-radius: 999px;
+                background: #e2e8f0;
+            }
+            .guest-step-progress-bar {
+                display: block;
+                width: 33.333%;
+                height: 100%;
+                border-radius: inherit;
+                background: #2563eb;
+                transition: width 0.2s ease;
+            }
+            .guest-form-step {
+                margin-top: 1.1rem;
+            }
+            .guest-form-step[hidden] {
+                display: none !important;
+            }
+            #guestOrderForm.hidden,
+            #guestStatusPanel.hidden,
+            .guest-step-button.hidden,
+            .guest-step-error.hidden {
+                display: none !important;
+            }
+            .guest-detail-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 1rem;
+            }
+            .guest-detail-problem {
+                margin-top: 1rem;
+            }
+            .guest-reset-action {
+                margin-top: 0.85rem;
+                color: #64748b;
+                font-size: 0.75rem;
+                font-weight: 700;
+            }
+            .guest-reset-action:hover {
+                color: #dc2626;
+            }
+            .guest-step-error {
+                margin-top: 0.8rem;
+                color: #dc2626;
+                font-size: 0.75rem;
+                font-weight: 700;
+            }
+            .guest-step-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 0.65rem;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid #e2e8f0;
+                background: #fff;
+            }
+            .guest-step-button {
+                display: inline-flex;
+                min-height: 44px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0.7rem;
+                padding: 0.65rem 1rem;
+                font-size: 0.84rem;
+                font-weight: 800;
+            }
+            .guest-step-button-secondary {
+                color: #475569;
+                border: 1px solid #cbd5e1;
+                background: #fff;
+            }
+            .guest-step-button-primary {
+                color: #fff;
+                border: 1px solid #2563eb;
+                background: #2563eb;
+            }
+            .guest-step-button-primary:hover {
+                background: #1d4ed8;
+            }
+            .guest-step-button:focus-visible,
+            .review-edit-button:focus-visible,
+            .guest-reset-action:focus-visible {
+                outline: 3px solid rgba(37, 99, 235, 0.28);
+                outline-offset: 2px;
+            }
+            .guest-step-button:disabled {
+                cursor: wait;
+                opacity: 0.65;
+            }
+            .triage-priority-note {
+                margin-top: 1rem;
+                color: #64748b;
+                font-size: 0.7rem;
+                line-height: 1.45;
+            }
+            .review-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.75rem;
+                margin-bottom: 0.35rem;
+            }
+            .review-toolbar-title {
+                color: #0f172a;
+                font-size: 0.84rem;
+                font-weight: 800;
+            }
+            .review-edit-actions {
+                display: flex;
+                gap: 0.4rem;
+            }
+            .review-edit-button {
+                min-height: 36px;
+                padding: 0.35rem 0.55rem;
+                border: 1px solid #cbd5e1;
+                border-radius: 0.55rem;
+                color: #475569;
+                background: #fff;
+                font-size: 0.68rem;
+                font-weight: 800;
+            }
+            .review-list {
+                margin-top: 0.5rem;
+                border-block: 1px solid #e2e8f0;
+            }
+            .review-row {
+                display: grid;
+                grid-template-columns: 8rem minmax(0, 1fr);
+                gap: 0.75rem;
+                padding: 0.7rem 0;
+            }
+            .review-row + .review-row {
+                border-top: 1px solid #f1f5f9;
+            }
+            .review-label {
+                color: #64748b;
+                font-size: 0.72rem;
+                font-weight: 700;
+            }
+            .review-value {
+                min-width: 0;
+                color: #1e293b;
+                font-size: 0.78rem;
+                font-weight: 700;
+                line-height: 1.45;
+                overflow-wrap: anywhere;
             }
             .guest-tabs {
                 display: grid;
@@ -468,6 +705,16 @@
             html[data-theme="dark"] .guest-panel .text-gray-500 {
                 color: #64748b !important;
             }
+            html[data-theme="dark"] .guest-panel .text-slate-900 {
+                color: #0f172a !important;
+            }
+            html[data-theme="dark"] .guest-panel .text-slate-700 {
+                color: #334155 !important;
+            }
+            html[data-theme="dark"] .guest-panel .text-slate-600,
+            html[data-theme="dark"] .guest-panel .text-slate-500 {
+                color: #64748b !important;
+            }
             html[data-theme="dark"] .guest-panel .text-green-700 {
                 color: #15803d !important;
             }
@@ -477,20 +724,38 @@
             html[data-theme="dark"] .guest-panel .text-red-700 {
                 color: #b91c1c !important;
             }
-            html[data-theme="dark"] .guest-panel .guest-input {
+            html[data-theme="dark"]
+                main
+                .guest-panel
+                input.guest-input:not([type="radio"]),
+            html[data-theme="dark"] main .guest-panel select.guest-input,
+            html[data-theme="dark"] main .guest-panel textarea.guest-input {
                 background: #f8fafc !important;
                 border-color: #dbe3ee !important;
                 color: #0f172a !important;
             }
-            html[data-theme="dark"] .guest-panel .guest-input:focus {
+            html[data-theme="dark"]
+                main
+                .guest-panel
+                input.guest-input:not([type="radio"]):focus,
+            html[data-theme="dark"] main .guest-panel select.guest-input:focus,
+            html[data-theme="dark"] main .guest-panel textarea.guest-input:focus {
                 background: #fff !important;
                 border-color: #93c5fd !important;
                 box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
             }
-            html[data-theme="dark"] .guest-panel .guest-input::placeholder {
+            html[data-theme="dark"]
+                main
+                .guest-panel
+                input.guest-input:not([type="radio"])::placeholder,
+            html[data-theme="dark"]
+                main
+                .guest-panel
+                textarea.guest-input::placeholder {
                 color: #94a3b8 !important;
             }
-            html[data-theme="dark"] .guest-panel .priority-card {
+            html[data-theme="dark"] .guest-panel .triage-section,
+            html[data-theme="dark"] .guest-panel .triage-card {
                 background: #f8fafc !important;
                 border-color: #dbe3ee !important;
             }
@@ -508,9 +773,9 @@
             }
             html[data-theme="dark"]
                 .guest-panel
-                .priority-opt
+                .triage-option
                 input:checked
-                + .priority-card {
+                + .triage-card {
                 background: #eff6ff !important;
                 border-color: #2563eb !important;
             }
@@ -523,43 +788,149 @@
             @media (max-width: 640px) {
                 .guest-shell {
                     align-items: flex-start;
-                    padding: 2.5rem 1rem 1rem;
+                    padding: 0;
                 }
                 .guest-panel {
-                    border-radius: 0.8rem;
+                    min-height: 100dvh;
+                    overflow: visible !important;
+                    border: 0;
+                    border-radius: 0;
+                    box-shadow: none;
+                    backdrop-filter: none;
                 }
                 .guest-panel header {
-                    padding: 1rem 1.1rem;
+                    padding: 0.8rem 1rem;
                 }
                 .guest-panel h1 {
-                    font-size: 1.15rem;
+                    margin-top: 0.15rem;
+                    font-size: 1.05rem;
+                }
+                #exitGuestBtn {
+                    min-height: 40px;
+                    padding: 0.45rem 0.75rem;
+                }
+                .guest-tabs {
+                    gap: 0.35rem;
+                    padding: 0.5rem 0.75rem;
+                }
+                .guest-tab {
+                    min-height: 40px;
+                    border-radius: 0.6rem;
+                    box-shadow: none !important;
                 }
                 #guestOrderForm {
-                    padding: 1rem 1.1rem 1.1rem;
-                    gap: 0;
+                    display: flex;
+                    min-height: calc(100dvh - 132px);
+                    flex-direction: column;
+                    padding: 0.8rem 1rem
+                        calc(5.5rem + env(safe-area-inset-bottom));
                 }
                 #guestStatusPanel {
                     padding: 1rem 1.1rem 1.1rem;
-                }
-                #guestOrderForm > * + * {
-                    margin-top: 0.85rem;
                 }
                 #guestOrderForm label {
                     margin-bottom: 0.35rem;
                     font-size: 0.72rem;
                 }
                 .guest-input {
-                    min-height: 42px;
+                    min-height: 44px;
                     padding: 0.62rem 0.85rem;
                     border-radius: 0.68rem;
+                    scroll-margin-bottom: 6rem;
                 }
-                .priority-card {
-                    min-height: 46px;
-                    padding: 0.65rem 0.45rem;
+                .guest-step-header {
+                    padding-bottom: 0.75rem;
+                }
+                .guest-step-title {
+                    font-size: 0.98rem;
+                }
+                .guest-step-description {
+                    font-size: 0.72rem;
+                }
+                .guest-step-progress {
+                    margin-top: 0.6rem;
+                }
+                .guest-form-step {
+                    margin-top: 0.85rem;
+                }
+                .triage-section {
+                    padding: 0;
+                }
+                .triage-question + .triage-question {
+                    margin-top: 0.75rem;
+                }
+                .triage-option {
+                    display: block;
+                    margin-bottom: 0 !important;
+                }
+                .triage-card {
+                    min-height: 48px;
+                    align-items: center;
+                    padding: 0.5rem 1.35rem 0.5rem 0.25rem;
                     border-radius: 0.68rem;
+                    text-align: center;
+                }
+                .triage-card::after {
+                    top: 0.3rem;
+                    right: 0.3rem;
+                    width: 0.9rem;
+                    height: 0.9rem;
+                    font-size: 0.58rem;
+                }
+                .triage-card strong {
+                    font-size: 0.68rem;
+                    line-height: 1.25;
+                }
+                .triage-card span {
+                    display: none;
+                }
+                .triage-priority-note {
+                    margin-top: 0.75rem;
+                    font-size: 0.66rem;
+                }
+                .guest-detail-grid {
+                    grid-template-columns: 1fr;
+                    gap: 0.75rem;
+                }
+                .guest-detail-problem {
+                    margin-top: 0.75rem;
                 }
                 #guestProblem {
-                    min-height: 88px;
+                    min-height: 104px;
+                    resize: none;
+                }
+                .review-toolbar {
+                    align-items: flex-start;
+                    flex-direction: column;
+                }
+                .review-edit-actions {
+                    width: 100%;
+                }
+                .review-edit-button {
+                    min-height: 40px;
+                    flex: 1;
+                }
+                .review-row {
+                    grid-template-columns: 6.25rem minmax(0, 1fr);
+                    gap: 0.55rem;
+                    padding: 0.58rem 0;
+                }
+                .guest-step-actions {
+                    position: fixed;
+                    z-index: 35;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    margin: 0;
+                    padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom));
+                    border-top: 1px solid #e2e8f0;
+                    box-shadow: 0 -8px 22px rgba(15, 23, 42, 0.06);
+                }
+                .guest-step-actions .guest-step-button-primary {
+                    flex: 1;
+                }
+                #guestToast {
+                    bottom: calc(5.25rem + env(safe-area-inset-bottom));
                 }
                 .guest-summary-head {
                     padding: 0.85rem;
@@ -586,12 +957,14 @@
                     padding: 0 0.55rem;
                     font-size: 0.66rem;
                 }
-                #clearGuestFormBtn,
-                #submitGuestOrderBtn {
-                    min-height: 44px;
-                    padding-top: 0.65rem;
-                    padding-bottom: 0.65rem;
-                    border-radius: 0.8rem;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .guest-shell {
+                    animation: none;
+                }
+                .guest-step-progress-bar {
+                    transition: none;
                 }
             }
         </style>
@@ -648,169 +1021,334 @@
 
                 <form
                     id="guestOrderForm"
-                    class="px-5 sm:px-6 py-5 sm:py-6 space-y-5"
+                    class="px-5 sm:px-6 py-5 sm:py-6"
+                    novalidate
                 >
-                    <div>
-                        <label
-                            class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2"
-                            >Klasifikasi</label
+                    <div class="guest-step-header">
+                        <p class="guest-step-counter" id="guestStepCounter">
+                            Step 1 dari 3
+                        </p>
+                        <h2 class="guest-step-title" id="guestStepTitle">
+                            Nilai Dampak Gangguan
+                        </h2>
+                        <p
+                            class="guest-step-description"
+                            id="guestStepDescription"
                         >
-                        <div class="grid grid-cols-3 gap-2">
-                            <label class="priority-opt">
-                                <input
-                                    class="sr-only"
-                                    type="radio"
-                                    name="priority"
-                                    value="low"
-                                />
-                                <div class="priority-card">
-                                    <span
-                                        class="block text-sm font-semibold text-green-700"
-                                        >Low</span
-                                    >
-                                </div>
-                            </label>
-                            <label class="priority-opt">
-                                <input
-                                    class="sr-only"
-                                    type="radio"
-                                    name="priority"
-                                    value="medium"
-                                    checked
-                                />
-                                <div class="priority-card">
-                                    <span
-                                        class="block text-sm font-semibold text-yellow-700"
-                                        >Medium</span
-                                    >
-                                </div>
-                            </label>
-                            <label class="priority-opt">
-                                <input
-                                    class="sr-only"
-                                    type="radio"
-                                    name="priority"
-                                    value="high"
-                                />
-                                <div class="priority-card">
-                                    <span
-                                        class="block text-sm font-semibold text-red-700"
-                                        >High</span
-                                    >
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-gray-700 mb-1.5"
-                                for="guestRequester"
-                                >Nama Requester</label
-                            >
-                            <input
-                                id="guestRequester"
-                                class="guest-input"
-                                required
-                                autocomplete="name"
-                                placeholder="Nama lengkap"
-                            />
-                        </div>
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-gray-700 mb-1.5"
-                                for="guestDevice"
-                                >Nama Device</label
-                            >
-                            <input
-                                id="guestDevice"
-                                class="guest-input"
-                                required
-                                placeholder="Contoh: Printer, laptop, proyektor"
-                            />
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-gray-700 mb-1.5"
-                                for="guestLocation"
-                                >Lokasi</label
-                            >
-                            <select
-                                id="guestLocation"
-                                class="guest-input"
-                                required
-                            >
-                                <option value="">Pilih lokasi</option>
-                                <option value="Gedung A">Gedung A</option>
-                                <option value="Gedung B">Gedung B</option>
-                                <option value="Gedung B Baru">
-                                    Gedung B Baru
-                                </option>
-                                <option value="Gedung C">Gedung C</option>
-                                <option value="Gedung D">Gedung D</option>
-                                <option value="Gedung TKI">Gedung TKI</option>
-                                <option value="Gedung E">Gedung E</option>
-                                <option value="Gedung F">Gedung F</option>
-                                <option value="Gedung G">Gedung G</option>
-                                <option value="Ruang Guru">Ruang Guru</option>
-                                <option value="Ruang Yayasan">
-                                    Ruang Yayasan
-                                </option>
-                                <option value="Ruang Dar Al-Safwa">
-                                    Ruang Dar Al-Safwa
-                                </option>
-                                <option value="Ruang Arafah">
-                                    Ruang Arafah
-                                </option>
-                                <option value="Ruang Horenso">
-                                    Ruang Horenso
-                                </option>
-                            </select>
-                        </div>
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-gray-700 mb-1.5"
-                                for="guestSpecificLocation"
-                                >Detail Lokasi</label
-                            >
-                            <input
-                                id="guestSpecificLocation"
-                                class="guest-input"
-                                placeholder="Contoh: Lantai 2, ruang 201"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 mb-1.5"
-                            for="guestProblem"
-                            >Deskripsi Masalah</label
+                            Jawaban ini membantu sistem menentukan prioritas
+                            secara otomatis.
+                        </p>
+                        <div
+                            class="guest-step-progress"
+                            role="progressbar"
+                            aria-label="Progres pembuatan work order"
+                            aria-valuemin="1"
+                            aria-valuemax="3"
+                            aria-valuenow="1"
+                            id="guestStepProgress"
                         >
-                        <textarea
-                            id="guestProblem"
-                            class="guest-input min-h-[120px] resize-none"
-                            required
-                            placeholder="Jelaskan masalah yang terjadi"
-                        ></textarea>
+                            <span
+                                class="guest-step-progress-bar"
+                                id="guestStepProgressBar"
+                            ></span>
+                        </div>
                     </div>
 
-                    <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+                    <section class="guest-form-step" data-step="1">
+                        <div class="triage-section">
+                            <fieldset class="triage-question">
+                                <legend>Luas dampak</legend>
+                                <div
+                                    class="triage-control-grid"
+                                    data-columns="3"
+                                >
+                                    <label class="triage-option">
+                                        <input
+                                            class="sr-only"
+                                            type="radio"
+                                            name="impact_scope"
+                                            value="individual"
+                                            required
+                                        />
+                                        <span class="triage-card">
+                                            <strong>Perangkat</strong>
+                                            <span>Satu pengguna atau perangkat</span>
+                                        </span>
+                                    </label>
+                                    <label class="triage-option">
+                                        <input
+                                            class="sr-only"
+                                            type="radio"
+                                            name="impact_scope"
+                                            value="room"
+                                            required
+                                        />
+                                        <span class="triage-card">
+                                            <strong>Ruangan</strong>
+                                            <span>Kelas, lab, atau satu tim</span>
+                                        </span>
+                                    </label>
+                                    <label class="triage-option">
+                                        <input
+                                            class="sr-only"
+                                            type="radio"
+                                            name="impact_scope"
+                                            value="multiple"
+                                            required
+                                        />
+                                        <span class="triage-card">
+                                            <strong>Banyak area</strong>
+                                            <span>Beberapa ruang atau layanan utama</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="triage-question">
+                                <legend>Kondisi operasional</legend>
+                                <div
+                                    class="triage-control-grid"
+                                    data-columns="3"
+                                >
+                                    <label class="triage-option">
+                                        <input
+                                            class="sr-only"
+                                            type="radio"
+                                            name="disruption"
+                                            value="minor"
+                                            required
+                                        />
+                                        <span class="triage-card">
+                                            <strong>Berjalan</strong>
+                                            <span>Gangguan kecil, pekerjaan tetap jalan</span>
+                                        </span>
+                                    </label>
+                                    <label class="triage-option">
+                                        <input
+                                            class="sr-only"
+                                            type="radio"
+                                            name="disruption"
+                                            value="partial"
+                                            required
+                                        />
+                                        <span class="triage-card">
+                                            <strong>Terganggu</strong>
+                                            <span>Pekerjaan berjalan sebagian</span>
+                                        </span>
+                                    </label>
+                                    <label class="triage-option">
+                                        <input
+                                            class="sr-only"
+                                            type="radio"
+                                            name="disruption"
+                                            value="stopped"
+                                            required
+                                        />
+                                        <span class="triage-card">
+                                            <strong>Berhenti</strong>
+                                            <span>Aktivitas tidak dapat dilanjutkan</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="triage-question">
+                                <legend>Solusi sementara</legend>
+                                <div
+                                    class="triage-control-grid"
+                                    data-columns="2"
+                                >
+                                    <label class="triage-option">
+                                        <input
+                                            class="sr-only"
+                                            type="radio"
+                                            name="workaround_available"
+                                            value="true"
+                                            required
+                                        />
+                                        <span class="triage-card">
+                                            <strong>Ada</strong>
+                                            <span>Aktivitas masih bisa dialihkan</span>
+                                        </span>
+                                    </label>
+                                    <label class="triage-option">
+                                        <input
+                                            class="sr-only"
+                                            type="radio"
+                                            name="workaround_available"
+                                            value="false"
+                                            required
+                                        />
+                                        <span class="triage-card">
+                                            <strong>Tidak ada</strong>
+                                            <span>Belum tersedia cara alternatif</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </fieldset>
+
+                            <p class="triage-priority-note">
+                                High hanya untuk gangguan berhenti total, tanpa
+                                solusi sementara, dan berdampak minimal satu
+                                ruangan.
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="guest-form-step" data-step="2" hidden>
+                        <div class="guest-detail-grid">
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-1.5"
+                                    for="guestRequester"
+                                    >Nama Requester</label
+                                >
+                                <input
+                                    id="guestRequester"
+                                    class="guest-input"
+                                    required
+                                    autocomplete="name"
+                                    placeholder="Nama lengkap"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-1.5"
+                                    for="guestDevice"
+                                    >Nama Device</label
+                                >
+                                <input
+                                    id="guestDevice"
+                                    class="guest-input"
+                                    required
+                                    placeholder="Contoh: Proyektor Epson"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-1.5"
+                                    for="guestLocation"
+                                    >Lokasi</label
+                                >
+                                <select
+                                    id="guestLocation"
+                                    class="guest-input"
+                                    required
+                                >
+                                    <option value="">Pilih lokasi</option>
+                                    <option value="Gedung A">Gedung A</option>
+                                    <option value="Gedung B">Gedung B</option>
+                                    <option value="Gedung B Baru">
+                                        Gedung B Baru
+                                    </option>
+                                    <option value="Gedung C">Gedung C</option>
+                                    <option value="Gedung D">Gedung D</option>
+                                    <option value="Gedung TKI">Gedung TKI</option>
+                                    <option value="Gedung E">Gedung E</option>
+                                    <option value="Gedung F">Gedung F</option>
+                                    <option value="Gedung G">Gedung G</option>
+                                    <option value="Ruang Guru">Ruang Guru</option>
+                                    <option value="Ruang Yayasan">
+                                        Ruang Yayasan
+                                    </option>
+                                    <option value="Ruang Dar Al-Safwa">
+                                        Ruang Dar Al-Safwa
+                                    </option>
+                                    <option value="Ruang Arafah">
+                                        Ruang Arafah
+                                    </option>
+                                    <option value="Ruang Horenso">
+                                        Ruang Horenso
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-1.5"
+                                    for="guestSpecificLocation"
+                                    >Detail Lokasi</label
+                                >
+                                <input
+                                    id="guestSpecificLocation"
+                                    class="guest-input"
+                                    placeholder="Contoh: Lantai 2, ruang 201"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="guest-detail-problem">
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-1.5"
+                                for="guestProblem"
+                                >Deskripsi Masalah</label
+                            >
+                            <textarea
+                                id="guestProblem"
+                                class="guest-input min-h-[120px] resize-none"
+                                required
+                                placeholder="Jelaskan masalah yang terjadi"
+                            ></textarea>
+                        </div>
+
                         <button
                             id="clearGuestFormBtn"
                             type="button"
-                            class="w-full sm:w-auto px-5 py-3 rounded-xl border border-gray-300 text-gray-600 font-semibold hover:bg-gray-50"
+                            class="guest-reset-action"
                         >
-                            Reset
+                            Reset formulir
+                        </button>
+                    </section>
+
+                    <section class="guest-form-step" data-step="3" hidden>
+                        <div class="review-toolbar">
+                            <h3 class="review-toolbar-title">
+                                Periksa sebelum dikirim
+                            </h3>
+                            <div class="review-edit-actions">
+                                <button
+                                    type="button"
+                                    class="review-edit-button"
+                                    data-edit-step="1"
+                                >
+                                    Edit Dampak
+                                </button>
+                                <button
+                                    type="button"
+                                    class="review-edit-button"
+                                    data-edit-step="2"
+                                >
+                                    Edit Detail
+                                </button>
+                            </div>
+                        </div>
+                        <dl class="review-list" id="guestReviewList"></dl>
+                    </section>
+
+                    <p
+                        class="guest-step-error hidden"
+                        id="guestStepError"
+                        aria-live="polite"
+                    ></p>
+
+                    <div class="guest-step-actions">
+                        <button
+                            id="guestBackBtn"
+                            type="button"
+                            class="guest-step-button guest-step-button-secondary hidden"
+                        >
+                            Kembali
+                        </button>
+                        <button
+                            id="guestNextBtn"
+                            type="button"
+                            class="guest-step-button guest-step-button-primary"
+                        >
+                            Selanjutnya
                         </button>
                         <button
                             id="submitGuestOrderBtn"
                             type="submit"
-                            class="w-full flex-1 px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-500/20"
+                            class="guest-step-button guest-step-button-primary hidden"
                         >
                             Buat Work Order
                         </button>
@@ -1034,8 +1572,257 @@
             const guestDetailModal = document.getElementById("guestDetailModal");
             const guestDetailBody = document.getElementById("guestDetailBody");
             const trackedOrdersKey = "guestTrackedOrders";
+            const guestFormSteps = Array.from(
+                form.querySelectorAll(".guest-form-step"),
+            );
+            const guestStepCounter = document.getElementById("guestStepCounter");
+            const guestStepTitle = document.getElementById("guestStepTitle");
+            const guestStepDescription = document.getElementById(
+                "guestStepDescription",
+            );
+            const guestStepProgress = document.getElementById(
+                "guestStepProgress",
+            );
+            const guestStepProgressBar = document.getElementById(
+                "guestStepProgressBar",
+            );
+            const guestStepError = document.getElementById("guestStepError");
+            const guestBackBtn = document.getElementById("guestBackBtn");
+            const guestNextBtn = document.getElementById("guestNextBtn");
+            const guestReviewList = document.getElementById("guestReviewList");
+            const totalGuestSteps = 3;
+            let currentGuestStep = 1;
             let membersById = new Map();
             let currentTrackedOrder = null;
+
+            const guestStepMeta = {
+                1: {
+                    title: "Nilai Dampak Gangguan",
+                    description:
+                        "Jawaban ini membantu sistem menentukan prioritas secara otomatis.",
+                },
+                2: {
+                    title: "Detail Work Order",
+                    description:
+                        "Berikan informasi singkat agar Team IT dapat menindaklanjuti dengan tepat.",
+                },
+                3: {
+                    title: "Review Permintaan",
+                    description:
+                        "Pastikan dampak dan detail work order sudah sesuai sebelum dikirim.",
+                },
+            };
+
+            function getGuestFormLabels() {
+                return {
+                    impact_scope: {
+                        individual: "Satu perangkat",
+                        room: "Satu ruangan",
+                        multiple: "Banyak area",
+                    },
+                    disruption: {
+                        minor: "Masih berjalan",
+                        partial: "Terganggu",
+                        stopped: "Berhenti total",
+                    },
+                    workaround_available: {
+                        true: "Ada solusi sementara",
+                        false: "Tidak ada solusi sementara",
+                    },
+                    priority: {
+                        low: "Rendah",
+                        medium: "Sedang",
+                        high: "Tinggi",
+                    },
+                };
+            }
+
+            function selectedGuestValue(name) {
+                return (
+                    form.querySelector(`input[name="${name}"]:checked`)?.value ||
+                    ""
+                );
+            }
+
+            function estimatedGuestPriority() {
+                const scope = selectedGuestValue("impact_scope");
+                const disruption = selectedGuestValue("disruption");
+                const workaround = selectedGuestValue("workaround_available");
+                if (
+                    disruption === "stopped" &&
+                    workaround === "false" &&
+                    scope !== "individual"
+                )
+                    return "high";
+                if (
+                    scope === "individual" &&
+                    disruption === "minor" &&
+                    workaround === "true"
+                )
+                    return "low";
+                return "medium";
+            }
+
+            function clearGuestStepError() {
+                guestStepError.textContent = "";
+                guestStepError.classList.add("hidden");
+            }
+
+            function showGuestStepError(message, field) {
+                guestStepError.textContent = message;
+                guestStepError.classList.remove("hidden");
+                requestAnimationFrame(() => field?.focus());
+                return false;
+            }
+
+            function renderGuestReview() {
+                const labels = getGuestFormLabels();
+                const scope = selectedGuestValue("impact_scope");
+                const disruption = selectedGuestValue("disruption");
+                const workaround = selectedGuestValue("workaround_available");
+                const location = document.getElementById("guestLocation").value;
+                const specificLocation = document
+                    .getElementById("guestSpecificLocation")
+                    .value.trim();
+                const priority = estimatedGuestPriority();
+                const rows = [
+                    {
+                        label: "Dampak",
+                        value: `${labels.impact_scope[scope]} · ${labels.disruption[disruption]} · ${labels.workaround_available[workaround]}`,
+                    },
+                    {
+                        label: "Requester",
+                        value: document
+                            .getElementById("guestRequester")
+                            .value.trim(),
+                    },
+                    {
+                        label: "Perangkat",
+                        value: document
+                            .getElementById("guestDevice")
+                            .value.trim(),
+                    },
+                    {
+                        label: "Lokasi",
+                        value: [location, specificLocation]
+                            .filter(Boolean)
+                            .join(" · "),
+                    },
+                    {
+                        label: "Masalah",
+                        value: document
+                            .getElementById("guestProblem")
+                            .value.trim(),
+                    },
+                    {
+                        label: "Estimasi prioritas",
+                        value: `${labels.priority[priority]} · dikonfirmasi sistem saat dikirim`,
+                    },
+                ];
+
+                guestReviewList.replaceChildren(
+                    ...rows.map((item) => {
+                        const row = document.createElement("div");
+                        row.className = "review-row";
+                        const label = document.createElement("dt");
+                        label.className = "review-label";
+                        label.textContent = item.label;
+                        const value = document.createElement("dd");
+                        value.className = "review-value";
+                        value.textContent = item.value || "-";
+                        row.append(label, value);
+                        return row;
+                    }),
+                );
+            }
+
+            function updateGuestStepUI() {
+                const meta = guestStepMeta[currentGuestStep];
+                guestFormSteps.forEach((step) => {
+                    const active = Number(step.dataset.step) === currentGuestStep;
+                    step.hidden = !active;
+                    step.setAttribute("aria-hidden", String(!active));
+                });
+                guestStepCounter.textContent = `Step ${currentGuestStep} dari ${totalGuestSteps}`;
+                guestStepTitle.textContent = meta.title;
+                guestStepDescription.textContent = meta.description;
+                guestStepProgress.setAttribute(
+                    "aria-valuenow",
+                    String(currentGuestStep),
+                );
+                guestStepProgressBar.style.width = `${(currentGuestStep / totalGuestSteps) * 100}%`;
+                guestBackBtn.classList.toggle("hidden", currentGuestStep === 1);
+                guestNextBtn.classList.toggle(
+                    "hidden",
+                    currentGuestStep === totalGuestSteps,
+                );
+                submitBtn.classList.toggle(
+                    "hidden",
+                    currentGuestStep !== totalGuestSteps,
+                );
+                guestNextBtn.textContent =
+                    currentGuestStep === 2 ? "Review" : "Selanjutnya";
+            }
+
+            function setGuestFormStep(step, scroll = true) {
+                currentGuestStep = Math.max(
+                    1,
+                    Math.min(totalGuestSteps, Number(step) || 1),
+                );
+                clearGuestStepError();
+                if (currentGuestStep === 3) renderGuestReview();
+                updateGuestStepUI();
+                if (scroll) {
+                    const reduceMotion = window.matchMedia(
+                        "(prefers-reduced-motion: reduce)",
+                    ).matches;
+                    form.closest(".guest-panel").scrollIntoView({
+                        block: "start",
+                        behavior: reduceMotion ? "auto" : "smooth",
+                    });
+                }
+            }
+
+            function validateGuestStep(step) {
+                if (step === 1) {
+                    const groups = [
+                        ["impact_scope", "Pilih luas dampak."],
+                        ["disruption", "Pilih kondisi operasional."],
+                        [
+                            "workaround_available",
+                            "Pilih ketersediaan solusi sementara.",
+                        ],
+                    ];
+                    for (const [name, message] of groups) {
+                        if (!selectedGuestValue(name)) {
+                            if (currentGuestStep !== 1) setGuestFormStep(1);
+                            return showGuestStepError(
+                                message,
+                                form.querySelector(`input[name="${name}"]`),
+                            );
+                        }
+                    }
+                }
+
+                if (step === 2) {
+                    const fields = [
+                        ["guestRequester", "Nama requester wajib diisi."],
+                        ["guestDevice", "Nama device wajib diisi."],
+                        ["guestLocation", "Pilih lokasi."],
+                        ["guestProblem", "Deskripsi masalah wajib diisi."],
+                    ];
+                    for (const [id, message] of fields) {
+                        const field = document.getElementById(id);
+                        if (!String(field.value || "").trim()) {
+                            if (currentGuestStep !== 2) setGuestFormStep(2);
+                            return showGuestStepError(message, field);
+                        }
+                    }
+                }
+
+                clearGuestStepError();
+                return true;
+            }
 
             function normalizeTrackingCode(value) {
                 return String(value || "")
@@ -1198,7 +1985,7 @@
                         ? ""
                         : `<div class="guest-note-box">
                             <label class="block text-sm font-bold text-gray-700 mb-2" for="guestNoteText">Catatan Guest</label>
-                            <textarea id="guestNoteText" class="guest-input min-h-[92px]" maxlength="1000" placeholder="Tambahkan catatan tambahan untuk evaluasi...">${escapeHtml(order.notes || "")}</textarea>
+                            <textarea id="guestNoteText" class="guest-input min-h-[92px]" maxlength="1000" placeholder="Tambahkan catatan tambahan untuk evaluasi setelah work order selesai.">${escapeHtml(order.notes || "")}</textarea>
                             <p class="guest-note-hint">Catatan ini akan dilihat admin untuk evaluasi dan tindak lanjut work order.</p>
                             <button type="button" class="save-guest-note-btn mt-3 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700" data-code="${code}">
                                 Simpan Catatan
@@ -1425,6 +2212,20 @@
 
             createTab.addEventListener("click", () => setGuestMode("create"));
             trackTab.addEventListener("click", () => setGuestMode("track"));
+            guestNextBtn.addEventListener("click", () => {
+                if (!validateGuestStep(currentGuestStep)) return;
+                setGuestFormStep(currentGuestStep + 1);
+            });
+            guestBackBtn.addEventListener("click", () =>
+                setGuestFormStep(currentGuestStep - 1),
+            );
+            form.querySelectorAll("[data-edit-step]").forEach((button) => {
+                button.addEventListener("click", () =>
+                    setGuestFormStep(button.dataset.editStep),
+                );
+            });
+            form.addEventListener("input", clearGuestStepError);
+            form.addEventListener("change", clearGuestStepError);
             document
                 .getElementById("trackOrderBtn")
                 .addEventListener("click", () =>
@@ -1498,11 +2299,17 @@
 
             document
                 .getElementById("clearGuestFormBtn")
-                .addEventListener("click", () => form.reset());
+                .addEventListener("click", () => {
+                    form.reset();
+                    guestReviewList.replaceChildren();
+                    setGuestFormStep(1);
+                });
 
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
                 if (submitBtn.disabled) return;
+                if (!validateGuestStep(1) || !validateGuestStep(2)) return;
+                renderGuestReview();
 
                 const now = new Date();
                 const hh = String(now.getHours()).padStart(2, "0");
@@ -1513,9 +2320,10 @@
                     .value.trim();
 
                 const payload = {
-                    priority: form.querySelector(
-                        'input[name="priority"]:checked',
-                    ).value,
+                    impact_scope: form.elements.impact_scope.value,
+                    disruption: form.elements.disruption.value,
+                    workaround_available:
+                        form.elements.workaround_available.value === "true",
                     time_display: `${hh}:${mm}`,
                     time_sort: `${hh}:${mm}:00`,
                     requester: document
@@ -1552,7 +2360,13 @@
                             json.data && json.data.trackingCode
                                 ? json.data.trackingCode
                                 : "";
+                        const assignedPriority =
+                            json.data && json.data.priority
+                                ? json.data.priority
+                                : "medium";
                         form.reset();
+                        guestReviewList.replaceChildren();
+                        setGuestFormStep(1, false);
                         saveTrackedOrder({
                             trackingCode,
                             device: payload.device,
@@ -1560,7 +2374,7 @@
                         });
                         showToast(
                             trackingCode
-                                ? `Work order berhasil dibuat. Kode: ${trackingCode}`
+                                ? `Work order berhasil dibuat. Prioritas ${priorityLabel(assignedPriority)}. Kode: ${trackingCode}`
                                 : "Work order berhasil dibuat.",
                         );
                         if (trackingCode) {
@@ -1571,7 +2385,7 @@
                             currentTrackedOrder = {
                                 trackingCode,
                                 status: "pending",
-                                priority: payload.priority,
+                                priority: assignedPriority,
                                 requester: payload.requester,
                                 device: payload.device,
                                 location: payload.location,
@@ -1594,6 +2408,7 @@
                     })
                     .finally(() => setLoading(false));
             });
+            setGuestFormStep(1, false);
             renderTrackedOrders();
         </script>
     </body>
