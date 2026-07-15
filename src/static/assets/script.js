@@ -980,7 +980,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   async function pollIncomingOrders() {
     try {
-      const r = await fetch("/api/workorders", { headers: authHeaders() });
+      const r = await fetch("/api/workorders", {
+        headers: authHeaders(),
+        cache: "no-store",
+      });
       if (!r.ok) return;
       const json = await r.json();
       const latestOrders = normalizeWorkOrdersFromApi(json);
@@ -1118,7 +1121,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   async function fetchMembers() {
     try {
-      const r = await fetch("/api/members", { headers: authHeaders() });
+      const r = await fetch("/api/members", {
+        headers: authHeaders(),
+        cache: "no-store",
+      });
       if (!r.ok) throw new Error(r.statusText);
       const json = await r.json();
       // FIX: handle format response baru { code, message, data: [...] }
@@ -1138,7 +1144,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   async function fetchAndRenderWorkOrders() {
     try {
-      const r = await fetch("/api/workorders", { headers: authHeaders() });
+      const r = await fetch("/api/workorders", {
+        headers: authHeaders(),
+        cache: "no-store",
+      });
       if (!r.ok) throw new Error("Gagal mengambil data work order dari server");
       const json = await r.json();
       // FIX: handle format response baru { code, message, data: [...] }
@@ -1201,7 +1210,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     initializeMemberImages();
     updateSummaryCounts();
     primeOrderNotifications();
-    setInterval(pollIncomingOrders, 15000);
+    setInterval(pollIncomingOrders, 5000);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") pollIncomingOrders();
+    });
   }
 
   workOrderStatusTabs.forEach((tab) => {
