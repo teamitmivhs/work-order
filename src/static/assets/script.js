@@ -249,7 +249,9 @@ function showPopup(title, message, type = "info") {
       <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br ${bg} mb-4">${icon}</div>
       <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
       <p class="text-gray-600 mb-6 leading-relaxed">${message}</p>
-      <button class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200">OK</button>
+      <div class="popup-actions">
+        <button class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transform transition-all hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200">OK</button>
+      </div>
     </div>`;
 
   popup.appendChild(popupContent);
@@ -272,8 +274,9 @@ function showPopup(title, message, type = "info") {
 function showActionPopup(title, message, actionText, onAction, type = "info") {
   showPopup(title, message, type);
   const popup = document.getElementById("customPopup");
-  const okBtn = popup?.querySelector("button");
-  if (!popup || !okBtn) return;
+  const buttonRow = popup?.querySelector(".popup-actions");
+  const okBtn = buttonRow?.querySelector("button");
+  if (!popup || !buttonRow || !okBtn) return;
   popup.dataset.persistent = "true";
 
   okBtn.textContent = "Nanti";
@@ -286,7 +289,6 @@ function showActionPopup(title, message, actionText, onAction, type = "info") {
   actionBtn.className =
     "px-5 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200";
 
-  const buttonRow = okBtn.parentElement;
   buttonRow.className = "flex flex-col sm:flex-row justify-center gap-2";
   buttonRow.appendChild(actionBtn);
   actionBtn.addEventListener("click", async () => {
