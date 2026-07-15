@@ -886,7 +886,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       showActionPopup(
         "Aktifkan Notifikasi Work Order",
-        "Izinkan notifikasi supaya work order baru dari guest bisa tampil di browser dan ponsel yang sudah subscribe.",
+        "Izinkan notifikasi supaya work order baru tetap muncul di ponsel meski tab Work Order sedang ditutup.",
         "Aktifkan Notifikasi",
         async () => {
           const permission = await requestOrderNotificationPermission();
