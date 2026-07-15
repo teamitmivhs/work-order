@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ponytail: bind-mounted frontend changes before this hook finishes; use
+# versioned release directories if zero-downtime rollback becomes necessary.
+root="$(git rev-parse --show-toplevel)"
+exec "$root/scripts/deploy-server.sh"
