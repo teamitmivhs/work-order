@@ -2,7 +2,10 @@
 <html lang="id">
     <head>
         <meta charset="utf-8" />
-        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <meta
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+            name="viewport"
+        />
         <title>Settings — Work Order ITMIVHS</title>
         <link rel="icon" type="image/x-icon" href="/static/public/itlogo.ico" />
         <link rel="icon" type="image/png" href="/static/public/itlogo.png" />
@@ -191,6 +194,14 @@
                 border-color: rgba(74, 222, 128, 0.35);
             }
             @media (max-width: 640px) {
+                body {
+                    min-height: 100dvh;
+                }
+                main {
+                    padding-bottom: calc(
+                        5rem + env(safe-area-inset-bottom)
+                    ) !important;
+                }
                 .settings-card {
                     padding: 1.1rem;
                     border-radius: 0.75rem;
@@ -270,7 +281,7 @@
                         />
                         <button
                             id="changeAvatarBtn"
-                            class="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center shadow hover:bg-blue-600 transition-colors"
+                            class="absolute bottom-0 right-0 w-11 h-11 min-w-[44px] min-h-[44px] bg-blue-500 rounded-full flex items-center justify-center shadow hover:bg-blue-600 transition-colors"
                             title="Ganti foto profil"
                         >
                             <svg
