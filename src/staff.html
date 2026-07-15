@@ -580,7 +580,7 @@
                     <p
                         class="text-xs uppercase tracking-wide text-blue-600 font-semibold"
                     >
-                        Admin Console
+                        Staff Console
                     </p>
                     <h1 class="text-xl sm:text-2xl font-bold text-gray-900">
                         Staff Management
@@ -747,9 +747,10 @@
                         >
                             <option value="Operator">Operator</option>
                             <option value="Admin">Admin</option>
+                            <option value="Guru">Guru</option>
                         </select>
                     </div>
-                    <div>
+                    <div id="approveDivisionField">
                         <label
                             class="block text-sm font-medium text-gray-700 mb-1"
                             >Divisi</label
@@ -764,7 +765,7 @@
                             <option value="Data Analyst">Data Analyst</option>
                         </select>
                     </div>
-                    <div>
+                    <div id="approveBatchYearField">
                         <label
                             class="block text-sm font-medium text-gray-700 mb-1"
                             >Angkatan</label
@@ -910,6 +911,7 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
                         >
                             <option value="Admin">Admin</option>
+                            <option value="Guru">Guru</option>
                             <option value="Operator">Operator</option>
                         </select>
                     </div>
@@ -1132,16 +1134,38 @@
                 document.getElementById("approveName").textContent =
                     member.name;
                 document.getElementById("approveRole").value =
-                    member.role === "Admin" ? "Admin" : "Operator";
+                    ["Admin", "Guru"].includes(member.role)
+                        ? member.role
+                        : "Operator";
                 document.getElementById("approveDivision").value =
                     member.division || "Programmer";
                 document.getElementById("approveBatchYear").value =
                     member.batchYear || "";
                 document.getElementById("approveCanHandle").checked =
                     member.canHandleWorkOrder !== false;
+                syncApprovalRoleFields();
                 approveModal.classList.remove("hidden");
                 approveModal.classList.add("flex");
             }
+
+            function syncApprovalRoleFields() {
+                const isTeacher =
+                    document.getElementById("approveRole").value === "Guru";
+                document
+                    .getElementById("approveBatchYearField")
+                    .classList.toggle("hidden", isTeacher);
+                document
+                    .getElementById("approveDivisionField")
+                    .classList.toggle("hidden", isTeacher);
+                if (isTeacher) {
+                    document.getElementById("approveBatchYear").value = "";
+                    document.getElementById("approveDivision").value = "";
+                }
+            }
+
+            document
+                .getElementById("approveRole")
+                .addEventListener("change", syncApprovalRoleFields);
 
             const changeRoleModal = document.getElementById("changeRoleModal");
 
@@ -1152,7 +1176,7 @@
                 document.getElementById("changeRoleCurrent").textContent =
                     member.role || "Operator";
                 document.getElementById("changeRoleSelect").value =
-                    member.role === "Admin" ? "Operator" : "Admin";
+                    member.role || "Operator";
                 changeRoleModal.classList.remove("hidden");
                 changeRoleModal.classList.add("flex");
             }
