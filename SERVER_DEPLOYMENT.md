@@ -23,7 +23,7 @@ Output `fastfetch` dari user:
   - `/mnt/disk1`: 915.82 GiB
   - `/mnt/disk2`: 915.82 GiB
   - `/mnt/disk3`: 1.79 TiB, 62.49 GiB terpakai
-- Local IP: `192.168.107.37/20`
+- Local IP: `192.168.104.13/20`
 
 Kesimpulan kapasitas:
 
