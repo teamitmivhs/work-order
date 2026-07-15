@@ -59,18 +59,18 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-// AdminMiddleware memastikan user yang login adalah Admin
+// AdminMiddleware memastikan user memiliki akses penuh sebagai Admin atau Guru.
 func AdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("user_role")
+		role, exists := GetUserRoleFromContext(c)
 		if !exists {
 			utils.Unauthorized(c, "Missing user role information")
 			c.Abort()
 			return
 		}
 
-		if role != "Admin" {
-			utils.Forbidden(c, "Admin access required")
+		if !utils.IsAdminRole(role) {
+			utils.Forbidden(c, "Admin or Guru access required")
 			c.Abort()
 			return
 		}
@@ -79,17 +79,17 @@ func AdminMiddleware() gin.HandlerFunc {
 	}
 }
 
-// OperatorMiddleware memastikan user adalah Operator atau Admin
+// OperatorMiddleware memastikan user adalah Operator, Admin, atau Guru.
 func OperatorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exists := c.Get("user_role")
+		role, exists := GetUserRoleFromContext(c)
 		if !exists {
 			utils.Unauthorized(c, "Missing user role information")
 			c.Abort()
 			return
 		}
 
-		if role != "Operator" && role != "Admin" {
+		if role != "Operator" && !utils.IsAdminRole(role) {
 			utils.Forbidden(c, "Operator access required")
 			c.Abort()
 			return
