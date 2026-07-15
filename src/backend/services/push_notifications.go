@@ -11,6 +11,7 @@ import (
 	webpush "github.com/SherClockHolmes/webpush-go"
 
 	"teamitmivhs/work-order-backend/config"
+	"teamitmivhs/work-order-backend/utils"
 )
 
 var (
@@ -167,7 +168,7 @@ func notifyWorkOrder(title, body string, orderID int64, extra map[string]any, ta
 			log.Printf("[WARNING] failed to scan push subscription: %v", err)
 			continue
 		}
-		if target == "admin" && role != "Admin" {
+		if target == "admin" && !utils.IsAdminRole(role) {
 			continue
 		}
 		if target == "users" && (len(userIDs) == 0 || !userIDs[0][userID]) {
