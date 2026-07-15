@@ -287,6 +287,26 @@
                 </div>
                 <div>
                     <label
+                        for="role"
+                        class="block text-sm font-medium text-gray-700 mb-1.5"
+                        >Jenis Akun</label
+                    >
+                    <select
+                        id="role"
+                        name="role"
+                        required
+                        class="input-field select-field"
+                        aria-describedby="roleHelp"
+                    >
+                        <option value="Operator">Siswa / Operator</option>
+                        <option value="Guru">Guru</option>
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1" id="roleHelp">
+                        Semua akun baru tetap menunggu approval.
+                    </p>
+                </div>
+                <div id="batchYearField">
+                    <label
                         for="batchYear"
                         class="block text-sm font-medium text-gray-700 mb-1.5"
                         >Angkatan</label
@@ -303,7 +323,7 @@
                         class="input-field"
                     />
                 </div>
-                <div>
+                <div id="divisionField">
                     <label
                         for="division"
                         class="block text-sm font-medium text-gray-700 mb-1.5"
@@ -454,6 +474,27 @@
                 if (e.target === modal) hideModal();
             });
 
+            const roleSelect = document.getElementById("role");
+            const batchYearField = document.getElementById("batchYearField");
+            const batchYearInput = document.getElementById("batchYear");
+            const divisionField = document.getElementById("divisionField");
+            const divisionInput = document.getElementById("division");
+
+            function syncRegistrationRoleFields() {
+                const isTeacher = roleSelect.value === "Guru";
+                batchYearField.classList.toggle("hidden", isTeacher);
+                divisionField.classList.toggle("hidden", isTeacher);
+                batchYearInput.required = !isTeacher;
+                divisionInput.required = !isTeacher;
+                if (isTeacher) {
+                    batchYearInput.value = "";
+                    divisionInput.value = "";
+                }
+            }
+
+            roleSelect.addEventListener("change", syncRegistrationRoleFields);
+            syncRegistrationRoleFields();
+
             // Toggle password
             document
                 .getElementById("togglePassword")
@@ -515,8 +556,11 @@
                     submitBtn.textContent = "Mendaftar...";
 
                     const name = this.username.value.trim();
-                    const batchYear = this.batchYear.value.trim();
-                    const division = this.division.value;
+                    const role = this.role.value;
+                    const batchYear =
+                        role === "Guru" ? "" : this.batchYear.value.trim();
+                    const division =
+                        role === "Guru" ? "" : this.division.value;
                     const password = this.password.value;
 
                     fetch("/api/register", {
@@ -525,6 +569,7 @@
                         body: JSON.stringify({
                             name,
                             password,
+                            role,
                             batchYear,
                             division,
                         }),
