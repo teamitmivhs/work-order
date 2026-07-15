@@ -2776,14 +2776,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         };
         assignees.appendChild(photo);
       });
-      meta.appendChild(assignees);
       main.append(top, meta);
 
       const statusKey = statusLabels[order.status] ? order.status : "pending";
       const status = document.createElement("span");
       status.className = `operations-status operations-status-${statusKey}`;
       status.textContent = statusLabels[statusKey];
-      row.append(main, status);
+      row.append(main, assignees, status);
       list.appendChild(row);
     });
   }
