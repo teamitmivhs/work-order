@@ -172,15 +172,14 @@ docker-compose -f src/docker-compose.yml up -d --build
 
 ```text
 work-order/
-├── src/
-│   ├── backend/        # Go API Microservice (Gin Framework)
-│   ├── rust-engine/    # Rust Time-Tracker Service (Axum)
-│   ├── db/             # SQL Schema & Migration scripts
-│   ├── nginx/          # Nginx Reverse Proxy Config
-│   ├── static/         # Frontend Assets (JS, CSS, Images, Logos)
-│   └── *.html          # Static HTML Templates
-├── package.json        # Frontend dependencies & configurations
-└── docker-compose.yml  # Orchestration configuration
+└── src/
+    ├── backend/        # Go API Microservice (Gin Framework)
+    ├── rust-engine/    # Rust Time-Tracker Service (Axum)
+    ├── db/             # SQL Schema & Migration scripts
+    ├── nginx/          # Nginx Reverse Proxy Config
+    ├── static/         # Frontend Assets (JS, CSS, Images, Logos)
+    ├── *.html          # Static HTML Templates
+    └── docker-compose.yml  # Orchestration configuration
 ```
 
 ---
