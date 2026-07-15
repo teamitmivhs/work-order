@@ -29,6 +29,7 @@ const (
 type RegisterRequest struct {
 	Name      string `json:"name" binding:"required"`
 	Password  string `json:"password" binding:"required"`
+	Role      string `json:"role"`
 	BatchYear string `json:"batchYear"`
 	Division  string `json:"division"`
 }
@@ -63,21 +64,27 @@ func Register(c *gin.Context) {
 
 	// Validasi input
 	req.Name = strings.TrimSpace(req.Name)
-	req.BatchYear = strings.TrimSpace(req.BatchYear)
-	division := normalizeStaffDivision(req.Division)
+	requestedRole := normalizeStaffRole(req.Role)
+	if requestedRole == "" || requestedRole == "Admin" {
+		utils.BadRequest(c, "Registration role must be Operator or Guru")
+		return
+	}
+	division, validDivision := normalizeStaffDivisionForRole(requestedRole, req.Division)
 	if len(req.Name) < minNameLength || len(req.Name) > maxNameLength {
 		utils.BadRequest(c, "Username must be between 3 and 50 characters")
 		return
 	}
-	if req.BatchYear == "" {
-		utils.BadRequest(c, "Angkatan is required")
-		return
-	}
-	if !isValidBatchNumber(req.BatchYear) {
+	batchYear, validBatchYear := normalizeStaffBatchYear(requestedRole, req.BatchYear)
+	if !validBatchYear {
+		if strings.TrimSpace(req.BatchYear) == "" {
+			utils.BadRequest(c, "Angkatan is required")
+			return
+		}
 		utils.BadRequest(c, "Angkatan must be a number, for example 13 or 14")
 		return
 	}
-	if division == "" {
+	req.BatchYear = batchYear
+	if !validDivision {
 		utils.BadRequest(c, "Invalid division. Must be Soundman, Programmer, Maintenance, or Data Analyst")
 		return
 	}
@@ -113,9 +120,11 @@ func Register(c *gin.Context) {
 	}
 
 	if existingMember != nil {
-		roleToSet := "Operator"
-		if normalizedRole := normalizeStaffRole(existingMember.Role); normalizedRole != "" {
-			roleToSet = normalizedRole
+		roleToSet := requestedRole
+		if requestedRole == "Operator" {
+			if normalizedRole := normalizeStaffRole(existingMember.Role); normalizedRole != "" {
+				roleToSet = normalizedRole
+			}
 		}
 		if err := memberRepo.SetMemberPassword(existingMember.ID, string(hashedPassword), roleToSet, division, req.BatchYear); err != nil {
 			utils.InternalServerError(c, "Failed to set password", err)
@@ -134,7 +143,7 @@ func Register(c *gin.Context) {
 	}
 
 	accountStatus := "pending"
-	role := "Operator"
+	role := requestedRole
 	canHandle := false
 	message := "Registration submitted. Please wait for admin approval."
 	if !hasAdmin {
@@ -515,17 +524,17 @@ func ApproveMemberHandler(c *gin.Context) {
 
 	role := normalizeStaffRole(req.Role)
 	if role == "" {
-		utils.BadRequest(c, "Invalid role. Must be Operator or Admin")
+		utils.BadRequest(c, "Invalid role. Must be Operator, Admin, or Guru")
 		return
 	}
 
-	division := normalizeStaffDivision(req.Division)
-	if division == "" {
+	division, validDivision := normalizeStaffDivisionForRole(role, req.Division)
+	if !validDivision {
 		utils.BadRequest(c, "Invalid division. Must be Soundman, Programmer, Maintenance, or Data Analyst")
 		return
 	}
-	batchYear := strings.TrimSpace(req.BatchYear)
-	if !isValidBatchNumber(batchYear) {
+	batchYear, validBatchYear := normalizeStaffBatchYear(role, req.BatchYear)
+	if !validBatchYear {
 		utils.BadRequest(c, "Angkatan must be a number, for example 13 or 14")
 		return
 	}
@@ -628,8 +637,8 @@ func GraduateBatchHandler(c *gin.Context) {
 }
 
 // ChangeRoleHandler: PATCH /api/admin/members/:id/role
-// Allows an admin to promote Operator → Admin or demote Admin → Operator.
-// An admin cannot change their own role (guard against self-lockout).
+// Allows an Admin or Guru to assign Operator, Admin, or Guru roles.
+// A privileged user cannot change their own role (guard against self-lockout).
 type ChangeRoleRequest struct {
 	Role string `json:"role" binding:"required"`
 }
@@ -659,7 +668,7 @@ func ChangeRoleHandler(c *gin.Context) {
 
 	role := normalizeStaffRole(req.Role)
 	if role == "" {
-		utils.BadRequest(c, "Invalid role. Must be Operator or Admin")
+		utils.BadRequest(c, "Invalid role. Must be Operator, Admin, or Guru")
 		return
 	}
 
@@ -690,6 +699,8 @@ func normalizeStaffRole(role string) string {
 		return "Operator"
 	case "admin":
 		return "Admin"
+	case "guru":
+		return "Guru"
 	default:
 		return ""
 	}
@@ -717,4 +728,20 @@ func isValidBatchNumber(batch string) bool {
 	}
 	value, err := strconv.Atoi(batch)
 	return err == nil && value >= 1 && value <= 99
+}
+
+func normalizeStaffBatchYear(role string, batch string) (string, bool) {
+	if role == "Guru" {
+		return "", true
+	}
+	batch = strings.TrimSpace(batch)
+	return batch, isValidBatchNumber(batch)
+}
+
+func normalizeStaffDivisionForRole(role string, division string) (string, bool) {
+	if role == "Guru" {
+		return "", true
+	}
+	division = normalizeStaffDivision(division)
+	return division, division != ""
 }
