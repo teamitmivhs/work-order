@@ -514,11 +514,6 @@ body[data-theme="dark"] .border-gray-300 {
     font-size: 14px;
 }
 
-.fade-slide {
-    opacity: 0;
-    transform: translateY(20px);
-}
-
 .progress-fade {
     animation: fadeLeftYellow 1.5s infinite !important;
     background-color: #fbbf24 !important;
