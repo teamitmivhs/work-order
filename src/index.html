@@ -4662,9 +4662,9 @@
                     );
 
                     function setShiftManagerAccess(role, division) {
-                        const isAdmin =
-                            String(role || "").trim().toLowerCase() ===
-                            "admin";
+                        const isAdmin = ["admin", "guru"].includes(
+                            String(role || "").trim().toLowerCase(),
+                        );
                         const isDataAnalyst =
                             String(division || "").trim().toLowerCase() ===
                             "data analyst";
@@ -4682,9 +4682,9 @@
                         const dr = document.getElementById("dropdownRole");
                         if (dr) dr.textContent = payload.role;
 
-                        const isAdmin =
-                            String(payload.role).trim().toLowerCase() ===
-                            "admin";
+                        const isAdmin = ["admin", "guru"].includes(
+                            String(payload.role).trim().toLowerCase(),
+                        );
                         if (isAdmin) {
                             staffOnlyElements.forEach((el) =>
                                 el?.classList.remove("hidden"),
@@ -4910,7 +4910,7 @@
                 }
                 function canCurrentUserAct(order) {
                     const claims = getLocalClaims();
-                    if (claims.role === "Admin") return true;
+                    if (["Admin", "Guru"].includes(claims.role)) return true;
                     const userID = Number(claims.id);
                     return (
                         Array.isArray(order.executors) &&
@@ -5023,7 +5023,11 @@
                     const canActOnProgressOrder = canCurrentUserAct(order);
                     let btns = "";
                     if (order.status === "pending") {
-                        if (getLocalClaims().role === "Admin") {
+                        if (
+                            ["Admin", "Guru"].includes(
+                                getLocalClaims().role,
+                            )
+                        ) {
                             btns += `<button class="mc-take-btn wo-action-text wo-action-take" data-order-id="${order.id}">Mulai</button>`;
                             btns += `<button class="mc-reject-btn wo-action-text wo-action-delete" data-order-id="${order.id}">Reject</button>`;
                             if ((order.executors || []).length > 0) {
@@ -5038,7 +5042,9 @@
                             btns += `<button class="mc-done-btn wo-action-text wo-action-done" data-order-id="${order.id}">Selesai</button>`;
                         }
                     }
-                    if (getLocalClaims().role === "Admin") {
+                    if (
+                        ["Admin", "Guru"].includes(getLocalClaims().role)
+                    ) {
                         btns += `<button class="mc-delete-btn wo-action-text wo-action-delete" data-order-id="${order.id}">Hapus</button>`;
                     }
                     return btns;
