@@ -210,6 +210,27 @@
                 box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
                 background: #fff;
             }
+            .work-order-date-control {
+                position: relative;
+                min-width: 0;
+            }
+            .work-order-date-placeholder {
+                position: absolute;
+                top: 50%;
+                left: 0.9rem;
+                transform: translateY(-50%);
+                color: #94a3b8;
+                font-size: 0.875rem;
+                pointer-events: none;
+                transition: opacity 0.15s ease;
+            }
+            #workOrderDateFilter:focus + .work-order-date-placeholder,
+            #workOrderDateFilter:valid + .work-order-date-placeholder {
+                opacity: 0;
+            }
+            [data-theme="dark"] .work-order-date-placeholder {
+                color: #64748b;
+            }
             /* Prevent iOS zoom */
             @media (max-width: 767px) {
                 .co-input {
@@ -4339,12 +4360,18 @@
                         <span class="work-order-date-label md:hidden"
                             >Tanggal</span
                         >
-                        <input
-                            id="workOrderDateFilter"
-                            type="date"
-                            class="co-input"
-                            aria-label="Filter tanggal work order"
-                        />
+                        <div class="work-order-date-control">
+                            <input
+                                id="workOrderDateFilter"
+                                type="date"
+                                class="co-input"
+                                aria-label="Filter tanggal work order"
+                                required
+                            />
+                            <span class="work-order-date-placeholder"
+                                >Pilih tanggal</span
+                            >
+                        </div>
                     </label>
                     <button
                         id="clearWorkOrderFilters"
