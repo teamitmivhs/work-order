@@ -61,7 +61,7 @@ function authHeaders(extra = {}) {
 }
 
 function isCurrentUserAdmin() {
-  return getCurrentUserClaims().role === "Admin";
+  return ["Admin", "Guru"].includes(getCurrentUserClaims().role);
 }
 
 function getCurrentUserId() {
@@ -2065,8 +2065,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     if (!isCurrentUserAdmin() && isCurrentUserAssigned(order)) {
       showPopup(
-        "Menunggu Admin",
-        "Kamu sudah masuk sebagai operator. Tunggu admin approve untuk mulai progress work order.",
+        "Menunggu Approval",
+        "Kamu sudah masuk sebagai operator. Tunggu Admin atau Guru menyetujui untuk mulai progress work order.",
         "info",
       );
       return;
@@ -2332,7 +2332,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             : "Work Order Diambil",
           isCurrentUserAdmin()
             ? `Work order ${currentOrder.trackingCode || ""} mulai progress.`
-            : `Kamu sudah masuk ke work order ${currentOrder.trackingCode || ""}. Tunggu admin approve untuk mulai progress.`,
+            : `Kamu sudah masuk ke work order ${currentOrder.trackingCode || ""}. Tunggu Admin atau Guru menyetujui untuk mulai progress.`,
           "success",
         );
         hideAnimatedPopup(takeOrderPopup);
