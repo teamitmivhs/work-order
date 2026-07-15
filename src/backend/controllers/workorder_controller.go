@@ -73,7 +73,7 @@ func (ctrl *WorkOrderController) GetTaskListHandler(c *gin.Context) {
 
 	userRole, _ := middleware.GetUserRoleFromContext(c)
 
-	if userRole == "Admin" || userRole == "Operator" {
+	if utils.IsAdminRole(userRole) || userRole == "Operator" {
 		tasks, err = ctrl.Repo.GetAllTasks()
 	} else if userRole == "Guest" {
 		utils.Forbidden(c, "Guest tidak dapat melihat daftar work order")
@@ -96,7 +96,7 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 	var req models.WorkOrderRequest
 
 	role, _ := middleware.GetUserRoleFromContext(c)
-	if role != "Admin" && role != "Guest" {
+	if !utils.IsAdminRole(role) && role != "Guest" {
 		utils.Forbidden(c, "Only admins and guests can create work orders")
 		return
 	}
@@ -274,7 +274,7 @@ func (ctrl *WorkOrderController) TakeOrderHandler(c *gin.Context) {
 		return
 	}
 
-	if role != "Admin" {
+	if !utils.IsAdminRole(role) {
 		userID, ok := middleware.GetUserIDFromContext(c)
 		if !ok || userID == 0 {
 			utils.Unauthorized(c, "User not found")
@@ -355,8 +355,8 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 		return
 	}
 
-	// Cek assignment hanya untuk Operator — Admin bisa complete order apapun
-	if userRole != "Admin" {
+	// Cek assignment hanya untuk Operator — Admin dan Guru bisa complete order apapun.
+	if !utils.IsAdminRole(userRole) {
 		userID, _ := middleware.GetUserIDFromContext(c)
 		isAssigned, err := ctrl.MemberRepo.IsMemberAssigned(orderID, userID)
 		if err != nil {
@@ -408,7 +408,7 @@ func (ctrl *WorkOrderController) CompleteOrderHandler(c *gin.Context) {
 }
 
 func (ctrl *WorkOrderController) RejectOrderHandler(c *gin.Context) {
-	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
+	if role, _ := middleware.GetUserRoleFromContext(c); !utils.IsAdminRole(role) {
 		utils.Forbidden(c, "Only admins can reject work orders")
 		return
 	}
@@ -465,7 +465,7 @@ func (ctrl *WorkOrderController) UploadDocumentationPhotoHandler(c *gin.Context)
 		utils.Forbidden(c, "Guest cannot upload work order documentation")
 		return
 	}
-	if userRole != "Admin" {
+	if !utils.IsAdminRole(userRole) {
 		isAssigned, err := ctrl.MemberRepo.IsMemberAssigned(orderID, userID)
 		if err != nil {
 			utils.InternalServerError(c, "Failed to check assignment", err)
@@ -537,7 +537,7 @@ func (ctrl *WorkOrderController) UploadDocumentationPhotoHandler(c *gin.Context)
 // Hanya admin yang bisa delete
 func (ctrl *WorkOrderController) DeleteOrderHandler(c *gin.Context) {
 	// Guest tidak boleh delete order
-	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
+	if role, _ := middleware.GetUserRoleFromContext(c); !utils.IsAdminRole(role) {
 		utils.Forbidden(c, "Only admins can delete work orders")
 		return
 	}
@@ -578,7 +578,7 @@ func (ctrl *WorkOrderController) GetSafetyChecklistHandler(c *gin.Context) {
 
 // UpdateSafetyChecklistHandler: PUT /api/workorders/{id}/checklist
 func (ctrl *WorkOrderController) UpdateSafetyChecklistHandler(c *gin.Context) {
-	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
+	if role, _ := middleware.GetUserRoleFromContext(c); !utils.IsAdminRole(role) {
 		utils.Forbidden(c, "Only admins can update safety checklist")
 		return
 	}
@@ -660,7 +660,7 @@ func GetShiftDayCounterHandler(c *gin.Context) {
 // UpdateOrderHandler: PATCH /api/workorders/{id}
 // Update executor list untuk order yang masih pending
 func (ctrl *WorkOrderController) UpdateOrderHandler(c *gin.Context) {
-	if role, _ := middleware.GetUserRoleFromContext(c); role != "Admin" {
+	if role, _ := middleware.GetUserRoleFromContext(c); !utils.IsAdminRole(role) {
 		utils.Forbidden(c, "Only admins can update work orders")
 		return
 	}
@@ -699,7 +699,7 @@ func (ctrl *WorkOrderController) UpdateOrderHandler(c *gin.Context) {
 // Simpan catatan evaluasi untuk work order yang sudah selesai
 func (ctrl *WorkOrderController) UpdateNotesHandler(c *gin.Context) {
 	role, _ := middleware.GetUserRoleFromContext(c)
-	if role != "Admin" {
+	if !utils.IsAdminRole(role) {
 		utils.Forbidden(c, "Only admins can update notes and ratings")
 		return
 	}
@@ -753,7 +753,7 @@ func UpdateMemberStatusHandler(c *gin.Context) {
 	userRole, _ := middleware.GetUserRoleFromContext(c)
 	userID, _ := middleware.GetUserIDFromContext(c)
 	memberRepo := repository.NewMemberRepository()
-	canManageShift := userRole == "Admin"
+	canManageShift := utils.IsAdminRole(userRole)
 	if !canManageShift && userID != 0 {
 		currentMember, err := memberRepo.GetMemberByID(userID)
 		if err == nil && strings.EqualFold(strings.TrimSpace(currentMember.Division), "Data Analyst") {
