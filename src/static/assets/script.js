@@ -476,6 +476,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     return false;
   }
 
+  function isAvailableWorker(member) {
+    return (
+      member.status === "standby" ||
+      (member.role === "Guru" && member.status !== "onjob")
+    );
+  }
+
+  function isVisibleStatusMember(member) {
+    return member.role !== "Guru" || member.status === "onjob";
+  }
+
   // ===== DOM REFERENCES =====
   const memberStatusPopup = document.getElementById("memberStatusPopup");
   const memberList = document.getElementById("memberList");
@@ -1301,11 +1312,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   function populateAvailableStandbyOperators() {
     availableStandbyOperatorsList.innerHTML = "";
-    const standbyMembers = members.filter((m) => m.status === "standby");
+    const standbyMembers = members.filter(isAvailableWorker);
 
     if (standbyMembers.length === 0) {
       availableStandbyOperatorsList.innerHTML =
-        '<p class="text-gray-500 text-center py-4">Tidak ada operator standby tersedia</p>';
+        '<p class="text-gray-500 text-center py-4">Tidak ada pelaksana tersedia</p>';
       return;
     }
 
@@ -1670,7 +1681,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (container) container.innerHTML = "";
     });
 
-    members.forEach((member) => {
+    members.filter(isVisibleStatusMember).forEach((member) => {
       const statusContainer = document.getElementById(
         `status-${member.status}`,
       );
@@ -1701,10 +1712,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   function populateMemberList(statusFilter = "all") {
     memberList.innerHTML = "";
+    const visibleMembers = members.filter(isVisibleStatusMember);
     const filtered =
       statusFilter === "all"
-        ? members
-        : members.filter((m) => m.status === statusFilter);
+        ? visibleMembers
+        : visibleMembers.filter((m) => m.status === statusFilter);
     const statusMap = {
       standby: {
         text: "Stand By",
@@ -2084,11 +2096,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
-    const standbyMembers = members.filter((m) => m.status === "standby");
+    const standbyMembers = members.filter(isAvailableWorker);
     if (isCurrentUserAdmin() && standbyMembers.length === 0) {
       showPopup(
         "Peringatan",
-        "Tidak ada operator standby yang tersedia untuk mengambil order ini.",
+        "Tidak ada pelaksana yang tersedia untuk mengambil order ini.",
         "warning",
       );
       return;
@@ -2175,12 +2187,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     availableStandbyOperatorsList.innerHTML = "";
     const normalized = (existingExecutorIds || []).map((id) => parseInt(id));
     const available = members.filter(
-      (m) => m.status === "standby" && !normalized.includes(m.id),
+      (m) => isAvailableWorker(m) && !normalized.includes(Number(m.id)),
     );
 
     if (available.length === 0) {
       availableStandbyOperatorsList.innerHTML =
-        '<p class="text-gray-500 text-center py-4">Tidak ada worker standby yang tersedia</p>';
+        '<p class="text-gray-500 text-center py-4">Tidak ada pelaksana yang tersedia</p>';
       return;
     }
 
@@ -2679,8 +2691,10 @@ document.addEventListener("DOMContentLoaded", async function () {
             100,
         )
       : 0;
-    const onDutyStaff = members.filter((member) =>
-      ["standby", "onjob"].includes(member.status),
+    const onDutyStaff = members.filter(
+      (member) =>
+        isVisibleStatusMember(member) &&
+        ["standby", "onjob"].includes(member.status),
     ).length;
 
     setText("heroActiveOrders", activeOrders.length);
