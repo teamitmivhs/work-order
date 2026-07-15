@@ -2,7 +2,10 @@
 <html lang="id">
     <head>
         <meta charset="utf-8" />
-        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <meta
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+            name="viewport"
+        />
         <title>MIVHS IT Desk</title>
         <link rel="icon" type="image/x-icon" href="/static/public/itlogo.ico" />
         <link rel="icon" type="image/png" href="/static/public/itlogo.png" />
@@ -12,6 +15,9 @@
             rel="stylesheet"
         />
         <link href="/static/assets/style.css" rel="stylesheet" />
+        <script>
+            history.scrollRestoration = "manual";
+        </script>
         <style>
             /* ── MOBILE: Card view untuk tabel work orders ── */
             /* Sembunyikan tabel biasa di mobile, tampilkan card */
@@ -1665,6 +1671,12 @@
                 .dashboard-card {
                     border-radius: 1rem !important;
                 }
+
+                #work-orders,
+                .summary-panel {
+                    scroll-margin-top: 5.25rem;
+                }
+
                 .dashboard-card-header {
                     align-items: flex-start;
                     flex-direction: column;
@@ -1757,10 +1769,34 @@
                 .work-order-status-tabs {
                     flex-wrap: nowrap;
                     overflow-x: auto;
+                    scrollbar-width: none;
                     gap: 0.5rem;
                     margin: 0;
                     padding: 0 0.85rem 0.85rem;
                     border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+                }
+
+                .work-order-status-tabs::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .workorders-panel > [aria-label="Filter work order"] {
+                    min-width: 0;
+                    margin-bottom: 0 !important;
+                    padding: 0.85rem;
+                }
+
+                .work-order-date-filter {
+                    display: grid;
+                    min-width: 0;
+                    gap: 0.3rem;
+                }
+
+                .work-order-date-label {
+                    padding-left: 0.15rem;
+                    color: #64748b;
+                    font-size: 0.7rem;
+                    font-weight: 600;
                 }
 
                 .work-order-status-tab {
@@ -2435,6 +2471,13 @@
 
             /* Mobile menu */
             @media (max-width: 767px) {
+                .main-nav {
+                    --nav-bg: #020617;
+                }
+                html[data-theme="light"] .main-nav,
+                body[data-theme="light"] .main-nav {
+                    --nav-bg: #ffffff;
+                }
                 .nav-inner {
                     display: flex;
                     position: static;
@@ -4292,12 +4335,17 @@
                         placeholder="Cari requester, device, lokasi, atau masalah..."
                         autocomplete="off"
                     />
-                    <input
-                        id="workOrderDateFilter"
-                        type="date"
-                        class="co-input md:w-44"
-                        aria-label="Filter tanggal work order"
-                    />
+                    <label class="work-order-date-filter md:w-44">
+                        <span class="work-order-date-label md:hidden"
+                            >Tanggal</span
+                        >
+                        <input
+                            id="workOrderDateFilter"
+                            type="date"
+                            class="co-input"
+                            aria-label="Filter tanggal work order"
+                        />
+                    </label>
                     <button
                         id="clearWorkOrderFilters"
                         type="button"
