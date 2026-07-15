@@ -1,273 +1,259 @@
 <p align="center">
-  <img src="src/static/public/itlogo.png" alt="IT MIVHS Logo" width="160" />
+  <img src="src/static/public/itlogo.png" alt="IT MIVHS Logo" width="150">
 </p>
 
-<h1 align="center">IT Work Order System (MIVHS)</h1>
+<h1 align="center">IT Work Order System</h1>
 
 <p align="center">
-  <b>A High-Performance, Microservices-Driven Helpdesk & Work Order Management Solution</b>
+  Internal helpdesk and work-order platform for the IT team at SMK Mitra Industri MM2100.
 </p>
-
-<p align="center">
-  <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=go,rust,mysql,nginx,docker,js,tailwind,html,css" alt="Tech Stack" />
-  </a>
-</p>
-
----
-
-## Table of Contents
-* [Overview](#overview)
-* [System Architecture](#system-architecture)
-* [Key Features](#key-features)
-* [System Workflow](#system-workflow)
-* [Quick Start (Docker)](#quick-start-docker)
-* [Project Structure](#project-structure)
-* [Manual Development Setup](#manual-development-setup)
-* [Database & Security](#database--security)
-* [Contributing](#contributing)
-* [License](#license)
-
----
 
 ## Overview
 
-The **IT Work Order System** is a professional-grade platform designed to streamline IT support requests at **SMK MITRA INDUSTRI MM2100**. By combining the concurrency of **Go (Gin)**, the microsecond precision of **Rust (Axum)**, and a highly responsive frontend powered by **GSAP** and **TailwindCSS**, it delivers an unmatched tracking and resolution experience.
+Work Order centralizes IT requests from submission through completion. Guests
+can create and track requests, operators can take and execute work, and admins
+can manage staff, approvals, shifts, evaluations, and reporting.
 
-> [!NOTE]
-> This project implements a modern microservices architecture. The core application logic, database operations, and high-precision tracking are separated into distinct services communicating over secure channels.
+The application deliberately keeps the frontend simple: plain HTML, CSS, and
+JavaScript served by Nginx. Go owns authentication and business data, while a
+small Rust service tracks active work duration.
 
----
+## Features
 
-## System Architecture
+- Guest request form with public tracking codes and requester notes
+- Admin, Operator, and Guest roles with HttpOnly JWT sessions
+- First-user Admin bootstrap and staff approval workflow
+- Staff lifecycle management: pending, active, disabled, alumni, and batch
+  graduation
+- Work-order assignment, additional executors, priorities, and status flow
+- Location-based safety checklists before work starts
+- Rust-backed live timer and shift-day rollover
+- Completion notes, admin notes, ratings, notes quality, and photo evidence
+- Kaizen and summary views for operational review
+- Optional Web Push notifications through persistent VAPID keys
+- Responsive pages with clean URLs such as `/login`, `/guest`, and `/summary`
 
-### Service Orchestration
-The frontend, backend, database, and timer services are orchestrated seamlessly:
+## Architecture
 
-| Service | Stack | Role | Port |
-| :--- | :--- | :--- | :--- |
-| **API Gateway** | `Nginx` | Reverse proxy, static file serving, and endpoint routing | `80` (Host) |
-| **Core Backend** | `Go` / `Gin` | Business logic, JWT session security, and API endpoints | `8080` (Internal) |
-| **Rust Engine** | `Rust` / `Axum` | High-efficiency microsecond work-timer tracking | `9000` (Internal) |
-| **Storage** | `MySQL 8.0` | Relational application schema and performance state | `3306` (Internal) |
-
-### Communication Flow
 ```mermaid
-graph TD
-    Client[Web Browser] -->|Port 80| Nginx[Nginx Proxy]
-    Nginx -->|Static Files| Frontend[HTML/JS/GSAP]
-    Nginx -->|/api/*| GoBackend[Go API Server]
-    GoBackend -->|TCP:3306| MySQL[(MySQL DB)]
-    GoBackend -->|TCP:9000| RustEngine[Rust Time Tracker]
+flowchart LR
+    Browser -->|HTTP :4323| Nginx
+    Nginx -->|Static pages| Frontend[HTML / CSS / JavaScript]
+    Nginx -->|/api/*| Backend[Go + Gin :8080]
+    Backend -->|TCP :3306| MySQL[(MySQL 8)]
+    Backend -->|Internal API :9000| Timer[Rust + Axum]
 ```
 
----
+| Service | Responsibility | Exposure |
+| --- | --- | --- |
+| Nginx | Static frontend and `/api` reverse proxy | Host port `4323` |
+| Go backend | Auth, members, work orders, uploads, notifications | Internal `8080` |
+| Rust engine | Active work timers | Internal `9000` |
+| MySQL 8 | Relational application data | Internal `3306` |
 
-## Key Features
+Podman Compose provides startup ordering and health checks. Only Nginx needs a
+host port; the other services communicate through `workorder-net`.
 
-### For Technicians
-* **One-Click Assignment**: Instantly claim pending orders.
-* **Safety Protocol Checklist**: Mandatory location-based checks before starting tasks.
-* **Live Precision Timers**: Automatic job duration recording managed by the Rust tracking service.
-* **Kaizen Integration**: Enter solutions and improvement metrics immediately upon completion.
+## Requirements
 
-### For Requesters
-* **Simplified Submission**: Quickly report issues with specified locations and devices.
-* **Priority Escalation**: Categorize requests (Low, Medium, High) for urgent dispatch.
-* **Real-time Status Feed**: Visually track requests from *Pending* to *Completed*.
+- Podman
+- A Compose provider available through `podman compose`
+- Git
+- `curl` for smoke checks
 
-### For Administrators
-* **Centralized Dashboard**: Live telemetry of "Stand By" vs "On Job" operators.
-* **Kaizen Analytics**: Automatic calculation of completion rates and performance ratings.
-* **Audit Logs**: Maintain structured histories of all work orders.
+Go 1.21 and Rust 1.78 are only required when running tests directly on the
+host. Container builds include their own toolchains.
 
-### Technical Highlights
-* **Microservices Orchestration**: Fully containerized setup with health checks.
-* **JWT Authentication**: Secure, state-managed sessions for administrators and operators.
-* **Failure Resilience**: Automatic connection retry and validation loops.
+## Quick Start
 
----
+Clone the repository:
 
-## System Workflow
-
-```
-[Requester] Creates Work Order
-      ↓
-[System] Adds to Queue as "Pending"
-      ↓
-[Technician] Takes Order (Approves Safety Checklist)
-      ↓
-[System] Status: "On Progress" | Start Rust Live Timer
-      ↓
-[Technician] Executes Job & Marks as Done
-      ↓
-[System] Status: "Completed" | Stop Rust Live Timer | Log Working Hours & Kaizen Notes
-      ↓
-[Dashboard] Performance Summary Updated
-```
-
-<details>
-<summary><b>Expand Detailed Step-by-Step Workflow</b></summary>
-
-### 1. Create Work Order
-- **Action**: User fills form (Requester name, Priority, Location, Device, and Problem description).
-- **Result**: Order enters table in Nginx dashboard with status `Pending`.
-
-### 2. Take Order (Assign)
-- **Action**: Technician clicks order ID, assigns operators (who must be in `Stand By` status), reads and approves location safety checklist, and confirms.
-- **Result**: Order moves to `On Progress`. Assigned technicians' status changes from `Stand By` to `On Job`.
-
-### 3. Work in Progress
-- **Action**: Rust time-tracker service initializes and records start timestamp.
-- **Result**: Live timer is displayed and tracked.
-
-### 4. Mark as Done
-- **Action**: Technician completes work, clicks `Done`, and inputs optional evaluation/solution notes.
-- **Result**: Order moves to `Completed`, technician status returns to `Stand By`, and Rust service computes elapsed time.
-
-### 5. Review & Kaizen Analytics
-- **Action**: Admins view performance metrics in the Kaizen page.
-- **Result**: Auto-calculated Completion Rates and actionable feedback ratings.
-</details>
-
----
-
-## Quick Start (Docker)
-
-### 1. Prepare Environment
-Clone the repository and create your configuration file:
 ```bash
-git clone https://github.com/parothegreat/work-order.git
-cd work-order
-cp src/.env.example src/.env
+git clone https://github.com/teamitmivhs/work-order.git
+cd work-order/src
 ```
 
-### 2. Spin Up Containers
-Launch the stack using Docker Compose:
+Create `src/.env` with production-quality local secrets:
+
+```env
+DB_USER=workorder
+DB_PASSWORD=replace_with_a_random_value
+DB_NAME=dbwoit
+MYSQL_ROOT_PASSWORD=replace_with_a_different_random_value
+JWT_SECRET=replace_with_at_least_32_random_bytes
+INTERNAL_API_KEY=replace_with_another_random_value
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+PUBLIC_UPLOAD_DIR=/static/public
+```
+
+Generate safe values with `openssl rand -hex 32`. VAPID keys are optional; Web
+Push stays disabled when they are empty. Never commit `.env`.
+
+Build and start the stack:
+
 ```bash
-docker-compose -f src/docker-compose.yml up -d --build
+podman compose up -d --build
+podman ps
 ```
 
-### 3. Access the Platforms
-> [!TIP]
-> Use the following URLs to access the application after containers start:
-> - **Main Dashboard**: [http://localhost](http://localhost)
-> - **Order Summary**: [http://localhost/summary](http://localhost/summary)
-> - **Kaizen Analytics**: [http://localhost/kaizen](http://localhost/kaizen)
-> - **Technical Guide**: [http://localhost/techguide](http://localhost/techguide)
+Open:
 
----
+| Page | URL |
+| --- | --- |
+| Dashboard | <http://localhost:4323/> |
+| Login | <http://localhost:4323/login> |
+| Registration | <http://localhost:4323/register> |
+| Guest portal | <http://localhost:4323/guest> |
+| Summary | <http://localhost:4323/summary> |
+| Kaizen | <http://localhost:4323/kaizen> |
+| Shift | <http://localhost:4323/shift> |
+| Settings | <http://localhost:4323/settings> |
+| Staff management | <http://localhost:4323/staff> |
 
-## Tech Stack
+Smoke check:
 
-<p align="center">
-  <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=go,rust,mysql,nginx,docker,js,tailwind,html,css" alt="Tech Stack" />
-  </a>
-</p>
+```bash
+curl -fsS http://localhost:4323/login >/dev/null
+podman logs work-order-backend --tail 100
+podman logs work-order-db --tail 100
+```
 
----
+On a fresh database, the first registered staff account becomes the active
+Admin. `src/db/complete_db.sql` also contains demo members for local simulation;
+remove those records before exposing a production installation.
+
+## Compose Variants
+
+| File | Use case |
+| --- | --- |
+| `src/docker-compose.yml` | Local development with a named MySQL volume |
+| `src/docker-compose.persistent.yml` | Production baseline with host storage |
+| `src/docker-compose.external-db.yml` | Application stack using MySQL outside Compose |
+
+The persistent compose file contains a baseline host path. Before production,
+copy it to an ignored `src/docker-compose.server.yml` and set paths that match
+the actual server. Keep MySQL data and uploaded files outside ephemeral
+container storage. See [deployment.md](deployment.md) for the full server,
+backup, recovery, and storage procedure.
+
+## Testing
+
+Backend:
+
+```bash
+cd src/backend
+go test ./...
+```
+
+Rust engine:
+
+```bash
+cd src/rust-engine
+cargo test
+```
+
+Deployment script:
+
+```bash
+./scripts/deploy-server.test.sh
+```
+
+Compose validation:
+
+```bash
+cd src
+podman compose -f docker-compose.persistent.yml config >/dev/null
+```
+
+There is no large automated frontend suite. Verify UI changes manually on
+desktop and mobile, including login, guest creation/tracking, staff approval,
+work completion, and uploads.
+
+## Server Updates
+
+Production auto-deploy is intentionally opt-in. It requires:
+
+- `src/docker-compose.server.yml`
+- `src/.env`
+- an executable backup command at
+  `$HOME/.local/bin/work-order-backup`
+
+Enable the tracked Git hook once on the server:
+
+```bash
+cd /opt/work-order
+git config core.hooksPath .githooks
+```
+
+Future updates are then:
+
+```bash
+git pull --ff-only
+```
+
+After a successful pull, `.githooks/post-merge` runs
+`scripts/deploy-server.sh`. It validates Compose, creates a backup, rebuilds and
+restarts the stack, reloads Nginx, and checks the login page and protected API.
+Run `./scripts/deploy-server.sh` directly when a rebuild is needed without a
+pull.
+
+## Database and Persistent Data
+
+Main tables:
+
+- `members`: identity, role, division, lifecycle, batch, and status
+- `orders`: request, priority, tracking code, timing, notes, ratings, and photo
+- `executors`: many-to-many work-order assignments
+- `safetychecklist`: approved safety items per order
+- `push_subscriptions`: Web Push endpoints and browser keys
+- `shift_day_counter`: daily shift rollover state
+
+MySQL entrypoint SQL only runs when its data directory is empty. Existing
+production databases must receive new migrations explicitly after a backup;
+never delete the data directory to force initialization.
+
+## Security Notes
+
+- JWT sessions use HttpOnly, SameSite cookies and become Secure behind HTTPS.
+- Current member state and role are re-checked from MySQL on authenticated
+  requests, so disabled or graduated users lose access immediately.
+- Admin routes have server-side role checks.
+- Login, registration, public tracking, and guest-note endpoints are rate
+  limited per client IP.
+- Backend-to-Rust requests use `X-Internal-Key`.
+- Avatar and documentation uploads validate image content and accept JPEG, PNG,
+  or WebP.
+- Secrets, tunnel credentials, `.env`, database files, and uploads must not be
+  committed.
 
 ## Project Structure
 
 ```text
-work-order/
+.
+├── .githooks/                 # Optional server post-merge deployment hook
+├── scripts/                   # Server deploy script and its lightweight test
+├── deployment.md              # Production runbook
 └── src/
-    ├── backend/        # Go API Microservice (Gin Framework)
-    ├── rust-engine/    # Rust Time-Tracker Service (Axum)
-    ├── db/             # SQL Schema & Migration scripts
-    ├── nginx/          # Nginx Reverse Proxy Config
-    ├── static/         # Frontend Assets (JS, CSS, Images, Logos)
-    ├── *.html          # Static HTML Templates
-    └── docker-compose.yml  # Orchestration configuration
+    ├── *.html                 # Frontend pages
+    ├── static/assets/         # Shared CSS, JavaScript, and service worker
+    ├── static/public/         # Bundled images and runtime uploads
+    ├── backend/               # Go API
+    ├── rust-engine/           # Rust timer service
+    ├── db/                    # Fresh schema and migrations
+    ├── nginx/                 # Reverse-proxy configuration
+    └── docker-compose*.yml    # Local, persistent, and external-DB stacks
 ```
-
----
-
-## Manual Development Setup
-
-If you prefer running services outside of Docker for development, use the following guides:
-
-<details>
-<summary><b>Go Backend Setup</b></summary>
-<br>
-
-<p align="left">
-  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/go/go-original.svg" alt="Go" width="24" height="24"/>
-</p>
-
-```bash
-cd src/backend
-go mod tidy
-go run main.go
-```
-Make sure you have Go 1.21+ installed and access to a running MySQL instance.
-</details>
-
-<details>
-<summary><b>Rust Time-Tracker Setup</b></summary>
-<br>
-
-<p align="left">
-  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/rust/rust-original.svg" alt="Rust" width="24" height="24"/>
-</p>
-
-```bash
-cd src/rust-engine
-cargo build --release
-cargo run
-```
-Requires Rust 1.70+. Service listens on port `9000` by default.
-</details>
-
-<details>
-<summary><b>Database Setup</b></summary>
-<br>
-
-<p align="left">
-  <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mysql/mysql-original.svg" alt="MySQL" width="24" height="24"/>
-</p>
-
-Restore the schema to a local MySQL instance:
-```bash
-mysql -u <user> -p <database_name> < src/db/complete_db.sql
-```
-</details>
-
----
-
-## Database & Security
-
-### Schema Tables
-* `orders`: Work order parameters (requester, device, location, working hours, notes).
-* `members`: Operator login details, password hashes, and statuses.
-* `executors`: Mapping assignments linking operators to specific tasks.
-* `safety_checklist`: Safety compliance checklist responses.
-
-### Security Configurations
-* **Stateless Session Management**: Powered by JWT.
-* **Rate Limiting**: Integrated client rate-limiting on login/registration pages (max 10 req/min).
-* **Internal Authentication**: Shared key header (`X-Internal-Key`) secures calls between the Go backend and Rust engine.
-
----
 
 ## Contributing
 
-1. Fork the repository.
-2. Create your feature branch: `git checkout -b feature/AmazingFeature`.
-3. Commit your changes: `git commit -m 'feat: Add some AmazingFeature'`.
-4. Push to the branch: `git push origin feature/AmazingFeature`.
-5. Open a **Pull Request**.
-
----
+1. Create a focused branch.
+2. Keep changes small and follow existing patterns.
+3. Run the relevant Go, Rust, Compose, or manual UI checks.
+4. Use commit messages such as `[fix] clean login routes` or
+   `[docs] update deployment guide`.
+5. Include screenshots in pull requests for visible UI changes.
 
 ## License
 
-Distributed under the **MIT License**. See `LICENSE` for more information.
-
----
-
-<p align="center">
-  Developed with ❤️ by the <b>IT MIVHS Team</b><br>
-  <i>"Maintain tasks with ease and efficiency"</i>
-</p>
+Licensed under the [MIT License](LICENSE).
