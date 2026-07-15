@@ -532,7 +532,11 @@
                                 sessionStorage.removeItem("currentUser");
                                 localStorage.setItem(
                                     "isAdmin",
-                                    String(data.data.member.role === "Admin"),
+                                    String(
+                                        ["Admin", "Guru"].includes(
+                                            data.data.member.role,
+                                        ),
+                                    ),
                                 );
                                 localStorage.setItem(
                                     "currentUser",
