@@ -1149,6 +1149,10 @@
                 );
             }
 
+            function isShiftMember(member) {
+                return member.role !== "Guru";
+            }
+
             function avatarUrl(avatar) {
                 if (
                     !avatar ||
@@ -1249,6 +1253,7 @@
             function filteredMembers() {
                 const search = state.search.toLowerCase();
                 return state.members.filter((member) => {
+                    if (!isShiftMember(member)) return false;
                     const matchesName =
                         !search ||
                         String(member.name || "")
@@ -1262,7 +1267,9 @@
 
             function renderNextShift() {
                 const next = state.members.filter(
-                    (member) => member.status === "nextshift",
+                    (member) =>
+                        isShiftMember(member) &&
+                        member.status === "nextshift",
                 );
                 const avatars = document.getElementById("nextShiftAvatars");
                 const copy = document.getElementById("nextShiftCopy");
@@ -1533,7 +1540,11 @@
 
             async function resetNextShift() {
                 const ids = state.members
-                    .filter((member) => member.status === "nextshift")
+                    .filter(
+                        (member) =>
+                            isShiftMember(member) &&
+                            member.status === "nextshift",
+                    )
                     .map((member) => member.id);
                 if (!ids.length) {
                     showToast("Next Shift masih kosong.");
