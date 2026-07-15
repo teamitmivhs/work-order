@@ -307,7 +307,7 @@
     let completedOrders = [];
     let members = [];
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-    const isAdmin = currentUser?.role === 'Admin';
+    const isAdmin = ['Admin', 'Guru'].includes(currentUser?.role);
     if (!currentUser) window.location.href = '/login';
     if (localStorage.getItem('isGuestUser') === 'true') window.location.href = '/guest';
 
