@@ -25,6 +25,7 @@ self.addEventListener('push', (event) => {
     badge: '/static/public/itlogo.png',
     tag: payload.workOrderId ? `work-order-${payload.workOrderId}` : 'work-order-incoming',
     renotify: true,
+    vibrate: [180, 80, 180, 80, 320],
     data: {
       url: payload.url || DEFAULT_NOTIFICATION_URL,
       workOrderId: payload.workOrderId || null,
