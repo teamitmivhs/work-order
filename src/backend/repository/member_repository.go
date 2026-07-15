@@ -114,7 +114,7 @@ func (r *memberRepository) HasActiveAdmin() (bool, error) {
 	err := config.DB.QueryRow(`
 		SELECT COUNT(*)
 		FROM members
-		WHERE Role = 'Admin'
+		WHERE Role IN ('Admin', 'Guru')
 		  AND AccountStatus = 'active'
 		  AND MembershipStatus = 'active'
 	`).Scan(&count)
