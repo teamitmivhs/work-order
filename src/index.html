@@ -9,13 +9,13 @@
         <title>MIVHS IT Desk</title>
         <link rel="icon" type="image/x-icon" href="/static/public/itlogo.ico" />
         <link rel="icon" type="image/png" href="/static/public/itlogo.png" />
-        <script src="https://cdn.tailwindcss.com"></script>
+        <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
         <link
             href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
             rel="stylesheet"
         />
-        <link href="/static/assets/style.css" rel="stylesheet" />
-        <script>
+        <link href="/static/assets/style.css?v=20260715-1" rel="stylesheet" />
+        <script data-cfasync="false">
             history.scrollRestoration = "manual";
         </script>
         <style>
@@ -4543,7 +4543,7 @@
         </footer>
 
         <!-- FIX #7: Script load profil user dari JWT token -->
-        <script>
+        <script data-cfasync="false">
             (function loadUserProfile() {
                 const DEFAULT_AVATAR = "/static/public/default-avatar.png";
                 function unwrapProfileResponse(response) {
@@ -4821,7 +4821,7 @@
             })();
         </script>
         <!-- Harus didefinisikan SEBELUM script.js agar tersedia saat populateWorkOrdersTable dipanggil -->
-        <script>
+        <script data-cfasync="false">
             window.renderMobileCards = function (
                 orders,
                 members,
@@ -5144,6 +5144,6 @@
             };
         </script>
 
-        <script src="/static/assets/script.js"></script>
+        <script data-cfasync="false" src="/static/assets/script.js?v=20260715-1"></script>
     </body>
 </html>
