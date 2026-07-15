@@ -6,18 +6,18 @@
         <title>Shift Piket - Work Order ITMIVHS</title>
         <link rel="icon" type="image/x-icon" href="/static/public/itlogo.ico" />
         <link rel="icon" type="image/png" href="/static/public/itlogo.png" />
-        <script>
+        <script data-cfasync="false">
             (function () {
                 const saved = localStorage.getItem("theme") || "dark";
                 document.documentElement.setAttribute("data-theme", saved);
             })();
         </script>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
         <link
             href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
             rel="stylesheet"
         />
-        <link href="/static/assets/style.css" rel="stylesheet" />
+        <link href="/static/assets/style.css?v=20260715-1" rel="stylesheet" />
         <style>
             :root {
                 --shift-bg: #f4f7fb;
@@ -1113,7 +1113,7 @@
 
         <div class="toast" id="toast"></div>
 
-        <script>
+        <script data-cfasync="false">
             const hasSession = Boolean(localStorage.getItem("currentUser"));
             const statusMeta = [
                 { key: "standby", label: "Stand By", color: "#22c55e" },
