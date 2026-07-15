@@ -210,24 +210,6 @@ document.querySelectorAll("#navMenu a[href]").forEach((link) => {
   }
 });
 
-// ===== GSAP ANIMATION =====
-// FIX: Cek keberadaan GSAP sebelum memanggilnya.
-// Jika library tidak ter-load (network error, CDN down),
-// script tidak crash dan halaman tetap fungsional.
-window.addEventListener("load", () => {
-  if (typeof gsap !== "undefined") {
-    gsap.utils.toArray(".fade-slide").forEach((el, i) => {
-      gsap.to(el, {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        delay: i * 0.15,
-        ease: "power2.out",
-      });
-    });
-  }
-});
-
 // ===== CUSTOM POPUP SYSTEM =====
 function showPopup(title, message, type = "info") {
   const existingPopup = document.getElementById("customPopup");
