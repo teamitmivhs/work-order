@@ -962,8 +962,8 @@
                     <p class="eyebrow">Panel Operasional</p>
                     <h2>Operator Management.</h2>
                     <p>
-                        Halaman ini khusus untuk Admin dan Data Analyst agar
-                        perpindahan status operator bisa dilakukan cepat,
+                        Halaman ini khusus untuk Admin, Guru, dan Data Analyst
+                        agar perpindahan status operator bisa dilakukan cepat,
                         termasuk menyiapkan daftar Next Shift untuk besok.
                     </p>
                 </div>
@@ -983,8 +983,8 @@
                 <strong style="display: block; color: var(--shift-text)">
                     Akses terbatas
                 </strong>
-                Halaman ini hanya bisa dikelola oleh Admin dan divisi Data
-                Analyst.
+                Halaman ini hanya bisa dikelola oleh Admin, Guru, dan divisi
+                Data Analyst.
             </section>
 
             <section id="managerPanel" class="hidden">
@@ -1199,7 +1199,9 @@
                 });
                 state.profile = profile;
                 state.canManage =
-                    String(profile.role || "").toLowerCase() === "admin" ||
+                    ["admin", "guru"].includes(
+                        String(profile.role || "").toLowerCase(),
+                    ) ||
                     isDataAnalyst(profile.division);
             }
 
