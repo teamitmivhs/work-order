@@ -12,6 +12,20 @@ body {
     --wo-muted: #6b7280;
 }
 
+html {
+    background: var(--wo-bg);
+}
+
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 180ms;
+    animation-timing-function: ease-out;
+}
+
 [data-theme="dark"] {
     color-scheme: dark;
     --wo-bg: #0b1220;
@@ -20,6 +34,13 @@ body {
     --wo-border: #334155;
     --wo-text: #e5e7eb;
     --wo-muted: #94a3b8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 1ms;
+    }
 }
 
 [data-theme="dark"] body,
