@@ -6,12 +6,12 @@
         <title>Staff Management — Work Order ITMIVHS</title>
         <link rel="icon" type="image/x-icon" href="/static/public/itlogo.ico" />
         <link rel="icon" type="image/png" href="/static/public/itlogo.png" />
-        <script src="https://cdn.tailwindcss.com"></script>
+        <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
         <link
             href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
             rel="stylesheet"
         />
-        <link href="/static/assets/style.css" rel="stylesheet" />
+        <link href="/static/assets/style.css?v=20260715-1" rel="stylesheet" />
         <style>
             :root {
                 --blue: #2563eb;
@@ -539,7 +539,7 @@
             }
             /* ════════════════════════════════════════════════════════════════════ */
         </style>
-        <script>
+        <script data-cfasync="false">
             /* Dark mode: init immediately from shared localStorage key to avoid flash */
             (function () {
                 try {
@@ -941,7 +941,7 @@
             class="fixed right-4 bottom-4 hidden max-w-sm rounded-lg bg-gray-900 text-white text-sm px-4 py-3 shadow-lg"
         ></div>
 
-        <script>
+        <script data-cfasync="false">
             const hasSession = Boolean(localStorage.getItem("currentUser"));
             const rowsEl = document.getElementById("staffRows");
             const cardsEl = document.getElementById("staffCards");
