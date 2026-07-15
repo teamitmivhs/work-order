@@ -33,6 +33,12 @@ small Rust service tracks active work duration.
 - Optional Web Push notifications through persistent VAPID keys
 - Responsive pages with clean URLs such as `/login`, `/guest`, and `/summary`
 
+## Tech Stack
+
+<p align="center">
+  <img src="https://simpleicons.dev/icons?icons=html5,css,javascript,tailwindcss,go,rust,mysql,nginx,podman,cloudflare&theme=light" alt="HTML, CSS, JavaScript, Tailwind CSS, Go, Rust, MySQL, Nginx, Podman, and Cloudflare">
+</p>
+
 ## Architecture
 
 ```mermaid
