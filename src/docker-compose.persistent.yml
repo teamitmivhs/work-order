@@ -25,16 +25,23 @@ services:
       retries: 10
       start_period: 30s
 
-  # ─── Rust Time Tracker ─────────────────────────────────────────────────────
+  # ─── Rust Event Engine ─────────────────────────────────────────────────────
   time-tracker:
     build:
       context: ./rust-engine
       dockerfile: Dockerfile
     container_name: work-order-time-tracker
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
-      PORT: "9000"
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      PORT:        "9000"
+      DB_HOST:     db
+      DB_PORT:     "3306"
+      DB_USER:     ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME:     ${DB_NAME:-dbwoit}
     expose:
       - "9000"
     networks:
@@ -56,9 +63,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      time-tracker:
-        # FIX: tunggu time-tracker healthy (sebelumnya service_started)
-        condition: service_healthy
     env_file: .env
     environment:
       DB_HOST:          db
@@ -67,8 +71,6 @@ services:
       DB_PASSWORD:      ${DB_PASSWORD}
       DB_NAME:          ${DB_NAME:-dbwoit}
       JWT_SECRET:       ${JWT_SECRET}
-      TIME_TRACKER_URL: "http://time-tracker:9000"
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
     expose:
       - "8080"
     networks:

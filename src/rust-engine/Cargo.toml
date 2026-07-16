@@ -9,6 +9,10 @@ axum = "0.7"
 
 # Async runtime
 tokio = { version = "1.38", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+
+# MySQL outbox consumer
+sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "mysql"] }
 
 # JSON (request / response)
 serde = { version = "1.0", features = ["derive"] }
@@ -17,7 +21,3 @@ serde_json = "1.0"
 # Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt"] }
-
-# FIX: chrono dan uuid dihapus — tidak dipakai di mana pun
-# Mengurangi compile time dan ukuran binary
-# chrono juga punya history CVE (GHSA-wcg3-cvx6-7396)

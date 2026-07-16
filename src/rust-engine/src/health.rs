@@ -1,32 +1,33 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, Json};
 use serde_json::{json, Value};
-use std::sync::Arc;
+use std::sync::atomic::Ordering;
 
-use crate::time_tracker::TimeTracker;
+use crate::state::AppState;
 
-/// GET /health — health check dengan info timer aktif
-/// FIX: active_count() kini diekspos lewat sini sehingga tidak mubazir
 pub async fn health_check(
-    State(tracker): State<Arc<TimeTracker>>,
+    State(state): State<AppState>,
 ) -> Result<Json<Value>, (StatusCode, Json<Value>)> {
-    match tracker.active_count().await {
-        Ok(count) => Ok(Json(json!({
+    let pending =
+        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM event_outbox WHERE ProcessedAt IS NULL")
+            .fetch_one(&state.pool)
+            .await;
+
+    match pending {
+        Ok(pending_events) => Ok(Json(json!({
             "status": "healthy",
-            "service": "time-tracker",
-            "active_timers": count 
+            "service": "event-engine",
+            "pending_events": pending_events,
+            "processed_events": state.processed_events.load(Ordering::Relaxed),
+            "subscribers": state.events.receiver_count()
         }))),
-        Err(e) => {
-            tracing::error!(error = %e, "Health check failed to get timer count");
+        Err(error) => {
+            tracing::error!(%error, "Event engine database health check failed");
             Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
+                StatusCode::SERVICE_UNAVAILABLE,
                 Json(json!({
                     "status": "unhealthy",
-                    "service": "time-tracker",
-                    "error": e
+                    "service": "event-engine",
+                    "error": error.to_string()
                 })),
             ))
         }

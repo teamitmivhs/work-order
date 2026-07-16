@@ -1,54 +1,29 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-/// Request buat start time tracking
-/// Dipanggil saat work order di "TAKE" / mulai pengerjaan
-#[derive(Debug, Deserialize)]
-pub struct StartTimeRequest {
-    pub work_order_id: u64,
-    pub executor_id: u64,
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct OutboxEvent {
+    pub id: u64,
+    pub event_type: String,
+    pub aggregate_type: String,
+    pub aggregate_id: u64,
 }
 
-#[derive(Debug, Serialize)]
-pub struct StartTimeResponse {
-    pub work_order_id: u64,
-    pub started_at: i64,
-}
+#[cfg(test)]
+mod tests {
+    use super::OutboxEvent;
 
-/// Request buat stop time tracking
-/// Dipanggil saat work order di "COMPLETE"
-#[derive(Debug, Deserialize)]
-pub struct StopTimeRequest {
-    pub work_order_id: u64,
-}
+    #[test]
+    fn serializes_browser_event_shape() {
+        let event = OutboxEvent {
+            id: 7,
+            event_type: "work_order.completed".into(),
+            aggregate_type: "work_order".into(),
+            aggregate_id: 42,
+        };
 
-#[derive(Debug, Serialize)]
-pub struct StopTimeResponse {
-    pub work_order_id: u64,
-    pub started_at: i64,
-    pub stopped_at: i64,       // FIX: actual timestamp saat stop dipanggil
-    pub duration_seconds: i64,
-}
-
-/// Status timer (buat polling frontend)
-#[derive(Debug, Serialize)]
-pub struct TimerStatusResponse {
-    pub work_order_id: u64,
-    pub is_running: bool,
-    pub started_at: Option<i64>,
-    pub elapsed_seconds: Option<i64>,
-}
-
-// FIX: struct baru untuk endpoint list semua timer aktif
-#[derive(Debug, Serialize)]
-pub struct ActiveTimerInfo {
-    pub work_order_id: u64,
-    pub executor_id: u64,
-    pub started_at: i64,
-    pub elapsed_seconds: i64,
-}
-
-/// Error response standar API
-#[derive(Debug, Serialize)]
-pub struct ErrorResponse {
-    pub message: String, 
+        let json = serde_json::to_value(event).unwrap();
+        assert_eq!(json["id"], 7);
+        assert_eq!(json["event_type"], "work_order.completed");
+        assert_eq!(json["aggregate_id"], 42);
+    }
 }

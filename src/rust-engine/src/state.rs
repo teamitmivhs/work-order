@@ -1,30 +1,23 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use sqlx::MySqlPool;
+use std::sync::{atomic::AtomicU64, Arc};
+use tokio::sync::broadcast;
 
-#[derive(Debug, Clone)]
-pub struct RunningTimer {
-    pub work_order_id: u64,
-    pub executor_id: u64,
-    pub started_at: i64,
-}
+use crate::models::OutboxEvent;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub timers: Arc<Mutex<HashMap<u64, RunningTimer>>>,
+    pub pool: MySqlPool,
+    pub events: broadcast::Sender<OutboxEvent>,
+    pub processed_events: Arc<AtomicU64>,
 }
 
 impl AppState {
-    pub fn new() -> Self {
+    pub fn new(pool: MySqlPool) -> Self {
+        let (events, _) = broadcast::channel(256);
         Self {
-            timers: Arc::new(Mutex::new(HashMap::new())),
+            pool,
+            events,
+            processed_events: Arc::new(AtomicU64::new(0)),
         }
     }
 }
-
-// FIX: tambah impl Default agar clippy tidak warning dan framework Axum kompatibel
-impl Default for AppState {
-    fn default() -> Self {
-        Self::new()
-    }
-} 

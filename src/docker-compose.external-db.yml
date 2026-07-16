@@ -1,6 +1,6 @@
 services:
 
-  # ─── Rust Time Tracker ─────────────────────────────────────────────────────
+  # ─── Rust Event Engine ─────────────────────────────────────────────────────
   time-tracker:
     build:
       context: ./rust-engine
@@ -8,8 +8,12 @@ services:
     container_name: work-order-time-tracker
     restart: unless-stopped
     environment:
-      PORT: "9000"
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      PORT:        "9000"
+      DB_HOST:     ${DB_HOST:-localhost}
+      DB_PORT:     ${DB_PORT:-3306}
+      DB_USER:     ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME:     ${DB_NAME:-dbwoit}
     expose:
       - "9000"
     networks:
@@ -28,10 +32,6 @@ services:
       dockerfile: Dockerfile
     container_name: work-order-backend
     restart: unless-stopped
-    depends_on:
-      time-tracker:
-        # FIX: tunggu time-tracker healthy, bukan hanya started
-        condition: service_healthy
     env_file: .env
     environment:
       # MySQL external di host/server lain — DB_HOST diisi dari .env
@@ -41,8 +41,6 @@ services:
       DB_PASSWORD:      ${DB_PASSWORD}
       DB_NAME:          ${DB_NAME:-dbwoit}
       JWT_SECRET:       ${JWT_SECRET}
-      TIME_TRACKER_URL: "http://time-tracker:9000"
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
     expose:
       - "8080"
     networks:
