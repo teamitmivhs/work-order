@@ -33,7 +33,7 @@ Komponen aplikasi:
 - `nginx`: menyajikan frontend statis dan reverse proxy `/api`
 - `backend`: service Go
 - `db`: MySQL
-- `time-tracker`: service Rust internal
+- `time-tracker`: Rust event engine internal (outbox consumer + SSE)
 
 Jangan tambahkan service baru kecuali benar-benar perlu. Semakin sedikit moving parts, semakin rendah biaya perawatan.
 
@@ -81,7 +81,6 @@ DB_PASSWORD=ganti_dengan_password_panjang
 DB_NAME=dbwoit
 MYSQL_ROOT_PASSWORD=ganti_dengan_root_password_panjang
 JWT_SECRET=ganti_dengan_secret_random_minimal_32_karakter
-INTERNAL_API_KEY=ganti_dengan_secret_internal_random
 VAPID_PUBLIC_KEY=ganti_dengan_vapid_public_key
 VAPID_PRIVATE_KEY=ganti_dengan_vapid_private_key
 PUBLIC_UPLOAD_DIR=/static/public
@@ -96,7 +95,6 @@ openssl rand -base64 48
 Gunakan hasil random untuk:
 
 - `JWT_SECRET`
-- `INTERNAL_API_KEY`
 - `VAPID_PUBLIC_KEY` dan `VAPID_PRIVATE_KEY` (harus tetap sama agar subscription push tidak putus setelah restart)
 - password database
 
@@ -143,6 +141,7 @@ podman ps
 curl -I http://localhost:4323
 curl -I http://localhost:4323/login
 curl -I http://localhost:4323/
+podman exec work-order-time-tracker curl -fsS http://localhost:9000/health
 ```
 
 Kalau ingin expose langsung ke jaringan lokal:

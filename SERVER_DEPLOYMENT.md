@@ -28,7 +28,7 @@ Output `fastfetch` dari user:
 Kesimpulan kapasitas:
 
 - Aman untuk workload internal/sekolah kecil-menengah.
-- CPU cukup untuk nginx + Go backend + MySQL + Rust time tracker.
+- CPU cukup untuk nginx + Go backend + MySQL + Rust event engine.
 - RAM 7.6 GiB cukup, tetapi MySQL perlu dibatasi/tuning agar tidak mengambil RAM berlebihan.
 - Risiko utama bukan spek CPU/RAM, melainkan persistence data, backup, HTTPS, secret production, dan path upload.
 
@@ -39,7 +39,7 @@ Kesimpulan kapasitas:
 Compose project menjalankan:
 
 - `db`: MySQL 8.0
-- `time-tracker`: Rust service, port internal 9000
+- `time-tracker`: Rust outbox consumer + SSE, port internal 9000
 - `backend`: Go Gin backend, port internal 8080
 - `nginx`: static frontend + reverse proxy `/api/`
 
@@ -103,13 +103,11 @@ DB_PASSWORD=...
 DB_NAME=dbwoit
 MYSQL_ROOT_PASSWORD=...
 JWT_SECRET=...
-INTERNAL_API_KEY=...
 ```
 
 Rekomendasi:
 
 - `JWT_SECRET`: minimal 32 byte random.
-- `INTERNAL_API_KEY`: minimal 32 byte random.
 - Jangan commit `.env` production.
 - Pastikan `.gitignore` menjaga `.env` tetap tidak ikut commit.
 

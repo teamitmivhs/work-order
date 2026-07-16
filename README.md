@@ -16,18 +16,18 @@ can manage staff, approvals, shifts, evaluations, and reporting.
 
 The application deliberately keeps the frontend simple: plain HTML, CSS, and
 JavaScript served by Nginx. Go owns authentication and business data, while a
-small Rust service tracks active work duration.
+small Rust service consumes durable events and streams realtime updates.
 
 ## Features
 
 - Guest request form with public tracking codes and requester notes
-- Admin, Operator, and Guest roles with HttpOnly JWT sessions
+- Admin, Guru, Operator, and Guest roles with HttpOnly JWT sessions
 - First-user Admin bootstrap and staff approval workflow
 - Staff lifecycle management: pending, active, disabled, alumni, and batch
   graduation
 - Work-order assignment, additional executors, priorities, and status flow
 - Location-based safety checklists before work starts
-- Rust-backed live timer and shift-day rollover
+- MySQL-backed live timer with Rust Server-Sent Events (SSE)
 - Completion notes, admin notes, ratings, notes quality, and photo evidence
 - Kaizen and summary views for operational review
 - Optional Web Push notifications through persistent VAPID keys
@@ -46,15 +46,16 @@ flowchart LR
     Browser -->|HTTP :4323| Nginx
     Nginx -->|Static pages| Frontend[HTML / CSS / JavaScript]
     Nginx -->|/api/*| Backend[Go + Gin :8080]
+    Nginx -->|/api/events SSE| Events[Rust + Axum :9000]
     Backend -->|TCP :3306| MySQL[(MySQL 8)]
-    Backend -->|Internal API :9000| Timer[Rust + Axum]
+    Events -->|Consume event_outbox| MySQL
 ```
 
 | Service | Responsibility | Exposure |
 | --- | --- | --- |
 | Nginx | Static frontend and `/api` reverse proxy | Host port `4323` |
 | Go backend | Auth, members, work orders, uploads, notifications | Internal `8080` |
-| Rust engine | Active work timers | Internal `9000` |
+| Rust engine | MySQL outbox consumer and authenticated SSE updates | Internal `9000` |
 | MySQL 8 | Relational application data | Internal `3306` |
 
 Podman Compose provides startup ordering and health checks. Only Nginx needs a
@@ -67,7 +68,7 @@ host port; the other services communicate through `workorder-net`.
 - Git
 - `curl` for smoke checks
 
-Go 1.21 and Rust 1.78 are only required when running tests directly on the
+Go 1.21 and Rust 1.97 are only required when running tests directly on the
 host. Container builds include their own toolchains.
 
 ## Quick Start
@@ -87,7 +88,6 @@ DB_PASSWORD=replace_with_a_random_value
 DB_NAME=dbwoit
 MYSQL_ROOT_PASSWORD=replace_with_a_different_random_value
 JWT_SECRET=replace_with_at_least_32_random_bytes
-INTERNAL_API_KEY=replace_with_another_random_value
 VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
 PUBLIC_UPLOAD_DIR=/static/public
@@ -227,7 +227,7 @@ never delete the data directory to force initialization.
 - Admin routes have server-side role checks.
 - Login, registration, public tracking, and guest-note endpoints are rate
   limited per client IP.
-- Backend-to-Rust requests use `X-Internal-Key`.
+- The Rust SSE endpoint is exposed through Nginx only after session validation.
 - Avatar and documentation uploads validate image content and accept JPEG, PNG,
   or WebP.
 - Secrets, tunnel credentials, `.env`, database files, and uploads must not be
@@ -245,7 +245,7 @@ never delete the data directory to force initialization.
     ├── static/assets/         # Shared CSS, JavaScript, and service worker
     ├── static/public/         # Bundled images and runtime uploads
     ├── backend/               # Go API
-    ├── rust-engine/           # Rust timer service
+    ├── rust-engine/           # Rust outbox consumer and SSE service
     ├── db/                    # Fresh schema and migrations
     ├── nginx/                 # Reverse-proxy configuration
     └── docker-compose*.yml    # Local, persistent, and external-DB stacks
