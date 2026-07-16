@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"teamitmivhs/work-order-backend/models"
-	"teamitmivhs/work-order-backend/services"
 	"teamitmivhs/work-order-backend/utils"
 )
 
@@ -286,22 +285,40 @@ func (r *workOrderRepository) getOrderExecutors(orderID int) ([]int, error) {
 
 // UpdateOrderNotes menyimpan catatan admin tanpa menimpa catatan guest.
 func (r *workOrderRepository) UpdateOrderNotes(orderID int64, adminNotes string, rating *int, notesQuality *int) error {
-	_, err := r.db.Exec(
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(
 		"UPDATE orders SET AdminNotes = ?, Rating = ?, NotesQuality = ? WHERE ID = ?",
 		adminNotes, nullableInt(rating), nullableInt(notesQuality), orderID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update notes for order %d: %w", orderID, err)
 	}
-	return nil
+	if err := enqueueEvent(tx, "work_order.notes_updated", "work_order", orderID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (r *workOrderRepository) UpdateOrderNoteText(orderID int64, notes string) error {
-	_, err := r.db.Exec("UPDATE orders SET Notes = ? WHERE ID = ?", notes, orderID)
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("UPDATE orders SET Notes = ? WHERE ID = ?", notes, orderID)
 	if err != nil {
 		return fmt.Errorf("failed to update note text for order %d: %w", orderID, err)
 	}
-	return nil
+	if err := enqueueEvent(tx, "work_order.notes_updated", "work_order", orderID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func nullableInt(value *int) interface{} {
@@ -312,14 +329,23 @@ func nullableInt(value *int) interface{} {
 }
 
 func (r *workOrderRepository) UpdateOrderDocumentationPhoto(orderID int64, filename string) error {
-	_, err := r.db.Exec(
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(
 		"UPDATE orders SET DocumentationPhoto = ? WHERE ID = ?",
 		filename, orderID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update documentation photo for order %d: %w", orderID, err)
 	}
-	return nil
+	if err := enqueueEvent(tx, "work_order.documentation_updated", "work_order", orderID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (r *workOrderRepository) HasDocumentationPhoto(orderID int64) (bool, error) {
@@ -378,6 +404,9 @@ func (r *workOrderRepository) UpdateSafetyChecklist(orderID int64, items []strin
 		); err != nil {
 			return fmt.Errorf("failed to insert checklist item: %w", err)
 		}
+	}
+	if err := enqueueEvent(tx, "work_order.checklist_updated", "work_order", orderID); err != nil {
+		return err
 	}
 
 	return tx.Commit()
@@ -455,6 +484,9 @@ func (r *workOrderRepository) CreateTask(task models.WorkOrderRequest) (int64, e
 	if err != nil {
 		return 0, err
 	}
+	if err := enqueueEvent(tx, "work_order.created", "work_order", lastInsertID); err != nil {
+		return 0, err
+	}
 
 	return lastInsertID, tx.Commit()
 }
@@ -494,6 +526,9 @@ func (r *workOrderRepository) JoinPendingOrder(orderID int64, memberID int) erro
 		orderID, memberID,
 	); err != nil {
 		return fmt.Errorf("failed to join pending order: %w", err)
+	}
+	if err := enqueueEvent(tx, "work_order.joined", "work_order", orderID); err != nil {
+		return err
 	}
 
 	return tx.Commit()
@@ -569,24 +604,11 @@ func (r *workOrderRepository) TakeOrder(orderID int64, req models.TakeWorkOrder)
 			return fmt.Errorf("failed to insert safety checklist item: %w", err)
 		}
 	}
-
-	if err := tx.Commit(); err != nil {
+	if err := enqueueEvent(tx, "work_order.started", "work_order", orderID); err != nil {
 		return err
 	}
 
-	// FIX: panggil StartTimer ke Rust engine SETELAH commit berhasil
-	// Sebelumnya StartTimer tidak pernah dipanggil sama sekali sehingga
-	// WorkingHours tidak pernah terisi otomatis.
-	// Gunakan executor pertama sebagai referensi timer (satu timer per order)
-	if len(req.Executors) > 0 {
-		if err := services.StartTimer(uint64(orderID), uint64(req.Executors[0])); err != nil {
-			// Timer gagal start tidak membatalkan take order — log saja
-			// agar WorkingHours bisa diisi manual jika perlu
-			log.Printf("[WARNING] Failed to start timer for order %d: %v", orderID, err)
-		}
-	}
-
-	return nil
+	return tx.Commit()
 }
 
 // CompleteOrder menandai work order sebagai selesai dan reset status executor
@@ -597,9 +619,15 @@ func (r *workOrderRepository) CompleteOrder(orderID int64, req models.CompleteWo
 	}
 	defer tx.Rollback()
 
-	// 1. Update status dan waktu selesai order
+	// 1. MySQL menjadi sumber waktu tunggal agar durasi tetap benar walau Rust restart.
 	if _, err = tx.Exec(
-		"UPDATE orders SET Status = ?, CompletedAt = ? WHERE ID = ?",
+		`UPDATE orders
+		 SET Status = ?, CompletedAt = ?,
+		     WorkingHours = CASE
+		       WHEN StartedAt IS NULL THEN NULL
+		       ELSE CONCAT(GREATEST(TIMESTAMPDIFF(MINUTE, StartedAt, NOW()), 0), ' minutes')
+		     END
+		 WHERE ID = ?`,
 		req.Status, req.CompletedAtDisplay, orderID,
 	); err != nil {
 		return fmt.Errorf("failed to update order completion: %w", err)
@@ -636,36 +664,21 @@ func (r *workOrderRepository) CompleteOrder(orderID int64, req models.CompleteWo
 			return fmt.Errorf("failed to update member status to standby: %w", err)
 		}
 	}
-
-	if err := tx.Commit(); err != nil {
+	if err := enqueueEvent(tx, "work_order.completed", "work_order", orderID); err != nil {
 		return err
 	}
 
-	// FIX: panggil StopTimer ke Rust engine SETELAH commit berhasil
-	// Durasi yang dikembalikan disimpan ke kolom WorkingHours di database
-	durationSeconds, err := services.StopTimer(uint64(orderID))
-	if err != nil {
-		log.Printf("[WARNING] Failed to stop timer for order %d: %v", orderID, err)
-		// Timer gagal stop tidak membatalkan complete order — WorkingHours dikosongkan
-		return nil
-	}
-
-	// Simpan menit numerik agar frontend bisa format konsisten:
-	// 0 = Less than 1 minute, 54 = 54 minutes, 94 = 1 hour 34 minutes.
-	durationMinutes := durationSeconds / 60
-	workingHoursStr := fmt.Sprintf("%d minutes", durationMinutes)
-	if _, err := r.db.Exec(
-		"UPDATE orders SET WorkingHours = ? WHERE ID = ?",
-		workingHoursStr, orderID,
-	); err != nil {
-		log.Printf("[WARNING] Failed to update WorkingHours for order %d: %v", orderID, err)
-	}
-
-	return nil
+	return tx.Commit()
 }
 
 func (r *workOrderRepository) RejectOrder(orderID int64, reason string) error {
-	result, err := r.db.Exec(
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	result, err := tx.Exec(
 		"UPDATE orders SET Status = 'rejected', AdminNotes = ? WHERE ID = ? AND Status = 'pending'",
 		reason, orderID,
 	)
@@ -679,7 +692,10 @@ func (r *workOrderRepository) RejectOrder(orderID int64, reason string) error {
 	if affected == 0 {
 		return fmt.Errorf("only pending orders can be rejected")
 	}
-	return nil
+	if err := enqueueEvent(tx, "work_order.rejected", "work_order", orderID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // DeleteOrder menghapus work order beserta data terkait
@@ -730,6 +746,9 @@ func (r *workOrderRepository) DeleteOrder(orderID int64) error {
 	}
 	if _, err := tx.Exec("DELETE FROM orders WHERE ID = ?", orderID); err != nil {
 		return fmt.Errorf("failed to delete from orders: %w", err)
+	}
+	if err := enqueueEvent(tx, "work_order.deleted", "work_order", orderID); err != nil {
+		return err
 	}
 
 	return tx.Commit()
@@ -799,6 +818,9 @@ func (r *workOrderRepository) UpdateOrderExecutors(orderID int64, req models.Upd
 		); err != nil {
 			return fmt.Errorf("failed to update order status: %w", err)
 		}
+	}
+	if err := enqueueEvent(tx, "work_order.updated", "work_order", orderID); err != nil {
+		return err
 	}
 
 	return tx.Commit()

@@ -200,11 +200,22 @@ func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) er
 	if !validStatuses[newStatus] {
 		return fmt.Errorf("invalid status: %s", newStatus)
 	}
-	_, err := config.DB.Exec(
+	tx, err := config.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(
 		"UPDATE members SET Status = ? WHERE ID = ?",
 		newStatus, memberID,
-	)
-	return err
+	); err != nil {
+		return err
+	}
+	if err := enqueueEvent(tx, "member.status_updated", "member", int64(memberID)); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // SetMemberPassword update password + role member yang sudah ada

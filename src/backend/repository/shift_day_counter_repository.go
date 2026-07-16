@@ -73,6 +73,11 @@ func RunShiftDayRollover() (*ShiftDayCounterSnapshot, error) {
 		`, today, lastDay, lastMonth, lastYear, rolloverCount); err != nil {
 			return nil, err
 		}
+		if moved > 0 {
+			if err := enqueueEvent(tx, "member.shift_rolled_over", "member", 0); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
