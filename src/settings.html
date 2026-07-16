@@ -372,7 +372,7 @@
                 <!-- Display Name -->
                 <form
                     id="settingsNameForm"
-                    class="settings-row flex-col sm:flex-row items-stretch sm:items-center"
+                    class="settings-row flex-wrap"
                 >
                     <div>
                         <label
@@ -384,8 +384,43 @@
                             Dipakai sebagai nama tampilan dan username login
                         </p>
                     </div>
-                    <div class="w-full sm:w-72">
-                        <div class="flex flex-col sm:flex-row gap-2">
+                    <div
+                        id="settingsNameDisplayGroup"
+                        class="flex items-center gap-1 ml-auto"
+                    >
+                        <span
+                            class="text-sm text-gray-500 font-medium"
+                            id="settingsNameDisplay"
+                            >—</span
+                        >
+                        <button
+                            id="editNameBtn"
+                            type="button"
+                            class="inline-flex h-11 w-11 items-center justify-center rounded-full text-gray-400 hover:bg-blue-50 hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500"
+                            title="Ubah nama"
+                            aria-label="Ubah nama"
+                        >
+                            <svg
+                                class="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15.232 5.232l3.536 3.536M9 11l6.232-6.232a2.5 2.5 0 113.536 3.536L12.536 14.536 9 15l.464-4zM5 19h14"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div
+                        id="settingsNameEditor"
+                        class="hidden w-full sm:w-72 ml-auto"
+                    >
+                        <div class="flex items-center gap-2">
                             <input
                                 id="settingsNameInput"
                                 type="text"
@@ -399,18 +434,55 @@
                             <button
                                 id="saveNameBtn"
                                 type="submit"
-                                class="min-h-11 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60"
+                                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60"
+                                title="Simpan nama"
+                                aria-label="Simpan nama"
                             >
-                                Simpan
+                                <svg
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M5 13l4 4L19 7"
+                                    ></path>
+                                </svg>
+                            </button>
+                            <button
+                                id="cancelNameBtn"
+                                type="button"
+                                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-300 text-gray-500 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500"
+                                title="Batalkan perubahan"
+                                aria-label="Batalkan perubahan nama"
+                            >
+                                <svg
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    ></path>
+                                </svg>
                             </button>
                         </div>
-                        <p
-                            id="settingsNameFeedback"
-                            class="hidden mt-2 p-2 rounded-lg text-xs font-medium"
-                            role="status"
-                            aria-live="polite"
-                        ></p>
                     </div>
+                    <p
+                        id="settingsNameFeedback"
+                        class="hidden w-full mt-1 p-2 rounded-lg text-xs font-medium text-right"
+                        role="status"
+                        aria-live="polite"
+                    ></p>
                 </form>
 
                 <!-- Role -->
@@ -655,6 +727,19 @@
             const DEFAULT_AVATAR = "/static/public/default-avatar.png";
             const settingsNameInput =
                 document.getElementById("settingsNameInput");
+            const settingsNameDisplay = document.getElementById(
+                "settingsNameDisplay",
+            );
+            const settingsNameDisplayGroup = document.getElementById(
+                "settingsNameDisplayGroup",
+            );
+            const settingsNameEditor = document.getElementById(
+                "settingsNameEditor",
+            );
+            const settingsNameFeedback = document.getElementById(
+                "settingsNameFeedback",
+            );
+            const saveNameBtn = document.getElementById("saveNameBtn");
             let pendingAvatarFile = null; // File crop yang sedang ditunggu disimpan
             let pendingAvatarPreviewUrl = "";
             let originalAvatarSrc = DEFAULT_AVATAR; // Simpan foto asli untuk restore
@@ -687,6 +772,7 @@
 
                 document.getElementById("settingsName").textContent = name;
                 document.getElementById("settingsRole").textContent = role;
+                settingsNameDisplay.textContent = name;
                 if (settingsNameInput.dataset.dirty !== "true") {
                     settingsNameInput.value = name === "—" ? "" : name;
                 }
@@ -1159,8 +1245,41 @@
                 setInterval(updateProfileStatus, 4000);
             })();
 
+            function setNameEditor(open) {
+                settingsNameDisplayGroup.classList.toggle("hidden", open);
+                settingsNameEditor.classList.toggle("hidden", !open);
+                settingsNameFeedback.classList.add("hidden");
+                if (open) {
+                    settingsNameInput.value = settingsNameDisplay.textContent;
+                    settingsNameInput.dataset.dirty = "true";
+                    settingsNameInput.focus();
+                    settingsNameInput.select();
+                } else {
+                    settingsNameInput.dataset.dirty = "false";
+                }
+            }
+
+            function showNameFeedback(message, isError) {
+                settingsNameFeedback.textContent = message;
+                settingsNameFeedback.className =
+                    "w-full mt-1 p-2 rounded-lg text-xs font-medium text-right " +
+                    (isError
+                        ? "settings-feedback-error"
+                        : "settings-feedback-success");
+            }
+
+            document
+                .getElementById("editNameBtn")
+                .addEventListener("click", () => setNameEditor(true));
+            document
+                .getElementById("cancelNameBtn")
+                .addEventListener("click", () => setNameEditor(false));
+
             settingsNameInput.addEventListener("input", () => {
                 settingsNameInput.dataset.dirty = "true";
+            });
+            settingsNameInput.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") setNameEditor(false);
             });
 
             document
@@ -1168,27 +1287,14 @@
                 .addEventListener("submit", async function (e) {
                     e.preventDefault();
                     const name = settingsNameInput.value.trim();
-                    const button = document.getElementById("saveNameBtn");
-                    const feedback = document.getElementById(
-                        "settingsNameFeedback",
-                    );
-
-                    const showFeedback = (message, isError) => {
-                        feedback.textContent = message;
-                        feedback.className =
-                            "mt-2 p-2 rounded-lg text-xs font-medium " +
-                            (isError
-                                ? "settings-feedback-error"
-                                : "settings-feedback-success");
-                    };
 
                     if (name.length < 3 || name.length > 50) {
-                        showFeedback("Nama harus 3–50 karakter.", true);
+                        showNameFeedback("Nama harus 3–50 karakter.", true);
                         return;
                     }
 
-                    button.disabled = true;
-                    button.textContent = "Menyimpan...";
+                    saveNameBtn.disabled = true;
+                    saveNameBtn.setAttribute("aria-label", "Menyimpan nama");
                     try {
                         const response = await fetch("/api/profile/name", {
                             method: "PATCH",
@@ -1218,15 +1324,20 @@
                         );
                         settingsNameInput.dataset.dirty = "false";
                         applyProfileData({ ...currentUser, name: savedName });
-                        showFeedback("Nama berhasil diubah.", false);
+                        setNameEditor(false);
+                        showNameFeedback("Nama berhasil diubah.", false);
+                        setTimeout(
+                            () => settingsNameFeedback.classList.add("hidden"),
+                            3000,
+                        );
                     } catch (err) {
-                        showFeedback(
+                        showNameFeedback(
                             err.message || "Gagal memperbarui nama.",
                             true,
                         );
                     } finally {
-                        button.disabled = false;
-                        button.textContent = "Simpan";
+                        saveNameBtn.disabled = false;
+                        saveNameBtn.setAttribute("aria-label", "Simpan nama");
                     }
                 });
 
