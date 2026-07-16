@@ -1007,6 +1007,25 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
+  let realtimeRefreshTimer;
+
+  function scheduleRealtimeRefresh() {
+    clearTimeout(realtimeRefreshTimer);
+    realtimeRefreshTimer = setTimeout(async () => {
+      await fetchMembers();
+      initializeMemberImages();
+      await pollIncomingOrders();
+    }, 100);
+  }
+
+  function connectRealtimeUpdates() {
+    if (!("EventSource" in window)) return;
+
+    const stream = new EventSource("/api/events");
+    stream.onmessage = scheduleRealtimeRefresh;
+    window.addEventListener("pagehide", () => stream.close(), { once: true });
+  }
+
   // ===== SAFETY CHECKLIST DATA =====
   const safetyChecklistItems = {
     CCTV: [
@@ -1221,9 +1240,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     initializeMemberImages();
     updateSummaryCounts();
     primeOrderNotifications();
-    setInterval(pollIncomingOrders, 5000);
+    connectRealtimeUpdates();
+    setInterval(scheduleRealtimeRefresh, 60000);
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") pollIncomingOrders();
+      if (document.visibilityState === "visible") scheduleRealtimeRefresh();
     });
   }
 
