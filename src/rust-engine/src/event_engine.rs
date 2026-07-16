@@ -26,7 +26,6 @@ pub async fn run(state: AppState) {
 }
 
 async fn publish_pending(state: &AppState) -> Result<(), sqlx::Error> {
-    // ponytail: one engine replica; add row claiming only when horizontal scaling is needed.
     let rows = sqlx::query(
         "SELECT ID, EventType, AggregateType, AggregateID \
          FROM event_outbox WHERE ProcessedAt IS NULL ORDER BY ID LIMIT 100",
@@ -42,7 +41,7 @@ async fn publish_pending(state: &AppState) -> Result<(), sqlx::Error> {
             aggregate_id: row.try_get("AggregateID")?,
         };
 
-        // No subscribers is fine: every page loads current state before opening SSE.
+
         let _ = state.events.send(event.clone());
         let result = sqlx::query(
             "UPDATE event_outbox SET ProcessedAt = NOW(3) WHERE ID = ? AND ProcessedAt IS NULL",
