@@ -166,7 +166,6 @@
             html[data-theme="dark"] #passwordStrengthLabel {
                 color: #94a3b8 !important;
             }
-            html[data-theme="dark"] #settingsNameDisplay,
             html[data-theme="dark"] #settingsRoleDisplay,
             html[data-theme="dark"] #settingsDivisionDisplay {
                 color: #cbd5e1 !important;
@@ -370,20 +369,49 @@
                     </div>
                 </div>
 
-                <!-- Display Name (read-only, dari DB) -->
-                <div class="settings-row">
+                <!-- Display Name -->
+                <form
+                    id="settingsNameForm"
+                    class="settings-row flex-col sm:flex-row items-stretch sm:items-center"
+                >
                     <div>
-                        <p class="settings-row-label">Nama</p>
-                        <p class="settings-row-desc">
-                            Nama tidak bisa diubah sendiri
+                        <label
+                            class="settings-row-label"
+                            for="settingsNameInput"
+                            >Nama</label
+                        >
+                        <p class="settings-row-desc" id="settingsNameHelp">
+                            Dipakai sebagai nama tampilan dan username login
                         </p>
                     </div>
-                    <span
-                        class="text-sm text-gray-500 font-medium"
-                        id="settingsNameDisplay"
-                        >—</span
-                    >
-                </div>
+                    <div class="w-full sm:w-72">
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input
+                                id="settingsNameInput"
+                                type="text"
+                                required
+                                minlength="3"
+                                maxlength="50"
+                                autocomplete="name"
+                                aria-describedby="settingsNameHelp settingsNameFeedback"
+                                class="w-full min-w-0 px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            />
+                            <button
+                                id="saveNameBtn"
+                                type="submit"
+                                class="min-h-11 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60"
+                            >
+                                Simpan
+                            </button>
+                        </div>
+                        <p
+                            id="settingsNameFeedback"
+                            class="hidden mt-2 p-2 rounded-lg text-xs font-medium"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                    </div>
+                </form>
 
                 <!-- Role -->
                 <div class="settings-row">
@@ -625,6 +653,8 @@
             const cropCtx = avatarCropCanvas.getContext("2d");
 
             const DEFAULT_AVATAR = "/static/public/default-avatar.png";
+            const settingsNameInput =
+                document.getElementById("settingsNameInput");
             let pendingAvatarFile = null; // File crop yang sedang ditunggu disimpan
             let pendingAvatarPreviewUrl = "";
             let originalAvatarSrc = DEFAULT_AVATAR; // Simpan foto asli untuk restore
@@ -657,8 +687,9 @@
 
                 document.getElementById("settingsName").textContent = name;
                 document.getElementById("settingsRole").textContent = role;
-                document.getElementById("settingsNameDisplay").textContent =
-                    name;
+                if (settingsNameInput.dataset.dirty !== "true") {
+                    settingsNameInput.value = name === "—" ? "" : name;
+                }
                 document.getElementById("settingsRoleDisplay").textContent =
                     role;
                 const divisionEl = document.getElementById(
@@ -1127,6 +1158,77 @@
                 // Auto-refresh status setiap 4 detik agar selalu terupdate
                 setInterval(updateProfileStatus, 4000);
             })();
+
+            settingsNameInput.addEventListener("input", () => {
+                settingsNameInput.dataset.dirty = "true";
+            });
+
+            document
+                .getElementById("settingsNameForm")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+                    const name = settingsNameInput.value.trim();
+                    const button = document.getElementById("saveNameBtn");
+                    const feedback = document.getElementById(
+                        "settingsNameFeedback",
+                    );
+
+                    const showFeedback = (message, isError) => {
+                        feedback.textContent = message;
+                        feedback.className =
+                            "mt-2 p-2 rounded-lg text-xs font-medium " +
+                            (isError
+                                ? "settings-feedback-error"
+                                : "settings-feedback-success");
+                    };
+
+                    if (name.length < 3 || name.length > 50) {
+                        showFeedback("Nama harus 3–50 karakter.", true);
+                        return;
+                    }
+
+                    button.disabled = true;
+                    button.textContent = "Menyimpan...";
+                    try {
+                        const response = await fetch("/api/profile/name", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ name }),
+                        });
+                        const data = await response.json();
+                        if (response.status === 401) {
+                            localStorage.removeItem("currentUser");
+                            window.location.href = "/login";
+                            return;
+                        }
+                        if (!response.ok) {
+                            throw new Error(
+                                data.message || "Gagal memperbarui nama.",
+                            );
+                        }
+
+                        const savedName = data.data?.name || name;
+                        const currentUser = JSON.parse(
+                            localStorage.getItem("currentUser") || "{}",
+                        );
+                        currentUser.name = savedName;
+                        localStorage.setItem(
+                            "currentUser",
+                            JSON.stringify(currentUser),
+                        );
+                        settingsNameInput.dataset.dirty = "false";
+                        applyProfileData({ ...currentUser, name: savedName });
+                        showFeedback("Nama berhasil diubah.", false);
+                    } catch (err) {
+                        showFeedback(
+                            err.message || "Gagal memperbarui nama.",
+                            true,
+                        );
+                    } finally {
+                        button.disabled = false;
+                        button.textContent = "Simpan";
+                    }
+                });
 
             // ── Password strength checker ──
             document

@@ -2,6 +2,22 @@ package controllers
 
 import "testing"
 
+func TestNormalizeMemberName(t *testing.T) {
+	for _, test := range []struct {
+		input, want string
+		valid       bool
+	}{
+		{" Alvaro ", "Alvaro", true},
+		{"ab", "ab", false},
+		{"", "", false},
+	} {
+		got, valid := normalizeMemberName(test.input)
+		if got != test.want || valid != test.valid {
+			t.Errorf("normalizeMemberName(%q) = %q, %v; want %q, %v", test.input, got, valid, test.want, test.valid)
+		}
+	}
+}
+
 func TestNormalizeStaffRole(t *testing.T) {
 	for input, want := range map[string]string{
 		"":         "Operator",

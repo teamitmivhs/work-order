@@ -185,6 +185,15 @@ type ChangePasswordRequest struct {
 	NewPassword     string `json:"newPassword" binding:"required"`
 }
 
+type UpdateProfileNameRequest struct {
+	Name string `json:"name" binding:"required"`
+}
+
+func normalizeMemberName(name string) (string, bool) {
+	name = strings.TrimSpace(name)
+	return name, len(name) >= minNameLength && len(name) <= maxNameLength
+}
+
 func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -263,6 +272,49 @@ func GetProfile(c *gin.Context) {
 
 	member.Password = ""
 	utils.RespondSuccess(c, http.StatusOK, member)
+}
+
+// UpdateProfileNameHandler: PATCH /api/profile/name
+func UpdateProfileNameHandler(c *gin.Context) {
+	userID, ok := middleware.GetUserIDFromContext(c)
+	if !ok || userID == 0 {
+		utils.Unauthorized(c, "User not found")
+		return
+	}
+
+	var req UpdateProfileNameRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid request payload", err.Error())
+		return
+	}
+
+	name, valid := normalizeMemberName(req.Name)
+	if !valid {
+		utils.BadRequest(c, "Username must be between 3 and 50 characters")
+		return
+	}
+
+	memberRepo := repository.NewMemberRepository()
+	existing, err := memberRepo.GetMemberByName(name)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		utils.InternalServerError(c, "Failed to check username", err)
+		return
+	}
+	if existing != nil && existing.ID != userID {
+		utils.Conflict(c, "Username already exists")
+		return
+	}
+	if existing != nil && existing.Name == name {
+		utils.RespondWithMessage(c, http.StatusOK, "Name unchanged", gin.H{"name": name})
+		return
+	}
+
+	if err := memberRepo.UpdateMemberName(userID, name); err != nil {
+		utils.InternalServerError(c, "Failed to update name", err)
+		return
+	}
+
+	utils.RespondWithMessage(c, http.StatusOK, "Name updated successfully", gin.H{"name": name})
 }
 
 // ChangePasswordHandler: PATCH /api/profile/password

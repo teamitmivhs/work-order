@@ -22,6 +22,7 @@ func RegisterUserRoutes(rg *gin.RouterGroup) {
 	protected.Use(middleware.AuthMiddleware())
 	{
 		protected.GET("/profile", controllers.GetProfile)
+		protected.PATCH("/profile/name", controllers.UpdateProfileNameHandler)
 		protected.PATCH("/profile/password", controllers.ChangePasswordHandler)
 		protected.POST("/profile/avatar", controllers.UploadAvatarHandler)
 		protected.DELETE("/profile/avatar", controllers.DeleteAvatarHandler)

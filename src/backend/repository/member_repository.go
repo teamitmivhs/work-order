@@ -19,6 +19,7 @@ type MemberRepository interface {
 	GetMemberByID(id int) (*models.Member, error)
 	IsMemberAssigned(orderID int64, memberID int) (bool, error)
 	UpdateMemberStatus(memberID int, newStatus string) error
+	UpdateMemberName(memberID int, name string) error
 	SetMemberPassword(memberID int, hashedPassword string, role string, division string, batchYear string) error
 	UpdateMemberPassword(memberID int, hashedPassword string) error
 	UpdateMemberAvatar(memberID int, avatarFilename string) error
@@ -213,6 +214,22 @@ func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) er
 		return err
 	}
 	if err := enqueueEvent(tx, "member.status_updated", "member", int64(memberID)); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (r *memberRepository) UpdateMemberName(memberID int, name string) error {
+	tx, err := config.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec("UPDATE members SET Name = ? WHERE ID = ?", name, memberID); err != nil {
+		return err
+	}
+	if err := enqueueEvent(tx, "member.profile_updated", "member", int64(memberID)); err != nil {
 		return err
 	}
 	return tx.Commit()
