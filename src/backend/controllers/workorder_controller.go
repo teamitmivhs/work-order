@@ -169,7 +169,7 @@ func (ctrl *WorkOrderController) CreateTaskHandler(c *gin.Context) {
 		return
 	}
 
-	go services.NotifyNewWorkOrder(newID, req.Device, req.Location, req.Priority)
+	go services.NotifyNewWorkOrder(newID, req.Device, req.Location, req.Problem, req.Priority)
 
 	utils.RespondWithMessage(c, http.StatusCreated, "Work order created successfully", gin.H{
 		"trackingCode": req.TrackingCode,

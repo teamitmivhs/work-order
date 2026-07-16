@@ -980,11 +980,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (incoming.length === 0) return;
     incoming.forEach((order) => knownOrderIds.add(Number(order.id)));
     const newest = incoming[0];
-    const title =
-      incoming.length === 1
-        ? "Work order baru masuk"
-        : `${incoming.length} work order baru masuk`;
-    const message = `#${newest.id} ${newest.device || "Device"} - ${newest.location || "Lokasi belum diisi"}`;
+    const priorityLabel =
+      {
+        low: "Rendah",
+        medium: "Sedang",
+        high: "Tinggi",
+        urgent: "Urgent",
+      }[String(newest.priority || "").toLowerCase()] || "";
+    const title = `${incoming.length === 1 ? "Work Order Baru" : `${incoming.length} Work Order Baru`}${priorityLabel ? ` • Prioritas ${priorityLabel}` : ""}`;
+    const message = [
+      `Perangkat: ${newest.device || "Belum diketahui"}`,
+      `Lokasi: ${newest.location || "Belum diisi"}`,
+      `Kendala: ${newest.problem || "Belum ada deskripsi"}`,
+    ].join("\n");
     showPopup(title, message, "info");
     showWorkOrderBrowserNotification(title, message, newest);
   }

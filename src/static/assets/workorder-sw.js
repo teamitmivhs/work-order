@@ -18,7 +18,7 @@ self.addEventListener('push', (event) => {
     }
   }
 
-  const title = payload.title || 'Work order baru masuk';
+  const title = payload.title || 'Work Order Baru';
   const options = {
     body: payload.body || 'Ada work order baru.',
     icon: '/static/public/itlogo.png',

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	webpush "github.com/SherClockHolmes/webpush-go"
 
@@ -95,11 +96,28 @@ func DeletePushSubscription(endpoint string) error {
 	return err
 }
 
-func NotifyNewWorkOrder(orderID int64, device, location, priority string) {
-	body := fmt.Sprintf("#%d %s - %s", orderID, fallback(device, "Device"), fallback(location, "Lokasi belum diisi"))
-	NotifyWorkOrderBroadcast("Work order baru masuk", body, orderID, map[string]any{
+func NotifyNewWorkOrder(orderID int64, device, location, problem, priority string) {
+	title, body := formatNewWorkOrderNotification(device, location, problem, priority)
+	NotifyWorkOrderBroadcast(title, body, orderID, map[string]any{
 		"priority": priority,
 	})
+}
+
+func formatNewWorkOrderNotification(device, location, problem, priority string) (string, string) {
+	priorityLabel := map[string]string{
+		"low": "Rendah", "medium": "Sedang", "high": "Tinggi", "urgent": "Urgent",
+	}[strings.ToLower(strings.TrimSpace(priority))]
+	title := "Work Order Baru"
+	if priorityLabel != "" {
+		title += " • Prioritas " + priorityLabel
+	}
+	body := fmt.Sprintf(
+		"Perangkat: %s\nLokasi: %s\nKendala: %s",
+		fallback(strings.TrimSpace(device), "Belum diketahui"),
+		fallback(strings.TrimSpace(location), "Belum diisi"),
+		fallback(strings.TrimSpace(problem), "Belum ada deskripsi"),
+	)
+	return title, body
 }
 
 func NotifyWorkOrderBroadcast(title, body string, orderID int64, extra map[string]any) {
@@ -147,7 +165,7 @@ func notifyWorkOrder(title, body string, orderID int64, extra map[string]any, ta
 	defer rows.Close()
 
 	payloadMap := map[string]any{
-		"title":       "Work order baru masuk",
+		"title":       "Work Order Baru",
 		"body":        body,
 		"url":         "/",
 		"workOrderId": orderID,
