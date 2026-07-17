@@ -477,9 +477,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   function isAvailableWorker(member) {
+    const status = operationalMemberStatus(member);
     return (
-      member.status === "standby" ||
-      (member.role === "Guru" && member.status !== "onjob")
+      status === "standby" ||
+      (member.role === "Guru" && status !== "onjob")
     );
   }
 
@@ -548,6 +549,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   let activeWorkOrderStatus = "pending";
   let workOrderSearchQuery = "";
   let workOrderDateQuery = "";
+  let todayShiftMemberIds = new Set();
+
+  function operationalMemberStatus(member) {
+    return member.status === "nextshift" ? "standby" : member.status;
+  }
+
+  function isTodayShiftMember(member) {
+    return todayShiftMemberIds.has(Number(member.id));
+  }
 
   function scrollToPendingWorkOrders() {
     setActiveWorkOrderStatus("pending");
@@ -1020,8 +1030,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   function scheduleRealtimeRefresh() {
     clearTimeout(realtimeRefreshTimer);
     realtimeRefreshTimer = setTimeout(async () => {
-      await fetchMembers();
+      await Promise.all([fetchMembers(), fetchTodayShift()]);
       initializeMemberImages();
+      if (!memberStatusPopup.classList.contains("hidden")) {
+        populateMemberList(currentStatusFilter);
+      }
       await pollIncomingOrders();
     }, 100);
   }
@@ -1180,6 +1193,26 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
+  async function fetchTodayShift() {
+    try {
+      const r = await fetch("/api/shift/schedule", {
+        headers: authHeaders(),
+        cache: "no-store",
+      });
+      if (!r.ok) throw new Error(r.statusText);
+      const data = unwrapData(await r.json());
+      const todayDay = Number(data.todayDay);
+      const entries = Array.isArray(data.entries) ? data.entries : [];
+      todayShiftMemberIds = new Set(
+        entries
+          .filter((entry) => Number(entry.dayOfWeek) === todayDay)
+          .map((entry) => Number(entry.memberId)),
+      );
+    } catch (err) {
+      console.error("Error fetching today's shift:", err);
+    }
+  }
+
   async function fetchAndRenderWorkOrders() {
     try {
       const r = await fetch("/api/workorders", {
@@ -1200,8 +1233,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   async function refreshAllDataFromAPI() {
-    await fetchMembers();
+    await Promise.all([fetchMembers(), fetchTodayShift()]);
     initializeMemberImages();
+    if (!memberStatusPopup.classList.contains("hidden")) {
+      populateMemberList(currentStatusFilter);
+    }
     await fetchAndRenderWorkOrders();
   }
 
@@ -1243,7 +1279,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (exitGuestBtn) exitGuestBtn.classList.remove("hidden");
     }, 300);
   } else {
-    await fetchMembers();
+    await Promise.all([fetchMembers(), fetchTodayShift()]);
     await fetchAndRenderWorkOrders();
     initializeMemberImages();
     updateSummaryCounts();
@@ -1615,12 +1651,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     const statusMap = {
       standby: { color: "bg-green-500", text: "Stand By" },
       onjob: { color: "bg-blue-500", text: "On Job" },
-      nextshift: { color: "bg-purple-500", text: "Next Shift" },
       offduty: { color: "bg-gray-500", text: "Off Duty" },
     };
 
     filtered.forEach((member) => {
-      const s = statusMap[member.status] || {
+      const s = statusMap[operationalMemberStatus(member)] || {
         color: "bg-gray-500",
         text: "Unknown",
       };
@@ -1663,12 +1698,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         color: "text-blue-700",
         dot: "#3b82f6",
       },
-      nextshift: {
-        text: "Next Shift",
-        bg: "bg-purple-100",
-        color: "text-purple-700",
-        dot: "#a855f7",
-      },
       offduty: {
         text: "Off Duty",
         bg: "bg-gray-100",
@@ -1679,12 +1708,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     const headerColors = {
       standby: "linear-gradient(135deg,#14532d,#166534)",
       onjob: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
-      nextshift: "linear-gradient(135deg,#4c1d95,#6d28d9)",
       offduty: "linear-gradient(135deg,#1e293b,#374151)",
     };
 
-    const s = statusMap[member.status] || statusMap.offduty;
-    const hc = headerColors[member.status] || headerColors.offduty;
+    const status = operationalMemberStatus(member);
+    const s = statusMap[status] || statusMap.offduty;
+    const hc = headerColors[status] || headerColors.offduty;
 
     document.getElementById("opModalHeader").style.background = hc;
     document.getElementById("opModalAvatar").src =
@@ -1709,10 +1738,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (container) container.innerHTML = "";
     });
 
-    members.filter(isVisibleStatusMember).forEach((member) => {
-      const statusContainer = document.getElementById(
-        `status-${member.status}`,
-      );
+    const appendMember = (member, status) => {
+      const statusContainer = document.getElementById(`status-${status}`);
       if (statusContainer) {
         const container = statusContainer.querySelector(".member-images");
         const img = document.createElement("img");
@@ -1727,6 +1754,14 @@ document.addEventListener("DOMContentLoaded", async function () {
         img.dataset.memberId = member.id;
         container.appendChild(img);
       }
+    };
+
+    const visibleMembers = members.filter(isVisibleStatusMember);
+    visibleMembers.forEach((member) => {
+      appendMember(member, operationalMemberStatus(member));
+    });
+    visibleMembers.filter(isTodayShiftMember).forEach((member) => {
+      appendMember(member, "nextshift");
     });
 
     statusContainers.forEach((c) => updateMemberDisplay(c));
@@ -1734,6 +1769,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   async function openMemberStatusPopup(statusFilter = "all") {
     if (members.length === 0) await fetchMembers();
+    if (statusFilter === "nextshift") {
+      await fetchTodayShift();
+      initializeMemberImages();
+    }
     showAnimatedPopup(memberStatusPopup);
     populateMemberList(statusFilter);
   }
@@ -1744,7 +1783,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     const filtered =
       statusFilter === "all"
         ? visibleMembers
-        : visibleMembers.filter((m) => m.status === statusFilter);
+        : statusFilter === "nextshift"
+          ? visibleMembers.filter(isTodayShiftMember)
+          : visibleMembers.filter(
+              (member) => operationalMemberStatus(member) === statusFilter,
+            );
     const statusMap = {
       standby: {
         text: "Stand By",
@@ -1755,7 +1798,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         badge: "member-status-badge--onjob",
       },
       nextshift: {
-        text: "Next Shift",
+        text: "Today Shift",
         badge: "member-status-badge--nextshift",
       },
       offduty: {
@@ -1771,7 +1814,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     filtered.forEach((member) => {
-      const status = statusMap[member.status] || statusMap.offduty;
+      const statusKey =
+        statusFilter === "nextshift"
+          ? "nextshift"
+          : operationalMemberStatus(member);
+      const status = statusMap[statusKey] || statusMap.offduty;
       const item = document.createElement("div");
       item.className = "member-status-item p-4 bg-gray-50 rounded-lg";
       item.innerHTML = `
