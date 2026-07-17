@@ -2785,7 +2785,7 @@
                                 >
                                     <option value="" disabled>Pilih</option>
                                     <option value="standby">Stand By</option>
-                                    <option value="onjob" disabled>On Job</option>
+                                    <option value="onjob" disabled hidden>On Job</option>
                                     <option value="offduty">Off Duty</option>
                                 </select>
                             </div>
@@ -3322,7 +3322,7 @@
                         >On Job</span
                     >
                 </div>
-                <!-- Next Shift -->
+                <!-- Today Shift -->
                 <div
                     class="status-container flex items-center gap-2 px-2 md:px-4 py-2 shadow rounded-full border border-gray-200 bg-gradient-to-r from-purple-50 to-purple-200 cursor-pointer"
                     data-status="nextshift"
@@ -3337,7 +3337,7 @@
                     ></span>
                     <span
                         class="font-semibold text-gray-700 text-xs md:text-sm truncate"
-                        >Next Shift</span
+                        >Today Shift</span
                     >
                 </div>
                 <!-- Off Duty -->
@@ -3452,7 +3452,7 @@
                         class="status-filter-tab flex-shrink-0 px-3 py-1.5 rounded-full text-xs md:text-sm bg-gray-200 text-gray-700"
                         data-status-filter="nextshift"
                     >
-                        Next Shift
+                        Today Shift
                     </button>
                     <button
                         class="status-filter-tab flex-shrink-0 px-3 py-1.5 rounded-full text-xs md:text-sm bg-gray-200 text-gray-700"
@@ -4580,7 +4580,7 @@
                     const map = {
                         standby: "Stand By",
                         onjob: "On Job",
-                        nextshift: "Next Shift",
+                        nextshift: "Today Shift",
                         offduty: "Off Duty",
                     };
                     return map[status] || status || "-";
