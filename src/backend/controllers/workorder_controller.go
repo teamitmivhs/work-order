@@ -756,6 +756,17 @@ func UpdateMemberStatusHandler(c *gin.Context) {
 		utils.Forbidden(c, "Only admins or Data Analyst can update other member statuses")
 		return
 	}
+	if userID == memberID {
+		member, err := memberRepo.GetMemberByID(userID)
+		if err != nil {
+			utils.InternalServerError(c, "Failed to retrieve current member status", err)
+			return
+		}
+		if selfStatusLocked(member.Status) {
+			utils.Conflict(c, "Status cannot be changed while you are On Job")
+			return
+		}
+	}
 
 	var req struct {
 		Status string `json:"status" binding:"required"`
