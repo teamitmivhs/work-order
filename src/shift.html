@@ -420,13 +420,19 @@
                 min-height: 26px;
                 gap: 4px;
                 padding: 0 8px;
-                border: 1px solid var(--shift-border);
+                border: 1px solid #e7d3a1;
                 border-radius: 8px;
-                background: transparent;
-                color: var(--shift-muted);
+                background: #fff8e7;
+                color: #8a6413;
                 font-size: 0.64rem;
                 font-weight: 700;
                 letter-spacing: 0.02em;
+            }
+
+            html[data-theme="dark"] .pic-badge {
+                border-color: #5a4b26;
+                background: #2a2518;
+                color: #e5c56b;
             }
 
             .pic-badge svg {
@@ -525,8 +531,7 @@
             }
 
             .candidate-card:hover,
-            .candidate-card:focus-visible,
-            .candidate-card.selected {
+            .candidate-card:focus-visible {
                 border-color: var(--shift-primary);
                 box-shadow: 0 0 0 3px var(--shift-primary-soft);
                 outline: none;
@@ -544,11 +549,6 @@
                 color: #ffffff;
                 font-size: 0.78rem;
                 font-weight: 800;
-            }
-
-            .candidate-card.selected .check-box {
-                border-color: var(--shift-primary);
-                background: var(--shift-primary);
             }
 
             .schedule-actions {
@@ -1191,6 +1191,9 @@
                     if (String(member.role || "").toLowerCase() === "guru") {
                         return false;
                     }
+                    if (state.selected.includes(Number(member.id))) {
+                        return false;
+                    }
                     const matchesSearch =
                         !search ||
                         String(member.name || "")
@@ -1213,12 +1216,9 @@
                 }
                 list.innerHTML = candidates
                     .map((member) => {
-                        const selected = state.selected.includes(
-                            Number(member.id),
-                        );
                         return `
-                            <button class="candidate-card ${selected ? "selected" : ""}" type="button" data-schedule-member="${member.id}" aria-pressed="${selected}">
-                                <span class="check-box">${selected ? "✓" : ""}</span>
+                            <button class="candidate-card" type="button" data-schedule-member="${member.id}" aria-pressed="false">
+                                <span class="check-box"></span>
                                 <img class="avatar" src="${avatarUrl(member.avatar)}" alt="" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />
                                 <span style="min-width:0">
                                     <span class="person-name">${escapeHtml(member.name)}</span>
