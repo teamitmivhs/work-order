@@ -2369,6 +2369,11 @@
             #setStatusSelect:focus-visible {
                 box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
             }
+
+            #setStatusSelect:disabled {
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
             .profile-division-badge {
                 display: none;
                 width: fit-content;
@@ -2780,6 +2785,7 @@
                                 >
                                     <option value="" disabled>Pilih</option>
                                     <option value="standby">Stand By</option>
+                                    <option value="onjob" disabled>On Job</option>
                                     <option value="offduty">Off Duty</option>
                                 </select>
                             </div>
@@ -4583,10 +4589,17 @@
                     const select =
                         document.getElementById("setStatusSelect");
                     if (!select) return;
-                    select.value = ["standby", "offduty"].includes(status)
+                    const locked = status === "onjob";
+                    select.value = ["standby", "onjob", "offduty"].includes(
+                        status,
+                    )
                         ? status
                         : "";
                     select.dataset.current = status || "";
+                    select.disabled = locked;
+                    select.title = locked
+                        ? "Status dikunci selama masih On Job"
+                        : "Ubah status";
                 }
                 function divisionClass(division) {
                     const value = String(division || "").toLowerCase();
