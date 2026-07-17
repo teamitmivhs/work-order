@@ -776,10 +776,10 @@ func UpdateMemberStatusHandler(c *gin.Context) {
 		return
 	}
 	validStatuses := map[string]bool{
-		"standby": true, "nextshift": true, "offduty": true,
+		"standby": true, "offduty": true,
 	}
 	if !validStatuses[req.Status] {
-		utils.BadRequest(c, "Invalid status. Must be: standby, nextshift, or offduty")
+		utils.BadRequest(c, "Invalid status. Must be: standby or offduty")
 		return
 	}
 
