@@ -23,7 +23,7 @@ self.addEventListener('push', (event) => {
     body: payload.body || 'Ada work order baru.',
     icon: '/static/public/itlogo.png',
     badge: '/static/public/itlogo.png',
-    tag: payload.workOrderId ? `work-order-${payload.workOrderId}` : 'work-order-incoming',
+    tag: payload.tag || (payload.workOrderId ? `work-order-${payload.workOrderId}` : 'work-order-incoming'),
     renotify: true,
     vibrate: [180, 80, 180, 80, 320],
     data: {
