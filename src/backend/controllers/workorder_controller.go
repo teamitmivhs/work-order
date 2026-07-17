@@ -3,6 +3,7 @@ package controllers
 import (
 	"crypto/rand"
 	"database/sql"
+	"errors"
 	"fmt"
 	"math/big"
 	"net/http"
@@ -550,6 +551,10 @@ func (ctrl *WorkOrderController) DeleteOrderHandler(c *gin.Context) {
 	}
 
 	err = ctrl.Repo.DeleteOrder(orderID)
+	if errors.Is(err, repository.ErrWorkOrderInProgress) {
+		utils.Conflict(c, "Work order cannot be deleted while it is On Progress")
+		return
+	}
 	if err != nil {
 		utils.InternalServerError(c, "Failed to delete order", err)
 		return
