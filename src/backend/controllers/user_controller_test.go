@@ -18,6 +18,15 @@ func TestNormalizeMemberName(t *testing.T) {
 	}
 }
 
+func TestSelfStatusLocked(t *testing.T) {
+	if !selfStatusLocked(" OnJob ") {
+		t.Fatal("On Job status must lock self-service status changes")
+	}
+	if selfStatusLocked("standby") {
+		t.Fatal("Stand By status must remain editable")
+	}
+}
+
 func TestNormalizeStaffRole(t *testing.T) {
 	for input, want := range map[string]string{
 		"":         "Operator",
