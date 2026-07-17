@@ -476,7 +476,7 @@ func DeleteAvatarHandler(c *gin.Context) {
 }
 
 // UpdateStatusHandler: POST /api/status
-// Update status member (standby, onjob, nextshift, offduty)
+// Update status member yang dapat dipilih manual.
 type UpdateStatusRequest struct {
 	Status string `json:"status" binding:"required"`
 }
@@ -500,30 +500,27 @@ func UpdateStatusHandler(c *gin.Context) {
 
 	// Trim dan lowercase status
 	req.Status = strings.TrimSpace(strings.ToLower(req.Status))
+	if selfStatusLocked(req.Status) {
+		utils.Conflict(c, "On Job is assigned automatically through a work order")
+		return
+	}
 
 	// Validasi status (validation juga ada di repository, tapi cek dulu di sini)
 	validStatuses := map[string]bool{
-		"standby": true, "onjob": true,
-		"nextshift": true, "offduty": true,
+		"standby": true, "nextshift": true, "offduty": true,
 	}
 	if !validStatuses[req.Status] {
-		utils.BadRequest(c, "Invalid status. Must be: standby, onjob, nextshift, or offduty")
+		utils.BadRequest(c, "Invalid status. Must be: standby, nextshift, or offduty")
 		return
 	}
 
 	memberRepo := repository.NewMemberRepository()
-	currentMember, err := memberRepo.GetMemberByID(userID)
-	if err != nil {
-		utils.InternalServerError(c, "Failed to retrieve current member status", err)
-		return
-	}
-	if selfStatusLocked(currentMember.Status) {
-		utils.Conflict(c, "Status cannot be changed while you are On Job")
-		return
-	}
-
 	// Update status di database
 	if err := memberRepo.UpdateMemberStatus(userID, req.Status); err != nil {
+		if errors.Is(err, repository.ErrWorkOrderManagedStatus) {
+			utils.Conflict(c, "Status cannot be changed while you are On Job")
+			return
+		}
 		utils.InternalServerError(c, "Failed to update status", err)
 		return
 	}
