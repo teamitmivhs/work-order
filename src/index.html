@@ -5052,7 +5052,8 @@
                         }
                     }
                     if (
-                        ["Admin", "Guru"].includes(getLocalClaims().role)
+                        ["Admin", "Guru"].includes(getLocalClaims().role) &&
+                        order.status !== "progress"
                     ) {
                         btns += `<button class="mc-delete-btn wo-action-text wo-action-delete" data-order-id="${order.id}">Hapus</button>`;
                     }
