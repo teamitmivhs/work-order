@@ -2,12 +2,20 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"teamitmivhs/work-order-backend/models"
 	"teamitmivhs/work-order-backend/utils"
 )
+
+var ErrWorkOrderInProgress = errors.New("work order in progress cannot be deleted")
+
+func isWorkOrderInProgress(status string) bool {
+	return strings.EqualFold(strings.TrimSpace(status), "progress")
+}
 
 type WorkOrderRepository interface {
 	CreateTask(task models.WorkOrderRequest) (int64, error)
@@ -698,8 +706,7 @@ func (r *workOrderRepository) RejectOrder(orderID int64, reason string) error {
 	return tx.Commit()
 }
 
-// DeleteOrder menghapus work order beserta data terkait
-// FIX: juga reset status member yang sedang onjob untuk order ini
+// DeleteOrder menghapus work order beserta data terkait selama tidak sedang dikerjakan.
 func (r *workOrderRepository) DeleteOrder(orderID int64) error {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -707,34 +714,18 @@ func (r *workOrderRepository) DeleteOrder(orderID int64) error {
 	}
 	defer tx.Rollback()
 
-	// FIX: ambil executor yang sedang onjob untuk order ini sebelum dihapus
-	rows, err := tx.Query(
-		"SELECT member_id FROM executors WHERE order_id = ?",
+	var status string
+	if err := tx.QueryRow(
+		"SELECT Status FROM orders WHERE ID = ? FOR UPDATE",
 		orderID,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to query executors before delete: %w", err)
-	}
-
-	var executorIDs []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			rows.Close()
-			return fmt.Errorf("failed to scan executor ID: %w", err)
+	).Scan(&status); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
 		}
-		executorIDs = append(executorIDs, id)
+		return fmt.Errorf("failed to read order status before delete: %w", err)
 	}
-	rows.Close() // FIX: close sebelum lanjut
-
-	// FIX: reset status member yang sedang onjob karena order-nya dihapus
-	for _, executorID := range executorIDs {
-		if _, err := tx.Exec(
-			"UPDATE members SET Status = 'standby' WHERE ID = ? AND Status = 'onjob'",
-			executorID,
-		); err != nil {
-			return fmt.Errorf("failed to reset member status on delete: %w", err)
-		}
+	if isWorkOrderInProgress(status) {
+		return ErrWorkOrderInProgress
 	}
 
 	// Hapus child tables dulu (foreign key constraint)
