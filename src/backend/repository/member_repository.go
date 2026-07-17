@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
@@ -9,6 +10,17 @@ import (
 	"teamitmivhs/work-order-backend/models"
 	"teamitmivhs/work-order-backend/utils"
 )
+
+var ErrWorkOrderManagedStatus = errors.New("on job status is managed by work orders")
+
+func manualMemberStatusAllowed(status string) bool {
+	switch status {
+	case "standby", "nextshift", "offduty":
+		return true
+	default:
+		return false
+	}
+}
 
 type MemberRepository interface {
 	GetAllMembers() ([]models.Member, error)
@@ -194,11 +206,10 @@ func (r *memberRepository) IsMemberAssigned(orderID int64, memberID int) (bool, 
 
 // UpdateMemberStatus memperbarui status member
 func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) error {
-	validStatuses := map[string]bool{
-		"standby": true, "onjob": true,
-		"nextshift": true, "offduty": true,
+	if newStatus == "onjob" {
+		return ErrWorkOrderManagedStatus
 	}
-	if !validStatuses[newStatus] {
+	if !manualMemberStatusAllowed(newStatus) {
 		return fmt.Errorf("invalid status: %s", newStatus)
 	}
 	tx, err := config.DB.Begin()
@@ -206,6 +217,17 @@ func (r *memberRepository) UpdateMemberStatus(memberID int, newStatus string) er
 		return err
 	}
 	defer tx.Rollback()
+
+	var currentStatus string
+	if err := tx.QueryRow(
+		"SELECT Status FROM members WHERE ID = ? FOR UPDATE",
+		memberID,
+	).Scan(&currentStatus); err != nil {
+		return err
+	}
+	if currentStatus == "onjob" {
+		return ErrWorkOrderManagedStatus
+	}
 
 	if _, err := tx.Exec(
 		"UPDATE members SET Status = ? WHERE ID = ?",
