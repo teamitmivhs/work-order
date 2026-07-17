@@ -2,17 +2,22 @@
 <html lang="id">
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
         <title>Shift Piket - Work Order ITMIVHS</title>
         <link rel="icon" type="image/x-icon" href="/static/public/itlogo.ico" />
         <link rel="icon" type="image/png" href="/static/public/itlogo.png" />
         <script data-cfasync="false">
             (function () {
-                const saved = localStorage.getItem("theme") || "dark";
-                document.documentElement.setAttribute("data-theme", saved);
+                const saved =
+                    localStorage.getItem("woTheme") ||
+                    localStorage.getItem("theme") ||
+                    "dark";
+                document.documentElement.dataset.theme = saved;
             })();
         </script>
-        <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
         <link
             href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
             rel="stylesheet"
@@ -22,878 +27,768 @@
             :root {
                 --shift-bg: #f4f7fb;
                 --shift-panel: #ffffff;
-                --shift-panel-soft: #f8fafc;
-                --shift-text: #111827;
-                --shift-muted: #667085;
-                --shift-border: #d9e2ef;
-                --shift-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+                --shift-soft: #f8fafc;
+                --shift-text: #172033;
+                --shift-muted: #718096;
+                --shift-border: #d8e1ed;
                 --shift-primary: #2563eb;
-                --shift-primary-soft: #eaf1ff;
+                --shift-primary-soft: #e9f1ff;
+                --shift-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
             }
 
             html[data-theme="dark"] {
                 --shift-bg: #070d1a;
                 --shift-panel: #111827;
-                --shift-panel-soft: #1e293b;
+                --shift-soft: #1b2639;
                 --shift-text: #f8fafc;
                 --shift-muted: #a7b2c4;
                 --shift-border: #334155;
-                --shift-shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
                 --shift-primary: #3b82f6;
-                --shift-primary-soft: rgba(59, 130, 246, 0.14);
+                --shift-primary-soft: rgba(59, 130, 246, 0.16);
+                --shift-shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
             }
 
             * {
                 box-sizing: border-box;
             }
 
-            body.shift-page {
-                min-height: 100vh;
+            body {
+                min-height: 100dvh;
                 margin: 0;
                 font-family: "Poppins", system-ui, sans-serif;
                 color: var(--shift-text);
                 background:
                     linear-gradient(
-                        135deg,
-                        rgba(37, 99, 235, 0.08),
-                        transparent 32%
+                        145deg,
+                        rgba(37, 99, 235, 0.09),
+                        transparent 32rem
                     ),
                     var(--shift-bg);
             }
 
-            .shift-shell {
-                width: min(1180px, calc(100% - 32px));
-                margin: 0 auto;
+            button,
+            input,
+            select {
+                font: inherit;
             }
 
-            .shift-topbar {
+            button {
+                color: inherit;
+            }
+
+            .hidden {
+                display: none !important;
+            }
+
+            .shell {
+                width: min(calc(100% - 24px), 1180px);
+                margin-inline: auto;
+            }
+
+            .topbar {
                 position: sticky;
                 top: 0;
-                z-index: 20;
+                z-index: 30;
                 border-bottom: 1px solid var(--shift-border);
                 background: color-mix(
                     in srgb,
-                    var(--shift-bg) 88%,
+                    var(--shift-bg) 90%,
                     transparent
                 );
                 backdrop-filter: blur(18px);
             }
 
-            .shift-topbar-inner {
-                min-height: 76px;
+            .topbar-inner {
+                min-height: 68px;
                 display: grid;
-                grid-template-columns: auto 1fr auto;
+                grid-template-columns: auto minmax(0, 1fr) auto;
                 align-items: center;
-                gap: 14px;
+                gap: 10px;
             }
 
-            .icon-btn,
-            .theme-btn {
-                width: 42px;
-                height: 42px;
+            .back-link,
+            .theme-button,
+            .icon-button {
+                min-width: 44px;
+                min-height: 44px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: 14px;
                 border: 1px solid var(--shift-border);
+                border-radius: 14px;
                 background: var(--shift-panel);
                 color: var(--shift-text);
                 cursor: pointer;
-                transition:
-                    transform 0.2s ease,
-                    border-color 0.2s ease,
-                    background 0.2s ease;
             }
 
-            .icon-btn:hover,
-            .theme-btn:hover {
-                transform: translateY(-1px);
-                border-color: var(--shift-primary);
+            .back-link {
+                width: fit-content;
+                gap: 7px;
+                padding: 0 11px;
+                text-decoration: none;
+                font-size: 0.82rem;
+                font-weight: 600;
             }
 
-            .shift-title h1 {
+            .back-link svg,
+            .theme-button svg,
+            .icon-button svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .page-title {
+                min-width: 0;
+            }
+
+            .page-title h1 {
                 margin: 0;
-                font-size: clamp(1.1rem, 2vw, 1.55rem);
-                line-height: 1.15;
-                font-weight: 700;
+                font-size: 1rem;
+                line-height: 1.2;
             }
 
-            .shift-title p {
-                margin: 4px 0 0;
+            .page-title p {
+                display: none;
+                margin: 3px 0 0;
                 color: var(--shift-muted);
-                font-size: 0.86rem;
+                font-size: 0.76rem;
             }
 
-            .shift-hero {
-                margin: 24px 0 18px;
-                padding: 20px;
+            main {
+                display: grid;
+                gap: 14px;
+                padding-block: 14px calc(28px + env(safe-area-inset-bottom));
+            }
+
+            .hero,
+            .panel {
+                min-width: 0;
                 border: 1px solid var(--shift-border);
                 border-radius: 22px;
                 background: var(--shift-panel);
                 box-shadow: var(--shift-shadow);
+            }
+
+            .hero {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
                 gap: 16px;
-                align-items: stretch;
+                padding: 16px;
+            }
+
+            .hero-copy {
+                padding: 4px 2px;
             }
 
             .eyebrow {
-                margin: 0 0 10px;
+                margin: 0 0 8px;
                 color: var(--shift-primary);
-                font-size: 0.72rem;
+                font-size: 0.68rem;
                 font-weight: 700;
                 letter-spacing: 0.12em;
                 text-transform: uppercase;
             }
 
-            .shift-hero h2 {
+            .hero h2 {
                 margin: 0;
-                font-size: clamp(1.55rem, 3vw, 2.35rem);
-                line-height: 1;
-                font-weight: 700;
+                font-size: clamp(1.45rem, 7vw, 2.4rem);
+                line-height: 1.08;
             }
 
-            .shift-hero p {
-                max-width: 620px;
-                margin: 12px 0 0;
+            .hero-copy > p:not(.eyebrow) {
+                margin: 10px 0 0;
                 color: var(--shift-muted);
-                line-height: 1.6;
+                font-size: 0.86rem;
+                line-height: 1.65;
             }
 
-            .next-shift-card {
-                border-radius: 18px;
-                border: 1px solid var(--shift-border);
-                background: var(--shift-panel-soft);
-                padding: 16px;
-                min-height: 124px;
-            }
-
-            .next-shift-card strong {
-                display: block;
-                margin-bottom: 14px;
-                font-size: 0.95rem;
-            }
-
-            .counter-chip {
-                display: inline-flex;
-                align-items: center;
-                width: fit-content;
-                min-height: 28px;
-                margin-top: 10px;
-                padding: 0 10px;
-                border: 1px solid var(--shift-border);
-                border-radius: 999px;
-                background: var(--shift-panel);
-                color: var(--shift-muted);
-                font-size: 0.72rem;
-                font-weight: 800;
-            }
-
-            .avatar-stack {
-                display: flex;
-                align-items: center;
+            .today-card {
+                order: -1;
                 min-width: 0;
-            }
-
-            .avatar-stack img,
-            .avatar-fallback {
-                flex: 0 0 auto;
-                width: 34px;
-                height: 34px;
-                border-radius: 999px;
-                border: 2px solid var(--shift-panel-soft);
-                object-fit: cover;
-                background: #dbe4f0;
-                color: #64748b;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-                margin-left: -8px;
-            }
-
-            .avatar-stack img:first-child,
-            .avatar-fallback:first-child {
-                margin-left: 0;
-            }
-
-            .toolbar {
-                display: grid;
-                grid-template-columns: minmax(320px, 1fr) auto;
-                gap: 12px;
-                align-items: center;
-                margin-bottom: 16px;
-            }
-
-            .mobile-planner {
-                display: none;
-            }
-
-            .filter-bar {
-                display: grid;
-                grid-template-columns: minmax(260px, 1fr) minmax(180px, 240px);
-                gap: 10px;
-            }
-
-            .input,
-            .select {
-                min-height: 44px;
-                width: 100%;
-                border: 1px solid var(--shift-border);
-                border-radius: 14px;
-                background: var(--shift-panel);
-                color: var(--shift-text);
-                padding: 0 14px;
-                outline: none;
-            }
-
-            .input:focus,
-            .select:focus {
-                border-color: var(--shift-primary);
-                box-shadow: 0 0 0 3px var(--shift-primary-soft);
-            }
-
-            .bulk-actions {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-                justify-content: flex-end;
-            }
-
-            .btn {
-                min-height: 42px;
-                border: 1px solid var(--shift-border);
-                border-radius: 14px;
-                padding: 0 14px;
-                background: var(--shift-panel);
-                color: var(--shift-text);
-                font-weight: 700;
-                font-size: 0.85rem;
-                cursor: pointer;
-                transition:
-                    transform 0.2s ease,
-                    opacity 0.2s ease,
-                    border-color 0.2s ease;
-            }
-
-            .btn:hover {
-                transform: translateY(-1px);
-                border-color: var(--shift-primary);
-            }
-
-            .btn-primary {
-                border-color: transparent;
-                color: #ffffff;
-                background: linear-gradient(135deg, #2563eb, #3b82f6);
-            }
-
-            .btn-danger {
-                border-color: rgba(239, 68, 68, 0.35);
-                color: #ef4444;
-            }
-
-            .summary-grid {
-                display: grid;
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 10px;
-                margin-bottom: 16px;
-            }
-
-            .stat-card {
-                border: 1px solid var(--shift-border);
-                border-radius: 16px;
-                background: var(--shift-panel);
                 padding: 14px;
-            }
-
-            .stat-card span {
-                color: var(--shift-muted);
-                font-size: 0.75rem;
-                font-weight: 600;
-            }
-
-            .stat-card strong {
-                display: block;
-                margin-top: 4px;
-                font-size: 1.65rem;
-                line-height: 1;
-            }
-
-            .status-board {
-                display: grid;
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 12px;
-                align-items: stretch;
-                padding-bottom: 28px;
-            }
-
-            .status-column {
-                height: clamp(430px, calc(100vh - 370px), 680px);
-                min-height: 430px;
                 border: 1px solid var(--shift-border);
-                border-radius: 20px;
-                background: color-mix(
-                    in srgb,
-                    var(--shift-panel) 92%,
-                    transparent
-                );
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
+                border-radius: 18px;
+                background: var(--shift-soft);
             }
 
-            .column-head {
+            .today-head,
+            .section-head,
+            .picker-head,
+            .schedule-actions {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                gap: 8px;
-                padding: 14px;
-                border-bottom: 1px solid var(--shift-border);
+                gap: 12px;
             }
 
-            .column-title {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                font-weight: 700;
-                font-size: 0.9rem;
+            .today-head {
+                align-items: flex-start;
+                margin-bottom: 12px;
             }
 
-            .dot {
-                width: 9px;
-                height: 9px;
-                border-radius: 999px;
-                background: var(--dot-color);
+            .today-head h3,
+            .section-head h2,
+            .picker-head h3 {
+                margin: 0;
             }
 
-            .count-pill {
-                min-width: 28px;
-                min-height: 26px;
-                border-radius: 999px;
+            .today-head h3 {
+                font-size: 1rem;
+            }
+
+            .date-chip,
+            .count-chip,
+            .status-chip {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                color: var(--shift-muted);
-                background: var(--shift-panel-soft);
-                font-size: 0.78rem;
-                font-weight: 700;
-            }
-
-            .member-list {
-                display: grid;
-                gap: 10px;
-                padding: 12px;
-                align-content: start;
-                flex: 1;
-                min-height: 0;
-                overflow-y: auto;
-                scrollbar-width: thin;
-                scrollbar-color: var(--shift-border) transparent;
-            }
-
-            .member-list::-webkit-scrollbar {
-                width: 8px;
-            }
-
-            .member-list::-webkit-scrollbar-thumb {
                 border-radius: 999px;
-                background: var(--shift-border);
+                font-weight: 700;
+                white-space: nowrap;
             }
 
-            .member-card {
-                position: relative;
+            .date-chip {
+                min-height: 28px;
+                padding: 0 10px;
+                border: 1px solid var(--shift-border);
+                background: var(--shift-panel);
+                color: var(--shift-muted);
+                font-size: 0.68rem;
+            }
+
+            .today-list,
+            .selected-list,
+            .candidate-list,
+            .member-grid {
+                display: grid;
+                gap: 8px;
+            }
+
+            .person-row,
+            .slot-row,
+            .candidate-card,
+            .status-card {
                 border: 1px solid var(--shift-border);
                 border-radius: 16px;
-                background: var(--shift-panel-soft);
-                padding: 10px;
+                background: var(--shift-panel);
+            }
+
+            .person-row {
+                min-height: 66px;
                 display: grid;
                 grid-template-columns: auto minmax(0, 1fr) auto;
                 gap: 10px;
                 align-items: center;
+                padding: 9px 11px;
             }
 
-            .member-main {
-                display: grid;
-                grid-template-columns: auto 1fr;
-                gap: 10px;
-                align-items: center;
-            }
-
-            .member-card img,
-            .member-initial {
+            .avatar {
                 width: 42px;
                 height: 42px;
                 border-radius: 999px;
                 object-fit: cover;
                 background: #dbe4f0;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                color: #64748b;
-                font-weight: 700;
             }
 
-            .member-name {
-                margin: 0;
-                font-size: 0.9rem;
+            .person-name {
+                display: block;
+                min-width: 0;
+                font-size: 0.88rem;
                 font-weight: 700;
                 line-height: 1.3;
                 overflow-wrap: anywhere;
             }
 
-            .member-meta {
-                margin: 3px 0 0;
+            .person-meta {
+                display: block;
+                margin-top: 3px;
+                color: var(--shift-muted);
+                font-size: 0.75rem;
+            }
+
+            .empty-copy {
+                margin: 0;
+                padding: 22px 12px;
+                border: 1px dashed var(--shift-border);
+                border-radius: 14px;
+                color: var(--shift-muted);
+                text-align: center;
+                font-size: 0.82rem;
+                line-height: 1.55;
+            }
+
+            .panel {
+                padding: 16px;
+            }
+
+            .section-head {
+                align-items: flex-start;
+                margin-bottom: 14px;
+            }
+
+            .section-head h2 {
+                font-size: 1.08rem;
+            }
+
+            .section-head p,
+            .picker-head p,
+            .schedule-actions p {
+                margin: 4px 0 0;
                 color: var(--shift-muted);
                 font-size: 0.76rem;
+                line-height: 1.5;
             }
 
-            .member-control {
-                position: relative;
+            .day-tabs {
                 display: flex;
-                align-items: center;
-                justify-content: flex-end;
+                gap: 7px;
+                margin: 0 -4px 14px;
+                padding: 4px;
+                overflow-x: auto;
+                scrollbar-width: none;
             }
 
-            .member-checkbox {
-                width: 18px;
-                height: 18px;
-                accent-color: var(--shift-primary);
-            }
-
-            .status-menu {
-                width: 44px;
-                height: 40px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                border: 1px solid var(--shift-border);
-                border-radius: 12px;
-                background: var(--shift-panel);
-                color: #94a3b8;
-                cursor: pointer;
-                transition:
-                    border-color 0.2s ease,
-                    box-shadow 0.2s ease,
-                    transform 0.2s ease;
-            }
-
-            .status-menu svg {
-                width: 18px;
-                height: 18px;
-                display: block;
-            }
-
-            .status-menu:hover {
-                border-color: var(--shift-primary);
-                transform: translateY(-1px);
-            }
-
-            .status-menu:focus-visible,
-            .status-menu[aria-expanded="true"] {
-                border-color: var(--shift-primary);
-                box-shadow: 0 0 0 3px var(--shift-primary-soft);
-                outline: none;
-            }
-
-            .status-menu-panel {
-                position: absolute;
-                top: calc(100% + 8px);
-                right: 0;
-                z-index: 30;
-                min-width: 136px;
-                padding: 6px;
-                border: 1px solid var(--shift-border);
-                border-radius: 12px;
-                background: var(--shift-panel);
-                box-shadow: var(--shift-shadow);
-            }
-
-            .status-menu-panel[hidden] {
+            .day-tabs::-webkit-scrollbar {
                 display: none;
             }
 
-            .status-option {
-                width: 100%;
-                min-height: 34px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                border: 0;
-                border-radius: 8px;
-                background: transparent;
-                color: var(--shift-text);
-                cursor: pointer;
-                font-size: 0.85rem;
-                font-weight: 700;
-                padding: 0 9px;
-                text-align: left;
-            }
-
-            .status-option:hover,
-            .status-option:focus-visible {
-                background: var(--shift-panel-soft);
-                outline: none;
-            }
-
-            .status-option::before {
-                content: "";
-                width: 8px;
-                height: 8px;
-                border-radius: 999px;
-                background: var(--dot-color);
-            }
-
-            .access-panel,
-            .empty-state {
-                padding: 26px;
-                border: 1px dashed var(--shift-border);
-                border-radius: 18px;
-                color: var(--shift-muted);
-                text-align: center;
-                background: var(--shift-panel);
-            }
-
-            .toast {
-                position: fixed;
-                left: 50%;
-                bottom: 22px;
-                z-index: 40;
-                transform: translateX(-50%) translateY(20px);
-                padding: 12px 16px;
-                border-radius: 999px;
-                background: #111827;
-                color: #ffffff;
-                box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
-                opacity: 0;
-                pointer-events: none;
-                transition:
-                    opacity 0.2s ease,
-                    transform 0.2s ease;
-                font-weight: 600;
-                font-size: 0.85rem;
-            }
-
-            .toast.show {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-
-            .mobile-next-card,
-            .mobile-control-card,
-            .mobile-member-row {
+            .day-tab {
+                flex: 1 0 auto;
+                min-width: 94px;
+                min-height: 46px;
+                padding: 0 12px;
                 border: 1px solid var(--shift-border);
-                background: var(--shift-panel);
+                border-radius: 14px;
+                background: var(--shift-soft);
+                color: var(--shift-muted);
+                cursor: pointer;
+                font-size: 0.8rem;
+                font-weight: 700;
             }
 
-            .mobile-next-card {
+            .day-tab span {
+                margin-left: 5px;
+                font-size: 0.68rem;
+                opacity: 0.72;
+            }
+
+            .day-tab.active {
+                border-color: var(--shift-primary);
+                background: var(--shift-primary);
+                color: #ffffff;
+                box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+            }
+
+            .schedule-layout {
                 display: grid;
                 gap: 12px;
-                padding: 15px;
-                border-radius: 18px;
-                margin-bottom: 12px;
-                overflow: hidden;
             }
 
-            .mobile-next-head {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
-                gap: 10px;
-                align-items: start;
-            }
-
-            .mobile-next-copy {
+            .selected-panel,
+            .picker-panel {
                 min-width: 0;
+                padding: 12px;
+                border: 1px solid var(--shift-border);
+                border-radius: 18px;
+                background: var(--shift-soft);
             }
 
-            .mobile-next-stack {
-                max-width: 116px;
-                justify-content: flex-end;
-                overflow: hidden;
+            .picker-head {
+                align-items: flex-start;
+                margin-bottom: 10px;
             }
 
-            .mobile-next-card strong {
-                display: block;
-                margin-bottom: 4px;
+            .picker-head h3 {
                 font-size: 0.92rem;
             }
 
-            .mobile-next-card p {
-                margin: 0;
-                color: var(--shift-muted);
-                font-size: 0.76rem;
-                line-height: 1.45;
+            .count-chip {
+                min-width: 48px;
+                min-height: 28px;
+                padding: 0 9px;
+                background: var(--shift-primary-soft);
+                color: var(--shift-primary);
+                font-size: 0.72rem;
             }
 
-            .mobile-control-card {
-                border-radius: 20px;
-                padding: 12px;
-                margin-bottom: 12px;
+            .pic-badge,
+            .slot-actions {
+                display: inline-flex;
+                align-items: center;
             }
 
-            .mobile-filter-grid {
+            .pic-badge {
+                min-height: 30px;
+                gap: 5px;
+                padding: 0 9px;
+                border: 1px solid color-mix(in srgb, #f59e0b 38%, transparent);
+                border-radius: 10px;
+                background: color-mix(in srgb, #f59e0b 14%, var(--shift-panel));
+                color: #d97706;
+                font-size: 0.68rem;
+                font-weight: 800;
+                letter-spacing: 0.04em;
+            }
+
+            html[data-theme="dark"] .pic-badge {
+                color: #fbbf24;
+            }
+
+            .pic-badge svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .slot-actions {
+                gap: 6px;
+            }
+
+            .slot-row {
+                min-height: 66px;
                 display: grid;
-                grid-template-columns: 1fr;
+                grid-template-columns: auto auto minmax(0, 1fr) auto;
+                gap: 9px;
+                align-items: center;
+                padding: 9px;
+            }
+
+            .slot-number {
+                width: 25px;
+                height: 25px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 9px;
+                background: var(--shift-primary-soft);
+                color: var(--shift-primary);
+                font-size: 0.7rem;
+                font-weight: 800;
+            }
+
+            .slot-row.empty {
+                grid-template-columns: auto minmax(0, 1fr);
+                border-style: dashed;
+                color: var(--shift-muted);
+                font-size: 0.78rem;
+            }
+
+            .icon-button {
+                flex: 0 0 auto;
+                border-radius: 12px;
+                background: var(--shift-soft);
+                color: var(--shift-muted);
+            }
+
+            .icon-button:hover,
+            .icon-button:focus-visible {
+                border-color: var(--shift-primary);
+                color: var(--shift-primary);
+                outline: none;
+            }
+
+            .picker-tools,
+            .status-tools {
+                display: grid;
                 gap: 8px;
                 margin-bottom: 10px;
             }
 
-            .mobile-form-row {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 7px;
-                margin-top: 10px;
-            }
-
-            .mobile-form-row label {
-                color: var(--shift-muted);
-                font-size: 0.68rem;
-                font-weight: 900;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-            }
-
-            .mobile-action-grid {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
-                gap: 8px;
-                align-items: end;
-            }
-
-            .mobile-member-list {
-                display: grid;
-                gap: 8px;
-                padding-bottom: 96px;
-            }
-
-            .mobile-member-row {
+            .field {
                 width: 100%;
+                min-height: 44px;
+                padding: 0 13px;
+                border: 1px solid var(--shift-border);
+                border-radius: 13px;
+                outline: none;
+                background: var(--shift-panel);
+                color: var(--shift-text);
+                font-size: 0.84rem;
+            }
+
+            .field:focus {
+                border-color: var(--shift-primary);
+                box-shadow: 0 0 0 3px var(--shift-primary-soft);
+            }
+
+            .candidate-list {
+                max-height: 420px;
+                padding: 2px;
+                overflow-y: auto;
+            }
+
+            .candidate-card {
+                width: 100%;
+                min-height: 66px;
                 display: grid;
-                grid-template-columns: auto minmax(0, 1fr);
-                grid-template-rows: auto auto;
-                column-gap: 10px;
-                row-gap: 4px;
+                grid-template-columns: auto auto minmax(0, 1fr);
+                gap: 10px;
                 align-items: center;
-                min-height: 70px;
-                padding: 11px;
-                border-radius: 18px;
+                padding: 9px 10px;
                 color: var(--shift-text);
                 text-align: left;
                 cursor: pointer;
             }
 
-            .mobile-member-row.selected {
+            .candidate-card:hover,
+            .candidate-card:focus-visible,
+            .candidate-card.selected {
                 border-color: var(--shift-primary);
                 box-shadow: 0 0 0 3px var(--shift-primary-soft);
+                outline: none;
             }
 
-            .mobile-check {
-                grid-row: 1 / span 2;
+            .check-box {
                 width: 22px;
                 height: 22px;
-                border-radius: 8px;
-                border: 1px solid var(--shift-border);
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
+                border: 1px solid var(--shift-border);
+                border-radius: 7px;
+                background: var(--shift-soft);
                 color: #ffffff;
-                background: var(--shift-panel-soft);
-                font-size: 0.8rem;
+                font-size: 0.78rem;
                 font-weight: 800;
             }
 
-            .mobile-member-row.selected .mobile-check {
+            .candidate-card.selected .check-box {
                 border-color: var(--shift-primary);
                 background: var(--shift-primary);
             }
 
-            .mobile-avatar {
-                width: 40px;
-                height: 40px;
-                border-radius: 999px;
-                object-fit: cover;
-                background: #dbe4f0;
-            }
-
-            .mobile-member-main {
-                display: grid;
-                grid-template-columns: auto 1fr;
-                gap: 10px;
-                align-items: center;
-                min-width: 0;
-                width: 100%;
-            }
-
-            .mobile-member-main > span {
-                min-width: 0;
-                max-width: 100%;
-            }
-
-            .mobile-member-name {
-                margin: 0;
-                font-size: 0.9rem;
-                font-weight: 800;
-                line-height: 1.28;
-                white-space: normal;
-                overflow: hidden;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow-wrap: anywhere;
-                word-break: break-word;
-            }
-
-            .mobile-member-division {
-                margin: 3px 0 0;
-                color: var(--shift-muted);
-                font-size: 0.74rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .mobile-status-chip {
-                grid-column: 2;
-                justify-self: start;
-                border-radius: 999px;
-                padding: 5px 9px;
-                background: color-mix(
-                    in srgb,
-                    var(--status-color) 16%,
-                    var(--shift-panel)
-                );
-                color: var(--status-color);
-                font-size: 0.68rem;
-                font-weight: 900;
-                white-space: nowrap;
-            }
-
-            .mobile-apply-bar {
-                position: sticky;
-                bottom: 12px;
+            .schedule-actions {
+                position: static;
                 z-index: 12;
-                display: none;
-                align-items: center;
-                justify-content: space-between;
-                gap: 10px;
-                margin-top: -84px;
+                margin-top: 12px;
                 padding: 10px;
                 border: 1px solid var(--shift-border);
-                border-radius: 18px;
+                border-radius: 16px;
                 background: color-mix(
                     in srgb,
                     var(--shift-panel) 94%,
                     transparent
                 );
                 box-shadow: var(--shift-shadow);
-                backdrop-filter: blur(16px);
+                backdrop-filter: blur(14px);
             }
 
-            .mobile-apply-bar.active {
-                display: flex;
+            .button {
+                min-height: 44px;
+                padding: 0 15px;
+                border: 1px solid var(--shift-border);
+                border-radius: 13px;
+                background: var(--shift-panel);
+                color: var(--shift-text);
+                cursor: pointer;
+                font-size: 0.82rem;
+                font-weight: 700;
             }
 
-            .mobile-apply-copy {
-                min-width: 0;
+            .button.primary {
+                border-color: transparent;
+                background: linear-gradient(135deg, #2563eb, #3b82f6);
+                color: #ffffff;
             }
 
-            .mobile-apply-copy strong {
-                display: block;
-                font-size: 0.85rem;
+            .button:disabled {
+                cursor: not-allowed;
+                opacity: 0.5;
             }
 
-            .mobile-apply-copy span {
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .stat-card {
+                padding: 11px;
+                border: 1px solid var(--shift-border);
+                border-radius: 14px;
+                background: var(--shift-soft);
+            }
+
+            .stat-card span {
                 display: block;
                 color: var(--shift-muted);
-                font-size: 0.72rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
+                font-size: 0.65rem;
+                font-weight: 600;
             }
 
-            .mobile-empty {
-                padding: 28px 14px;
+            .stat-card strong {
+                display: block;
+                margin-top: 3px;
+                font-size: 1.3rem;
+            }
+
+            .status-card {
+                display: grid;
+                grid-template-columns: auto minmax(0, 1fr);
+                gap: 10px;
+                align-items: center;
+                padding: 11px;
+            }
+
+            .status-select {
+                grid-column: 1 / -1;
+            }
+
+            .status-chip {
+                min-height: 27px;
+                padding: 0 9px;
+                background: color-mix(
+                    in srgb,
+                    var(--status-color) 15%,
+                    var(--shift-panel)
+                );
+                color: var(--status-color);
+                font-size: 0.68rem;
+            }
+
+            .viewer-note {
+                padding: 16px;
                 border: 1px dashed var(--shift-border);
                 border-radius: 18px;
+                background: var(--shift-panel);
                 color: var(--shift-muted);
                 text-align: center;
-                background: var(--shift-panel);
+                font-size: 0.8rem;
+                line-height: 1.55;
             }
 
-            @media (max-width: 1024px) {
-                .status-board {
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                }
+            .toast {
+                position: fixed;
+                right: 12px;
+                bottom: calc(12px + env(safe-area-inset-bottom));
+                left: 12px;
+                z-index: 60;
+                padding: 12px 15px;
+                border-radius: 14px;
+                background: #111827;
+                color: #ffffff;
+                box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(16px);
+                transition:
+                    opacity 0.2s ease,
+                    transform 0.2s ease;
+                text-align: center;
+                font-size: 0.8rem;
+                font-weight: 600;
+            }
 
-                .summary-grid {
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                }
+            .toast.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
 
-                .toolbar {
-                    grid-template-columns: 1fr;
-                }
-
-                .bulk-actions {
-                    justify-content: flex-start;
-                }
-
-                .status-column {
-                    height: 520px;
+            @media (max-width: 899px) {
+                .schedule-actions.has-changes {
+                    position: sticky;
+                    bottom: 10px;
                 }
             }
 
-            @media (max-width: 760px) {
-                .shift-shell {
-                    width: min(100% - 20px, 560px);
+            @media (min-width: 620px) {
+                .shell {
+                    width: min(calc(100% - 40px), 1180px);
                 }
 
-                .shift-topbar-inner {
-                    min-height: 66px;
-                    gap: 10px;
-                }
-
-                .shift-title p {
-                    display: none;
-                }
-
-                .shift-hero {
-                    display: none;
-                }
-
-                .desktop-toolbar,
-                .summary-grid,
-                .status-board {
-                    display: none;
-                }
-
-                .mobile-planner {
+                .page-title p {
                     display: block;
-                    padding: 14px 0 22px;
                 }
 
-                .input,
-                .select {
-                    min-height: 42px;
-                    border-radius: 13px;
+                main {
+                    gap: 18px;
+                    padding-block: 20px 36px;
+                }
+
+                .hero,
+                .panel {
+                    padding: 20px;
+                }
+
+                .picker-tools,
+                .status-tools {
+                    grid-template-columns: minmax(0, 1fr) minmax(170px, 220px);
+                }
+
+                .candidate-list,
+                .member-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .status-card {
+                    grid-template-columns: auto minmax(0, 1fr) minmax(
+                            130px,
+                            0.65fr
+                        );
+                }
+
+                .status-select {
+                    grid-column: auto;
                 }
 
                 .toast {
-                    width: min(92vw, 360px);
-                    border-radius: 16px;
-                    text-align: center;
+                    right: 20px;
+                    bottom: 20px;
+                    left: auto;
+                    width: min(360px, calc(100vw - 40px));
+                }
+            }
+
+            @media (min-width: 900px) {
+                .topbar-inner {
+                    min-height: 76px;
+                    gap: 14px;
                 }
 
-                body.shift-page {
-                    background:
-                        linear-gradient(
-                            180deg,
-                            rgba(37, 99, 235, 0.1),
-                            transparent 260px
-                        ),
-                        var(--shift-bg);
+                .page-title h1 {
+                    font-size: 1.2rem;
                 }
 
-                #managerPanel {
-                    margin-top: 0;
+                .hero {
+                    grid-template-columns: minmax(0, 1fr) minmax(360px, 430px);
+                    align-items: stretch;
+                    padding: 22px;
+                }
+
+                .hero-copy {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    padding: 18px;
+                }
+
+                .today-card {
+                    order: initial;
+                    padding: 16px;
+                }
+
+                .schedule-layout {
+                    grid-template-columns: minmax(300px, 0.78fr) minmax(
+                            0,
+                            1.35fr
+                        );
+                    gap: 14px;
+                }
+
+                .schedule-actions {
+                    position: static;
+                    box-shadow: none;
+                }
+
+                .member-grid {
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                }
+
+                .status-card {
+                    grid-template-columns: auto minmax(0, 1fr);
+                }
+
+                .status-select {
+                    grid-column: 1 / -1;
                 }
             }
 
@@ -908,260 +803,230 @@
             }
         </style>
     </head>
-    <body class="shift-page">
-        <header class="shift-topbar">
-            <div class="shift-shell shift-topbar-inner">
-                <a
-                    class="subpage-back flex items-center gap-2 text-current hover:text-blue-500 transition-colors min-h-[44px]"
-                    href="/"
-                    aria-label="Kembali"
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <body>
+        <header class="topbar">
+            <div class="shell topbar-inner">
+                <a class="back-link" href="/" aria-label="Kembali ke dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path
                             d="M15 18l-6-6 6-6"
                             stroke="currentColor"
                             stroke-width="2"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                        />
+                        ></path>
                     </svg>
-                    <span class="text-sm font-medium">Kembali</span>
+                    <span>Kembali</span>
                 </a>
-                <div class="shift-title">
+                <div class="page-title">
                     <h1>Shift Piket</h1>
-                    <p>Kelola Stand By, On Job, dan Next Shift.</p>
+                    <p>Jadwal mingguan dan status operasional</p>
                 </div>
                 <button
-                    class="theme-btn"
+                    class="theme-button"
                     id="themeToggle"
                     type="button"
                     aria-label="Ganti tema"
+                    title="Ganti tema"
                 >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <circle
-                            cx="12"
-                            cy="12"
-                            r="4"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        />
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path
-                            d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+                            d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"
                             stroke="currentColor"
                             stroke-width="2"
                             stroke-linecap="round"
-                        />
+                            stroke-linejoin="round"
+                        ></path>
                     </svg>
                 </button>
             </div>
         </header>
 
-        <main class="shift-shell">
-            <section class="shift-hero">
-                <div>
-                    <p class="eyebrow">Panel Operasional</p>
-                    <h2>Operator Management.</h2>
+        <main class="shell">
+            <section class="hero">
+                <div class="hero-copy">
+                    <p class="eyebrow">Jadwal Mingguan</p>
+                    <h2>Tiga orang. Satu PIC. Setiap hari kerja.</h2>
                     <p>
-                        Halaman ini khusus untuk Admin, Guru, dan Data Analyst
-                        agar perpindahan status operator bisa dilakukan cepat,
-                        termasuk menyiapkan daftar Next Shift untuk besok.
+                        Jadwal berulang Senin sampai Jumat. Anggota urutan
+                        pertama bertugas sebagai PIC.
                     </p>
                 </div>
-                <aside class="next-shift-card">
-                    <strong>Next Shift</strong>
-                    <div class="avatar-stack" id="nextShiftAvatars"></div>
-                    <p id="nextShiftCopy" style="margin-top: 12px">
-                        Memuat daftar operator...
-                    </p>
-                    <span class="counter-chip" id="shiftCounterCopy">
-                        Counter belum dimuat
-                    </span>
+                <aside class="today-card" aria-labelledby="todayShiftTitle">
+                    <div class="today-head">
+                        <h3 id="todayShiftTitle">Shift Hari Ini</h3>
+                        <span class="date-chip" id="todayDateLabel"
+                            >Memuat hari...</span
+                        >
+                    </div>
+                    <div class="today-list" id="todayShiftList">
+                        <p class="empty-copy">Memuat jadwal shift...</p>
+                    </div>
                 </aside>
             </section>
 
-            <section id="accessPanel" class="access-panel hidden">
-                <strong style="display: block; color: var(--shift-text)">
-                    Akses terbatas
-                </strong>
-                Halaman ini hanya bisa dikelola oleh Admin, Guru, dan divisi
-                Data Analyst.
-            </section>
-
-            <section id="managerPanel" class="hidden">
-                <div class="toolbar desktop-toolbar">
-                    <div class="filter-bar">
-                        <input
-                            class="input"
-                            id="memberSearch"
-                            type="search"
-                            placeholder="Cari nama member..."
-                            autocomplete="off"
-                        />
-                        <select class="select" id="divisionFilter">
-                            <option value="">Semua divisi</option>
-                        </select>
-                    </div>
-                    <div class="bulk-actions">
-                        <button class="btn btn-primary" data-bulk="nextshift">
-                            Set Next Shift
-                        </button>
-                        <button class="btn" data-bulk="standby">
-                            Set Stand By
-                        </button>
-                        <button class="btn" data-bulk="offduty">
-                            Set Off Duty
-                        </button>
-                        <button class="btn btn-danger" id="resetNextShift">
-                            Reset Next Shift
-                        </button>
+            <section class="panel hidden" id="schedulePanel">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">Jadwal</p>
+                        <h2>Atur Jadwal Shift</h2>
+                        <p>Pilih tepat 3 Operator untuk setiap hari.</p>
                     </div>
                 </div>
 
-                <div class="mobile-planner" id="mobilePlanner">
-                    <div class="mobile-next-card">
-                        <div class="mobile-next-head">
-                            <div class="mobile-next-copy">
-                                <strong>Next Shift Besok</strong>
-                                <p id="nextShiftCopyMobile">
-                                    Memuat daftar operator...
-                                </p>
-                            </div>
-                            <div
-                                class="avatar-stack mobile-next-stack"
-                                id="nextShiftAvatarsMobile"
-                                aria-label="Operator next shift"
-                            ></div>
-                        </div>
-                        <div>
-                            <span
-                                class="counter-chip"
-                                id="shiftCounterCopyMobile"
-                            >
-                                Counter belum dimuat
-                            </span>
-                        </div>
-                    </div>
+                <div
+                    class="day-tabs"
+                    id="dayTabs"
+                    role="tablist"
+                    aria-label="Pilih hari jadwal"
+                ></div>
 
-                    <div class="mobile-control-card">
-                        <div class="mobile-filter-grid">
+                <div class="schedule-layout">
+                    <section class="selected-panel">
+                        <div class="picker-head">
+                            <div>
+                                <h3 id="selectedDayTitle">Senin</h3>
+                                <p>Urutan pertama otomatis menjadi PIC.</p>
+                            </div>
+                            <span class="count-chip" id="selectedCount">0/3</span>
+                        </div>
+                        <div class="selected-list" id="selectedShiftList"></div>
+                    </section>
+
+                    <section class="picker-panel">
+                        <div class="picker-head">
+                            <div>
+                                <h3>Pilih Anggota</h3>
+                                <p>Guru tidak masuk daftar piket.</p>
+                            </div>
+                        </div>
+                        <div class="picker-tools">
                             <input
-                                class="input"
-                                id="memberSearchMobile"
+                                class="field"
+                                id="scheduleSearch"
                                 type="search"
-                                placeholder="Cari member..."
+                                placeholder="Cari nama..."
                                 autocomplete="off"
                             />
-                            <select class="select" id="divisionFilterMobile">
+                            <select
+                                class="field"
+                                id="scheduleDivision"
+                                aria-label="Filter divisi jadwal"
+                            >
                                 <option value="">Semua divisi</option>
                             </select>
                         </div>
-                        <div class="mobile-form-row">
-                            <label for="mobileStatusFilter">Tampilkan</label>
-                            <select class="select" id="mobileStatusFilter">
-                                <option value="all">Semua member</option>
-                            </select>
-                        </div>
-                        <div class="mobile-form-row">
-                            <label for="mobileTargetStatus">Pindahkan ke</label>
-                            <div class="mobile-action-grid">
-                                <select class="select" id="mobileTargetStatus">
-                                    <option value="nextshift">
-                                        Next Shift
-                                    </option>
-                                </select>
-                                <button
-                                    class="btn btn-danger"
-                                    id="resetNextShiftMobile"
-                                    type="button"
-                                >
-                                    Reset
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mobile-member-list" id="mobileMemberList"></div>
-
-                    <div class="mobile-apply-bar" id="mobileApplyBar">
-                        <div class="mobile-apply-copy">
-                            <strong id="mobileSelectedCount">0 dipilih</strong>
-                            <span id="mobileApplyTarget"
-                                >Target: Next Shift</span
-                            >
-                        </div>
-                        <button
-                            class="btn"
-                            id="mobileClearSelection"
-                            type="button"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            class="btn btn-primary"
-                            id="mobileApplyStatus"
-                            type="button"
-                        >
-                            Apply
-                        </button>
-                    </div>
+                        <div
+                            class="candidate-list"
+                            id="scheduleCandidates"
+                        ></div>
+                    </section>
                 </div>
 
-                <div class="summary-grid" id="summaryGrid"></div>
-                <div class="status-board" id="statusBoard"></div>
+                <div class="schedule-actions">
+                    <div>
+                        <strong id="scheduleActionTitle">Jadwal belum lengkap</strong>
+                        <p id="scheduleActionCopy">Pilih 3 orang untuk menyimpan.</p>
+                    </div>
+                    <button
+                        class="button primary"
+                        id="saveScheduleBtn"
+                        type="button"
+                        disabled
+                    >
+                        Simpan Jadwal
+                    </button>
+                </div>
+            </section>
+
+            <section class="panel hidden" id="statusPanel">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">Operasional</p>
+                        <h2>Status Anggota</h2>
+                        <p>Status ini tidak mengubah jadwal mingguan.</p>
+                    </div>
+                </div>
+                <div class="status-tools">
+                    <input
+                        class="field"
+                        id="statusSearch"
+                        type="search"
+                        placeholder="Cari anggota..."
+                        autocomplete="off"
+                    />
+                    <select
+                        class="field"
+                        id="statusDivision"
+                        aria-label="Filter divisi status"
+                    >
+                        <option value="">Semua divisi</option>
+                    </select>
+                </div>
+                <div class="stats" id="statusStats"></div>
+                <div class="member-grid" id="statusMembers"></div>
+            </section>
+
+            <section class="viewer-note hidden" id="viewerNote">
+                Jadwal mingguan dikelola oleh Admin, Guru, atau Data Analyst.
+                Kamu tetap bisa melihat tim yang bertugas hari ini.
             </section>
         </main>
 
-        <div class="toast" id="toast"></div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
         <script data-cfasync="false">
             const hasSession = Boolean(localStorage.getItem("currentUser"));
-            const statusMeta = [
-                { key: "standby", label: "Stand By", color: "#22c55e" },
-                { key: "onjob", label: "On Job", color: "#3b82f6" },
-                { key: "nextshift", label: "Next Shift", color: "#8b5cf6" },
-                { key: "offduty", label: "Off Duty", color: "#94a3b8" },
+            const days = [
+                { id: 1, name: "Senin" },
+                { id: 2, name: "Selasa" },
+                { id: 3, name: "Rabu" },
+                { id: 4, name: "Kamis" },
+                { id: 5, name: "Jumat" },
             ];
+            const statusMeta = {
+                standby: { label: "Stand By", color: "#22c55e" },
+                onjob: { label: "On Job", color: "#3b82f6" },
+                offduty: { label: "Off Duty", color: "#94a3b8" },
+            };
             const state = {
-                profile: null,
+                schedule: [],
                 members: [],
-                counter: null,
-                selected: new Set(),
-                search: "",
-                division: "",
-                mobileStatusFilter: "all",
-                targetStatus: "nextshift",
+                todayDay: 0,
+                todayDate: "",
                 canManage: false,
+                activeDay: 1,
+                selected: [],
+                dirty: false,
+                scheduleSearch: "",
+                scheduleDivision: "",
+                statusSearch: "",
+                statusDivision: "",
             };
 
-            function authHeaders(extra = {}) {
-                return { ...extra };
-            }
-
             function unwrap(raw) {
-                return raw && raw.data ? raw.data : raw;
+                return raw && raw.data !== undefined ? raw.data : raw;
             }
 
-            function isDataAnalyst(division) {
-                return (
-                    String(division || "")
-                        .trim()
-                        .toLowerCase() === "data analyst"
-                );
-            }
-
-            function isShiftMember(member) {
-                return member.role !== "Guru";
-            }
-
-            function avatarUrl(avatar) {
-                if (
-                    !avatar ||
-                    avatar === "no avatar" ||
-                    avatar === "default-avatar.png"
-                ) {
-                    return "/static/public/default-avatar.png";
+            async function apiJson(url, options = {}) {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(options.headers || {}),
+                    },
+                    cache: "no-store",
+                });
+                const raw = await response.json().catch(() => ({}));
+                if (response.status === 401) {
+                    localStorage.removeItem("currentUser");
+                    window.location.replace("/login");
+                    throw new Error("Sesi berakhir");
                 }
-                return "/static/public/" + avatar;
+                if (!response.ok) {
+                    throw new Error(raw.message || "Request gagal");
+                }
+                return unwrap(raw);
             }
 
             function escapeHtml(value) {
@@ -1173,6 +1038,21 @@
                     .replace(/'/g, "&#039;");
             }
 
+            function avatarUrl(avatar) {
+                if (
+                    !avatar ||
+                    avatar === "no avatar" ||
+                    avatar === "default-avatar.png"
+                ) {
+                    return "/static/public/default-avatar.png";
+                }
+                return "/static/public/" + encodeURIComponent(avatar);
+            }
+
+            function dayName(day) {
+                return days.find((item) => item.id === day)?.name || "Hari";
+            }
+
             function showToast(message) {
                 const toast = document.getElementById("toast");
                 toast.textContent = message;
@@ -1180,62 +1060,247 @@
                 clearTimeout(showToast.timer);
                 showToast.timer = setTimeout(
                     () => toast.classList.remove("show"),
-                    2200,
+                    2600,
                 );
             }
 
-            async function apiJson(url, options = {}) {
-                const res = await fetch(url, {
-                    ...options,
-                    headers: authHeaders({
-                        "Content-Type": "application/json",
-                        ...(options.headers || {}),
-                    }),
-                });
-                const raw = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(raw.message || "Request gagal");
-                return unwrap(raw);
+            function formatDate(dateString) {
+                if (!dateString) return "Hari ini";
+                const date = new Date(dateString + "T12:00:00+07:00");
+                return new Intl.DateTimeFormat("id-ID", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    timeZone: "Asia/Jakarta",
+                }).format(date);
             }
 
-            async function loadProfile() {
-                const profile = await apiJson("/api/profile", {
-                    headers: { "Content-Type": "application/json" },
-                });
-                state.profile = profile;
-                state.canManage =
-                    ["admin", "guru"].includes(
-                        String(profile.role || "").toLowerCase(),
-                    ) ||
-                    isDataAnalyst(profile.division);
+            function personMarkup(member, extraClass = "") {
+                const picBadge =
+                    Number(member.position) === 1 ? picBadgeMarkup() : "";
+                return `
+                    <div class="person-row ${extraClass}">
+                        <img class="avatar" src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />
+                        <span style="min-width:0">
+                            <span class="person-name">${escapeHtml(member.name)}</span>
+                            <span class="person-meta">${escapeHtml(member.division || "Tanpa divisi")}</span>
+                        </span>
+                        ${picBadge}
+                    </div>
+                `;
             }
 
-            async function loadMembers() {
-                const members = await apiJson("/api/members", {
-                    headers: { "Content-Type": "application/json" },
-                });
-                state.members = Array.isArray(members) ? members : [];
-                buildDivisionFilter();
+            function picBadgeMarkup() {
+                return `
+                    <span class="pic-badge" title="Person in Charge" aria-label="Person in Charge">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 3l2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.3-4.5 2.3.9-5-3.6-3.5 5-.7L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                        </svg>
+                        PIC
+                    </span>
+                `;
             }
 
-            async function loadCounter() {
-                state.counter = await apiJson("/api/shift/day-counter", {
-                    headers: { "Content-Type": "application/json" },
-                });
+            function entriesForDay(day) {
+                return state.schedule
+                    .filter((entry) => Number(entry.dayOfWeek) === day)
+                    .sort((a, b) => Number(a.position) - Number(b.position));
             }
 
-            function buildDivisionFilter() {
-                const select = document.getElementById("divisionFilter");
-                const mobileSelect = document.getElementById(
-                    "divisionFilterMobile",
+            function renderToday() {
+                document.getElementById("todayDateLabel").textContent =
+                    formatDate(state.todayDate);
+                const list = document.getElementById("todayShiftList");
+                if (!state.todayDay) {
+                    list.innerHTML =
+                        '<p class="empty-copy">Tidak ada jadwal piket pada akhir pekan.</p>';
+                    return;
+                }
+                const entries = entriesForDay(state.todayDay);
+                list.innerHTML = entries.length
+                    ? entries.map((entry) => personMarkup(entry)).join("")
+                    : `<p class="empty-copy">Jadwal ${dayName(state.todayDay)} belum diatur.</p>`;
+            }
+
+            function scheduleMember(memberID) {
+                return state.members.find(
+                    (member) => Number(member.id) === Number(memberID),
                 );
-                const current = select.value;
-                const mobileCurrent = mobileSelect.value;
+            }
+
+            function loadActiveSelection() {
+                state.selected = entriesForDay(state.activeDay).map((entry) =>
+                    Number(entry.memberId),
+                );
+                state.dirty = false;
+            }
+
+            function renderDayTabs() {
+                document.getElementById("dayTabs").innerHTML = days
+                    .map((day) => {
+                        const count = entriesForDay(day.id).length;
+                        return `
+                            <button class="day-tab ${day.id === state.activeDay ? "active" : ""}" type="button" role="tab" aria-selected="${day.id === state.activeDay}" data-day="${day.id}">
+                                ${day.name}<span>${count}/3</span>
+                            </button>
+                        `;
+                    })
+                    .join("");
+            }
+
+            function renderSelectedMembers() {
+                document.getElementById("selectedDayTitle").textContent =
+                    `Tim ${dayName(state.activeDay)}`;
+                document.getElementById("selectedCount").textContent =
+                    `${state.selected.length}/3`;
+                const rows = [];
+                for (let index = 0; index < 3; index += 1) {
+                    const member = scheduleMember(state.selected[index]);
+                    if (!member) {
+                        rows.push(`
+                            <div class="slot-row empty">
+                                <span class="slot-number">${index + 1}</span>
+                                <span>Slot anggota belum dipilih</span>
+                            </div>
+                        `);
+                        continue;
+                    }
+                    rows.push(`
+                        <div class="slot-row">
+                            <span class="slot-number">${index + 1}</span>
+                            <img class="avatar" src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />
+                            <span style="min-width:0">
+                                <span class="person-name">${escapeHtml(member.name)}</span>
+                                <span class="person-meta">${escapeHtml(member.division || "Tanpa divisi")}</span>
+                            </span>
+                            <span class="slot-actions">
+                                ${index === 0 ? picBadgeMarkup() : ""}
+                                <button class="icon-button" type="button" data-remove-member="${member.id}" aria-label="Hapus ${escapeHtml(member.name)} dari jadwal" title="Hapus dari jadwal">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                    </svg>
+                                </button>
+                            </span>
+                        </div>
+                    `);
+                }
+                document.getElementById("selectedShiftList").innerHTML =
+                    rows.join("");
+            }
+
+            function filteredScheduleMembers() {
+                const search = state.scheduleSearch.trim().toLowerCase();
+                return state.members.filter((member) => {
+                    if (String(member.role || "").toLowerCase() === "guru") {
+                        return false;
+                    }
+                    const matchesSearch =
+                        !search ||
+                        String(member.name || "")
+                            .toLowerCase()
+                            .includes(search);
+                    const matchesDivision =
+                        !state.scheduleDivision ||
+                        member.division === state.scheduleDivision;
+                    return matchesSearch && matchesDivision;
+                });
+            }
+
+            function renderCandidates() {
+                const candidates = filteredScheduleMembers();
+                const list = document.getElementById("scheduleCandidates");
+                if (!candidates.length) {
+                    list.innerHTML =
+                        '<p class="empty-copy">Tidak ada anggota sesuai filter.</p>';
+                    return;
+                }
+                list.innerHTML = candidates
+                    .map((member) => {
+                        const selected = state.selected.includes(
+                            Number(member.id),
+                        );
+                        return `
+                            <button class="candidate-card ${selected ? "selected" : ""}" type="button" data-schedule-member="${member.id}" aria-pressed="${selected}">
+                                <span class="check-box">${selected ? "✓" : ""}</span>
+                                <img class="avatar" src="${avatarUrl(member.avatar)}" alt="" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />
+                                <span style="min-width:0">
+                                    <span class="person-name">${escapeHtml(member.name)}</span>
+                                    <span class="person-meta">${escapeHtml(member.division || "Tanpa divisi")}</span>
+                                </span>
+                            </button>
+                        `;
+                    })
+                    .join("");
+            }
+
+            function renderScheduleAction() {
+                const complete = state.selected.length === 3;
+                document
+                    .querySelector(".schedule-actions")
+                    .classList.toggle("has-changes", state.dirty);
+                document.getElementById("scheduleActionTitle").textContent =
+                    complete && !state.dirty
+                        ? `Jadwal ${dayName(state.activeDay)} sudah tersimpan`
+                        : complete
+                        ? `Tim ${dayName(state.activeDay)} siap disimpan`
+                        : "Jadwal belum lengkap";
+                document.getElementById("scheduleActionCopy").textContent =
+                    complete && !state.dirty
+                        ? "Ubah pilihan anggota jika jadwal perlu diganti."
+                        : complete
+                        ? "Anggota baru akan menerima notifikasi."
+                        : `Pilih ${3 - state.selected.length} orang lagi.`;
+                document.getElementById("saveScheduleBtn").disabled =
+                    !complete || !state.dirty;
+            }
+
+            function renderScheduleEditor() {
+                renderDayTabs();
+                renderSelectedMembers();
+                renderCandidates();
+                renderScheduleAction();
+            }
+
+            function selectDay(day) {
+                if (
+                    state.dirty &&
+                    !window.confirm(
+                        "Perubahan jadwal belum disimpan. Pindah hari dan batalkan perubahan?",
+                    )
+                ) {
+                    return;
+                }
+                state.activeDay = day;
+                loadActiveSelection();
+                renderScheduleEditor();
+            }
+
+            function toggleScheduleMember(memberID) {
+                const id = Number(memberID);
+                if (state.selected.includes(id)) {
+                    state.selected = state.selected.filter(
+                        (selectedID) => selectedID !== id,
+                    );
+                } else if (state.selected.length >= 3) {
+                    showToast("Maksimal 3 orang untuk satu hari.");
+                    return;
+                } else {
+                    state.selected.push(id);
+                }
+                state.dirty = true;
+                renderScheduleEditor();
+            }
+
+            function buildDivisionOptions() {
                 const divisions = [
                     ...new Set(
-                        state.members.map((m) => m.division).filter(Boolean),
+                        state.members
+                            .map((member) => member.division)
+                            .filter(Boolean),
                     ),
                 ].sort((a, b) => a.localeCompare(b));
-                select.innerHTML =
+                const options =
                     '<option value="">Semua divisi</option>' +
                     divisions
                         .map(
@@ -1243,481 +1308,249 @@
                                 `<option value="${escapeHtml(division)}">${escapeHtml(division)}</option>`,
                         )
                         .join("");
-                select.value = divisions.includes(current) ? current : "";
-                mobileSelect.innerHTML = select.innerHTML;
-                mobileSelect.value = divisions.includes(mobileCurrent)
-                    ? mobileCurrent
-                    : "";
+                document.getElementById("scheduleDivision").innerHTML = options;
+                document.getElementById("statusDivision").innerHTML = options;
             }
 
-            function filteredMembers() {
-                const search = state.search.toLowerCase();
+            async function loadSchedule() {
+                const data = await apiJson("/api/shift/schedule");
+                state.schedule = Array.isArray(data.entries) ? data.entries : [];
+                state.todayDay = Number(data.todayDay) || 0;
+                state.todayDate = data.todayDate || "";
+                state.canManage = Boolean(data.canManage);
+                if (!state.activeDay || !days.some((day) => day.id === state.activeDay)) {
+                    state.activeDay = state.todayDay || 1;
+                }
+                renderToday();
+            }
+
+            async function loadMembers() {
+                const members = await apiJson("/api/members");
+                state.members = Array.isArray(members) ? members : [];
+                buildDivisionOptions();
+            }
+
+            async function saveSchedule() {
+                if (state.selected.length !== 3 || !state.dirty) return;
+                const button = document.getElementById("saveScheduleBtn");
+                button.disabled = true;
+                button.textContent = "Menyimpan...";
+                try {
+                    await apiJson(`/api/shift/schedule/${state.activeDay}`, {
+                        method: "PUT",
+                        body: JSON.stringify({ memberIds: state.selected }),
+                    });
+                    await loadSchedule();
+                    loadActiveSelection();
+                    renderScheduleEditor();
+                    showToast(`Jadwal ${dayName(state.activeDay)} berhasil disimpan.`);
+                } catch (error) {
+                    showToast(error.message || "Gagal menyimpan jadwal.");
+                    renderScheduleAction();
+                } finally {
+                    button.textContent = "Simpan Jadwal";
+                }
+            }
+
+            function normalizedStatus(status) {
+                return statusMeta[status] ? status : "standby";
+            }
+
+            function filteredStatusMembers() {
+                const search = state.statusSearch.trim().toLowerCase();
                 return state.members.filter((member) => {
-                    if (!isShiftMember(member)) return false;
-                    const matchesName =
+                    if (String(member.role || "").toLowerCase() === "guru") {
+                        return false;
+                    }
+                    const matchesSearch =
                         !search ||
                         String(member.name || "")
                             .toLowerCase()
                             .includes(search);
                     const matchesDivision =
-                        !state.division || member.division === state.division;
-                    return matchesName && matchesDivision;
+                        !state.statusDivision ||
+                        member.division === state.statusDivision;
+                    return matchesSearch && matchesDivision;
                 });
             }
 
-            function renderNextShift() {
-                const next = state.members.filter(
-                    (member) =>
-                        isShiftMember(member) &&
-                        member.status === "nextshift",
-                );
-                const avatars = document.getElementById("nextShiftAvatars");
-                const copy = document.getElementById("nextShiftCopy");
-                const avatarsMobile = document.getElementById(
-                    "nextShiftAvatarsMobile",
-                );
-                const copyMobile = document.getElementById(
-                    "nextShiftCopyMobile",
-                );
-                const avatarMarkup = next
-                    .slice(0, 4)
+            function renderStatus() {
+                const members = filteredStatusMembers();
+                document.getElementById("statusStats").innerHTML = Object.entries(
+                    statusMeta,
+                )
                     .map(
-                        (member) =>
-                            `<img src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />`,
+                        ([key, meta]) => `
+                            <article class="stat-card">
+                                <span>${meta.label}</span>
+                                <strong style="color:${meta.color}">${members.filter((member) => normalizedStatus(member.status) === key).length}</strong>
+                            </article>
+                        `,
                     )
                     .join("");
-                avatars.innerHTML = avatarMarkup;
-                avatarsMobile.innerHTML = avatarMarkup;
-                if (next.length > 4) {
-                    const more = `<span class="avatar-fallback">+${next.length - 4}</span>`;
-                    avatars.insertAdjacentHTML("beforeend", more);
-                    avatarsMobile.insertAdjacentHTML("beforeend", more);
+
+                const grid = document.getElementById("statusMembers");
+                if (!members.length) {
+                    grid.innerHTML =
+                        '<p class="empty-copy">Tidak ada anggota sesuai filter.</p>';
+                    return;
                 }
-                const text = next.length
-                    ? `${next.length} operator disiapkan untuk shift berikutnya.`
-                    : "Belum ada operator untuk Next Shift.";
-                copy.textContent = text;
-                copyMobile.textContent = text;
-            }
-
-            function renderCounter() {
-                const text = state.counter
-                    ? `Counter ${state.counter.lastDay}/${state.counter.lastMonth}/${state.counter.lastYear} · rollover ${state.counter.rolloverCount}x`
-                    : "Counter belum dimuat";
-                const mobileText = state.counter
-                    ? `${state.counter.lastDay}/${state.counter.lastMonth}/${state.counter.lastYear} · rollover ${state.counter.rolloverCount}x`
-                    : "Counter belum dimuat";
-                const desktop = document.getElementById("shiftCounterCopy");
-                const mobile = document.getElementById(
-                    "shiftCounterCopyMobile",
-                );
-                if (desktop) desktop.textContent = text;
-                if (mobile) mobile.textContent = mobileText;
-            }
-
-            function getStatusMeta(statusKey) {
-                return (
-                    statusMeta.find((status) => status.key === statusKey) ||
-                    statusMeta[0]
-                );
-            }
-
-            function renderSummary() {
-                const grid = document.getElementById("summaryGrid");
-                const members = filteredMembers();
-                grid.innerHTML = statusMeta
-                    .map((status) => {
-                        const count = members.filter(
-                            (member) => member.status === status.key,
-                        ).length;
+                grid.innerHTML = members
+                    .map((member) => {
+                        const status = normalizedStatus(member.status);
+                        const meta = statusMeta[status];
+                        const options = Object.entries(statusMeta)
+                            .map(
+                                ([key, item]) =>
+                                    `<option value="${key}" ${key === status ? "selected" : ""}>${item.label}</option>`,
+                            )
+                            .join("");
                         return `
-                            <article class="stat-card">
-                                <span>${status.label}</span>
-                                <strong style="color:${status.color}">${count}</strong>
+                            <article class="status-card">
+                                <img class="avatar" src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />
+                                <span style="min-width:0">
+                                    <span class="person-name">${escapeHtml(member.name)}</span>
+                                    <span class="person-meta">${escapeHtml(member.division || "Tanpa divisi")}</span>
+                                </span>
+                                <select class="field status-select" data-status-member="${member.id}" aria-label="Status ${escapeHtml(member.name)}" style="--status-color:${meta.color}">
+                                    ${options}
+                                </select>
                             </article>
                         `;
                     })
                     .join("");
             }
 
-            function memberCard(member) {
-                const checked = state.selected.has(member.id) ? "checked" : "";
-                const options = statusMeta
-                    .map(
-                        (status) =>
-                            `<button class="status-option" type="button" role="menuitem" data-status-member="${member.id}" data-status-value="${status.key}" style="--dot-color:${status.color}">${status.label}</button>`,
-                    )
-                    .join("");
-                return `
-                    <article class="member-card">
-                        <input class="member-checkbox" type="checkbox" data-select-member="${member.id}" ${checked} aria-label="Pilih ${escapeHtml(member.name)}" />
-                        <div class="member-main">
-                            <img src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />
-                            <div>
-                                <p class="member-name">${escapeHtml(member.name)}</p>
-                                <p class="member-meta">${escapeHtml(member.division || "Tanpa divisi")}</p>
-                            </div>
-                        </div>
-                        <div class="member-control">
-                            <button class="status-menu" type="button" data-status-menu="${member.id}" aria-label="Ubah status ${escapeHtml(member.name)}" aria-haspopup="menu" aria-expanded="false">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="M8 10l4 4 4-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </button>
-                            <div class="status-menu-panel" data-status-panel="${member.id}" role="menu" hidden>
-                                ${options}
-                            </div>
-                        </div>
-                    </article>
-                `;
-            }
-
-            function renderBoard() {
-                const board = document.getElementById("statusBoard");
-                const members = filteredMembers();
-                board.innerHTML = statusMeta
-                    .map((status) => {
-                        const group = members.filter(
-                            (member) => member.status === status.key,
-                        );
-                        return `
-                            <section class="status-column" style="--dot-color:${status.color}">
-                                <div class="column-head">
-                                    <span class="column-title"><span class="dot"></span>${status.label}</span>
-                                    <span class="count-pill">${group.length}</span>
-                                </div>
-                                <div class="member-list">
-                                    ${
-                                        group.length
-                                            ? group.map(memberCard).join("")
-                                            : `<div class="empty-state">Kosong.</div>`
-                                    }
-                                </div>
-                            </section>
-                        `;
-                    })
-                    .join("");
-            }
-
-            function renderMobileTabs() {
-                const select = document.getElementById("mobileStatusFilter");
-                const members = filteredMembers();
-                const allCount = members.length;
-                const entries = [
-                    {
-                        key: "all",
-                        label: "Semua member",
-                        color: "#64748b",
-                        count: allCount,
-                    },
-                    ...statusMeta.map((status) => ({
-                        ...status,
-                        count: members.filter(
-                            (member) => member.status === status.key,
-                        ).length,
-                    })),
-                ];
-                select.innerHTML = entries
-                    .map(
-                        (entry) =>
-                            `<option value="${entry.key}">${entry.label} (${entry.count})</option>`,
-                    )
-                    .join("");
-                select.value = state.mobileStatusFilter;
-            }
-
-            function renderMobileTargets() {
-                const target = document.getElementById("mobileTargetStatus");
-                target.innerHTML = statusMeta
-                    .map(
-                        (status) =>
-                            `<option value="${status.key}">${status.label}</option>`,
-                    )
-                    .join("");
-                target.value = state.targetStatus;
-            }
-
-            function renderMobileMembers() {
-                const list = document.getElementById("mobileMemberList");
-                let members = filteredMembers();
-                if (state.mobileStatusFilter !== "all") {
-                    members = members.filter(
-                        (member) => member.status === state.mobileStatusFilter,
-                    );
-                }
-                if (!members.length) {
-                    list.innerHTML = `<div class="mobile-empty">Tidak ada member pada filter ini.</div>`;
-                    return;
-                }
-                list.innerHTML = members
-                    .map((member) => {
-                        const status = getStatusMeta(member.status);
-                        const selected = state.selected.has(member.id);
-                        return `
-                            <button
-                                class="mobile-member-row ${selected ? "selected" : ""}"
-                                type="button"
-                                data-mobile-member="${member.id}"
-                            >
-                                <span class="mobile-check">${selected ? "✓" : ""}</span>
-                                <span class="mobile-member-main">
-                                    <img class="mobile-avatar" src="${avatarUrl(member.avatar)}" alt="${escapeHtml(member.name)}" onerror="this.onerror=null;this.src='/static/public/default-avatar.png';" />
-                                    <span style="min-width:0">
-                                        <span class="mobile-member-name">${escapeHtml(member.name)}</span>
-                                        <span class="mobile-member-division">${escapeHtml(member.division || "Tanpa divisi")}</span>
-                                    </span>
-                                </span>
-                                <span class="mobile-status-chip" style="--status-color:${status.color}">
-                                    ${status.label}
-                                </span>
-                            </button>
-                        `;
-                    })
-                    .join("");
-            }
-
-            function renderMobileApplyBar() {
-                const bar = document.getElementById("mobileApplyBar");
-                const count = state.selected.size;
-                const target = getStatusMeta(state.targetStatus);
-                document.getElementById("mobileSelectedCount").textContent =
-                    `${count} dipilih`;
-                document.getElementById("mobileApplyTarget").textContent =
-                    `Target: ${target.label}`;
-                bar.classList.toggle("active", count > 0);
-            }
-
-            function renderMobilePlanner() {
-                renderMobileTabs();
-                renderMobileTargets();
-                renderMobileMembers();
-                renderMobileApplyBar();
-            }
-
-            function render() {
-                renderNextShift();
-                renderCounter();
-                renderSummary();
-                renderBoard();
-                renderMobilePlanner();
-            }
-
-            async function updateStatus(memberId, status) {
-                await apiJson(`/api/members/${memberId}/status`, {
-                    method: "PATCH",
-                    body: JSON.stringify({ status }),
-                });
-                const member = state.members.find(
-                    (item) => item.id === memberId,
-                );
-                if (member) member.status = status;
-                render();
-            }
-
-            async function setMembersStatus(ids, status) {
-                for (const id of ids) {
-                    await apiJson(`/api/members/${id}/status`, {
+            async function updateMemberStatus(memberID, status, select) {
+                const oldStatus = state.members.find(
+                    (member) => Number(member.id) === Number(memberID),
+                )?.status;
+                select.disabled = true;
+                try {
+                    await apiJson(`/api/members/${memberID}/status`, {
                         method: "PATCH",
                         body: JSON.stringify({ status }),
                     });
-                    const member = state.members.find((item) => item.id === id);
+                    const member = state.members.find(
+                        (item) => Number(item.id) === Number(memberID),
+                    );
                     if (member) member.status = status;
+                    renderStatus();
+                    showToast("Status anggota berhasil diperbarui.");
+                } catch (error) {
+                    select.value = normalizedStatus(oldStatus);
+                    select.disabled = false;
+                    showToast(error.message || "Gagal memperbarui status.");
                 }
-                render();
-            }
-
-            async function bulkSetStatus(status) {
-                const ids = [...state.selected];
-                if (!ids.length) {
-                    showToast("Pilih member dulu.");
-                    return;
-                }
-                await setMembersStatus(ids, status);
-                state.selected.clear();
-                render();
-                showToast("Status member diperbarui.");
-            }
-
-            async function resetNextShift() {
-                const ids = state.members
-                    .filter(
-                        (member) =>
-                            isShiftMember(member) &&
-                            member.status === "nextshift",
-                    )
-                    .map((member) => member.id);
-                if (!ids.length) {
-                    showToast("Next Shift masih kosong.");
-                    return;
-                }
-                await setMembersStatus(ids, "standby");
-                showToast("Next Shift dipindahkan ke Stand By.");
-            }
-
-            function closeStatusMenus() {
-                document.querySelectorAll("[data-status-panel]").forEach((panel) => {
-                    panel.hidden = true;
-                });
-                document.querySelectorAll("[data-status-menu]").forEach((button) => {
-                    button.setAttribute("aria-expanded", "false");
-                });
             }
 
             function bindEvents() {
                 document
                     .getElementById("themeToggle")
                     .addEventListener("click", () => {
-                        const current =
-                            document.documentElement.getAttribute(
-                                "data-theme",
-                            ) || "dark";
-                        const next = current === "dark" ? "light" : "dark";
-                        document.documentElement.setAttribute(
-                            "data-theme",
-                            next,
-                        );
+                        const next =
+                            document.documentElement.dataset.theme === "dark"
+                                ? "light"
+                                : "dark";
+                        document.documentElement.dataset.theme = next;
+                        localStorage.setItem("woTheme", next);
                         localStorage.setItem("theme", next);
                     });
                 document
-                    .getElementById("memberSearch")
-                    .addEventListener("input", (event) => {
-                        state.search = event.target.value;
-                        document.getElementById("memberSearchMobile").value =
-                            state.search;
-                        render();
-                    });
-                document
-                    .getElementById("memberSearchMobile")
-                    .addEventListener("input", (event) => {
-                        state.search = event.target.value;
-                        document.getElementById("memberSearch").value =
-                            state.search;
-                        render();
-                    });
-                document
-                    .getElementById("divisionFilter")
-                    .addEventListener("change", (event) => {
-                        state.division = event.target.value;
-                        document.getElementById("divisionFilterMobile").value =
-                            state.division;
-                        state.selected.clear();
-                        render();
-                    });
-                document
-                    .getElementById("divisionFilterMobile")
-                    .addEventListener("change", (event) => {
-                        state.division = event.target.value;
-                        document.getElementById("divisionFilter").value =
-                            state.division;
-                        state.selected.clear();
-                        render();
-                    });
-                document
-                    .getElementById("statusBoard")
-                    .addEventListener("click", async (event) => {
-                        const menuButton = event.target.closest(
-                            "[data-status-menu]",
-                        );
-                        if (menuButton) {
-                            const panel = document.querySelector(
-                                `[data-status-panel="${menuButton.dataset.statusMenu}"]`,
-                            );
-                            const isOpen = menuButton.getAttribute(
-                                "aria-expanded",
-                            ) === "true";
-                            closeStatusMenus();
-                            if (panel && !isOpen) {
-                                panel.hidden = false;
-                                menuButton.setAttribute(
-                                    "aria-expanded",
-                                    "true",
-                                );
-                            }
-                            return;
-                        }
-
-                        const option = event.target.closest(
-                            "[data-status-value]",
-                        );
-                        if (option) {
-                            option.disabled = true;
-                            try {
-                                await updateStatus(
-                                    Number(option.dataset.statusMember),
-                                    option.dataset.statusValue,
-                                );
-                                showToast("Status diperbarui.");
-                            } catch (error) {
-                                showToast(error.message);
-                            } finally {
-                                option.disabled = false;
-                            }
-                            return;
-                        }
-
-                        const checkbox = event.target.closest(
-                            "[data-select-member]",
-                        );
-                        if (checkbox) {
-                            const id = Number(checkbox.dataset.selectMember);
-                            if (checkbox.checked) state.selected.add(id);
-                            else state.selected.delete(id);
-                        }
-                    });
-                document.addEventListener("click", (event) => {
-                    if (!event.target.closest(".member-control")) {
-                        closeStatusMenus();
-                    }
-                });
-                document
-                    .getElementById("mobileStatusFilter")
-                    .addEventListener("change", (event) => {
-                        state.mobileStatusFilter = event.target.value;
-                        state.selected.clear();
-                        render();
-                    });
-                document
-                    .getElementById("mobileTargetStatus")
-                    .addEventListener("change", (event) => {
-                        state.targetStatus = event.target.value;
-                        render();
-                    });
-                document
-                    .getElementById("mobileMemberList")
+                    .getElementById("dayTabs")
                     .addEventListener("click", (event) => {
-                        const row = event.target.closest(
-                            "[data-mobile-member]",
+                        const button = event.target.closest("[data-day]");
+                        if (button) selectDay(Number(button.dataset.day));
+                    });
+                document
+                    .getElementById("scheduleCandidates")
+                    .addEventListener("click", (event) => {
+                        const button = event.target.closest(
+                            "[data-schedule-member]",
                         );
-                        if (!row) return;
-                        const id = Number(row.dataset.mobileMember);
-                        if (state.selected.has(id)) state.selected.delete(id);
-                        else state.selected.add(id);
-                        renderMobileMembers();
-                        renderMobileApplyBar();
+                        if (button) {
+                            toggleScheduleMember(button.dataset.scheduleMember);
+                        }
                     });
                 document
-                    .getElementById("mobileApplyStatus")
-                    .addEventListener("click", () =>
-                        bulkSetStatus(state.targetStatus),
-                    );
-                document
-                    .getElementById("mobileClearSelection")
-                    .addEventListener("click", () => {
-                        state.selected.clear();
-                        renderMobileMembers();
-                        renderMobileApplyBar();
+                    .getElementById("selectedShiftList")
+                    .addEventListener("click", (event) => {
+                        const button = event.target.closest(
+                            "[data-remove-member]",
+                        );
+                        if (button) {
+                            toggleScheduleMember(button.dataset.removeMember);
+                        }
                     });
-                document.querySelectorAll("[data-bulk]").forEach((button) => {
-                    button.addEventListener("click", () =>
-                        bulkSetStatus(button.dataset.bulk),
-                    );
+                document
+                    .getElementById("scheduleSearch")
+                    .addEventListener("input", (event) => {
+                        state.scheduleSearch = event.target.value;
+                        renderCandidates();
+                    });
+                document
+                    .getElementById("scheduleDivision")
+                    .addEventListener("change", (event) => {
+                        state.scheduleDivision = event.target.value;
+                        renderCandidates();
+                    });
+                document
+                    .getElementById("saveScheduleBtn")
+                    .addEventListener("click", saveSchedule);
+                document
+                    .getElementById("statusSearch")
+                    .addEventListener("input", (event) => {
+                        state.statusSearch = event.target.value;
+                        renderStatus();
+                    });
+                document
+                    .getElementById("statusDivision")
+                    .addEventListener("change", (event) => {
+                        state.statusDivision = event.target.value;
+                        renderStatus();
+                    });
+                document
+                    .getElementById("statusMembers")
+                    .addEventListener("change", (event) => {
+                        const select = event.target.closest(
+                            "[data-status-member]",
+                        );
+                        if (select) {
+                            updateMemberStatus(
+                                Number(select.dataset.statusMember),
+                                select.value,
+                                select,
+                            );
+                        }
+                    });
+            }
+
+            function connectRealtime() {
+                if (!("EventSource" in window)) return;
+                const stream = new EventSource("/api/events");
+                stream.onmessage = async (event) => {
+                    let type = "sync";
+                    try {
+                        type = JSON.parse(event.data).event_type || type;
+                    } catch (_) {}
+                    if (type === "sync" || type === "member.shift_schedule_updated") {
+                        await loadSchedule();
+                        if (!state.dirty && state.canManage) {
+                            loadActiveSelection();
+                            renderScheduleEditor();
+                        }
+                    }
+                    if (type === "sync" || type === "member.status_updated") {
+                        if (state.canManage) {
+                            await loadMembers();
+                            renderScheduleEditor();
+                            renderStatus();
+                        }
+                    }
+                };
+                window.addEventListener("pagehide", () => stream.close(), {
+                    once: true,
                 });
-                document
-                    .getElementById("resetNextShift")
-                    .addEventListener("click", resetNextShift);
-                document
-                    .getElementById("resetNextShiftMobile")
-                    .addEventListener("click", resetNextShift);
             }
 
             async function init() {
@@ -1727,25 +1560,29 @@
                 }
                 bindEvents();
                 try {
-                    await loadProfile();
-                    if (!state.canManage) {
+                    await loadSchedule();
+                    if (state.canManage) {
+                        await loadMembers();
+                        state.activeDay = state.todayDay || 1;
+                        loadActiveSelection();
                         document
-                            .getElementById("accessPanel")
+                            .getElementById("schedulePanel")
                             .classList.remove("hidden");
-                        return;
+                        document
+                            .getElementById("statusPanel")
+                            .classList.remove("hidden");
+                        renderScheduleEditor();
+                        renderStatus();
+                    } else {
+                        document
+                            .getElementById("viewerNote")
+                            .classList.remove("hidden");
                     }
-                    document
-                        .getElementById("managerPanel")
-                        .classList.remove("hidden");
-                    await loadCounter();
-                    await loadMembers();
-                    render();
+                    connectRealtime();
                 } catch (error) {
-                    document
-                        .getElementById("accessPanel")
-                        .classList.remove("hidden");
-                    document.getElementById("accessPanel").textContent =
-                        error.message || "Gagal memuat data shift.";
+                    showToast(error.message || "Gagal memuat jadwal shift.");
+                    document.getElementById("todayShiftList").innerHTML =
+                        '<p class="empty-copy">Jadwal shift gagal dimuat.</p>';
                 }
             }
 
