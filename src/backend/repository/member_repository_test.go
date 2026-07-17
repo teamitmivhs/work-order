@@ -8,7 +8,7 @@ import (
 func TestManualMemberStatusAllowed(t *testing.T) {
 	for status, want := range map[string]bool{
 		"standby":   true,
-		"nextshift": true,
+		"nextshift": false,
 		"offduty":   true,
 		"onjob":     false,
 	} {
