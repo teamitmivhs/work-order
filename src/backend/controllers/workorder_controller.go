@@ -750,17 +750,9 @@ func UpdateMemberStatusHandler(c *gin.Context) {
 		return
 	}
 
-	userRole, _ := middleware.GetUserRoleFromContext(c)
 	userID, _ := middleware.GetUserIDFromContext(c)
 	memberRepo := repository.NewMemberRepository()
-	canManageShift := utils.IsAdminRole(userRole)
-	if !canManageShift && userID != 0 {
-		currentMember, err := memberRepo.GetMemberByID(userID)
-		if err == nil && strings.EqualFold(strings.TrimSpace(currentMember.Division), "Data Analyst") {
-			canManageShift = true
-		}
-	}
-	if !canManageShift && userID != memberID {
+	if !canManageShift(c, memberRepo) && userID != memberID {
 		utils.Forbidden(c, "Only admins or Data Analyst can update other member statuses")
 		return
 	}
