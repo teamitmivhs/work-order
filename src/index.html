@@ -2322,10 +2322,16 @@
             #statusLabel {
                 color: var(--nav-muted) !important;
             }
-            #setStatusBtn {
+            #setStatusSelect {
                 background: var(--nav-primary) !important;
                 color: var(--nav-primary-fg) !important;
+                border: none;
                 border-radius: 8px !important;
+                cursor: pointer;
+                font-size: 0.7rem;
+                font-weight: 700;
+                outline: none;
+                padding: 6px 28px 6px 10px;
             }
             .profile-status-row {
                 margin-top: 8px;
@@ -2355,9 +2361,13 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
-            #setStatusBtn {
-                min-width: 84px;
+            #setStatusSelect {
+                min-width: 104px;
                 white-space: nowrap;
+            }
+
+            #setStatusSelect:focus-visible {
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
             }
             .profile-division-badge {
                 display: none;
@@ -2584,7 +2594,7 @@
                     grid-template-columns: 1fr;
                     gap: 7px;
                 }
-                #setStatusBtn {
+                #setStatusSelect {
                     width: fit-content;
                     min-width: 0;
                     min-height: 30px;
@@ -2752,11 +2762,10 @@
                                         —
                                     </p>
                                 </div>
-                                <button
-                                    id="setStatusBtn"
-                                    type="button"
+                                <select
+                                    id="setStatusSelect"
                                     style="
-                                        padding: 4px 10px;
+                                        padding: 5px 28px 5px 10px;
                                         font-size: 0.7rem;
                                         font-weight: 600;
                                         background: rgba(59, 130, 246, 0.8);
@@ -2766,10 +2775,13 @@
                                         cursor: pointer;
                                         transition: all 0.2s;
                                     "
-                                    title="Set status to Standby"
+                                    title="Ubah status"
+                                    aria-label="Ubah status akun"
                                 >
-                                    Standby
-                                </button>
+                                    <option value="" disabled>Pilih</option>
+                                    <option value="standby">Stand By</option>
+                                    <option value="offduty">Off Duty</option>
+                                </select>
                             </div>
                         </div>
                         <a href="/settings">
@@ -4567,6 +4579,15 @@
                     };
                     return map[status] || status || "-";
                 }
+                function syncStatusSelect(status) {
+                    const select =
+                        document.getElementById("setStatusSelect");
+                    if (!select) return;
+                    select.value = ["standby", "offduty"].includes(status)
+                        ? status
+                        : "";
+                    select.dataset.current = status || "";
+                }
                 function divisionClass(division) {
                     const value = String(division || "").toLowerCase();
                     if (value.includes("program")) return "division-programmer";
@@ -4689,6 +4710,7 @@
                                         statusEl.textContent = statusText(
                                             data.status,
                                         );
+                                    syncStatusSelect(data.status);
                                     // Store status untuk settings page juga
                                     localStorage.setItem(
                                         "userStatus",
@@ -4724,6 +4746,7 @@
                                             statusEl.textContent = statusText(
                                                 data.status,
                                             );
+                                        syncStatusSelect(data.status);
                                         localStorage.setItem(
                                             "userStatus",
                                             data.status,
@@ -4734,23 +4757,31 @@
                             .catch(() => {});
                     }, 5000);
 
-                    // Setup tombol untuk set status ke Standby
-                    const setStatusBtn =
-                        document.getElementById("setStatusBtn");
-                    if (setStatusBtn) {
-                        setStatusBtn.addEventListener("click", function (e) {
-                            e.preventDefault();
+                    // User dapat mengubah status sendiri ke Stand By atau Off Duty.
+                    const statusSelect =
+                        document.getElementById("setStatusSelect");
+                    if (statusSelect) {
+                        syncStatusSelect(
+                            localStorage.getItem("userStatus") || "",
+                        );
+                        statusSelect.addEventListener("change", function () {
                             if (!localStorage.getItem("currentUser")) return;
 
-                            setStatusBtn.disabled = true;
-                            setStatusBtn.textContent = "Loading...";
+                            const nextStatus = statusSelect.value;
+                            const previousStatus =
+                                statusSelect.dataset.current || "";
+                            if (
+                                !["standby", "offduty"].includes(nextStatus)
+                            )
+                                return;
+                            statusSelect.disabled = true;
 
                             fetch("/api/status", {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
                                 },
-                                body: JSON.stringify({ status: "standby" }),
+                                body: JSON.stringify({ status: nextStatus }),
                             })
                                 .then(async (r) => {
                                     const raw = await r
@@ -4785,16 +4816,11 @@
                                             "userStatus",
                                             member.status,
                                         );
+                                        syncStatusSelect(member.status);
                                         if (window.refreshDashboardData) {
                                             window.refreshDashboardData();
                                         }
-                                        // Show success feedback
-                                        setStatusBtn.textContent = "✓ Updated";
-                                        setTimeout(() => {
-                                            setStatusBtn.textContent =
-                                                "Standby";
-                                            setStatusBtn.disabled = false;
-                                        }, 1500);
+                                        statusSelect.disabled = false;
                                     } else {
                                         throw new Error(
                                             raw.message ||
@@ -4807,11 +4833,8 @@
                                         "Failed to update status:",
                                         err,
                                     );
-                                    setStatusBtn.textContent = "Error";
-                                    setTimeout(() => {
-                                        setStatusBtn.textContent = "Standby";
-                                        setStatusBtn.disabled = false;
-                                    }, 1500);
+                                    syncStatusSelect(previousStatus);
+                                    statusSelect.disabled = false;
                                 });
                         });
                     }
