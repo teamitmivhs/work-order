@@ -550,6 +550,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   let workOrderSearchQuery = "";
   let workOrderDateQuery = "";
   let todayShiftMemberIds = new Set();
+  let todayShiftPicMemberId = null;
 
   function operationalMemberStatus(member) {
     return member.status === "nextshift" ? "standby" : member.status;
@@ -557,6 +558,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   function isTodayShiftMember(member) {
     return todayShiftMemberIds.has(Number(member.id));
+  }
+
+  function isTodayShiftPic(member) {
+    return Number(member.id) === todayShiftPicMemberId;
   }
 
   function scrollToPendingWorkOrders() {
@@ -1203,11 +1208,16 @@ document.addEventListener("DOMContentLoaded", async function () {
       const data = unwrapData(await r.json());
       const todayDay = Number(data.todayDay);
       const entries = Array.isArray(data.entries) ? data.entries : [];
-      todayShiftMemberIds = new Set(
-        entries
-          .filter((entry) => Number(entry.dayOfWeek) === todayDay)
-          .map((entry) => Number(entry.memberId)),
+      const todayEntries = entries.filter(
+        (entry) => Number(entry.dayOfWeek) === todayDay,
       );
+      todayShiftMemberIds = new Set(
+        todayEntries.map((entry) => Number(entry.memberId)),
+      );
+      const picEntry = todayEntries.find(
+        (entry) => Number(entry.position) === 1,
+      );
+      todayShiftPicMemberId = picEntry ? Number(picEntry.memberId) : null;
     } catch (err) {
       console.error("Error fetching today's shift:", err);
     }
@@ -1819,6 +1829,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           ? "nextshift"
           : operationalMemberStatus(member);
       const status = statusMap[statusKey] || statusMap.offduty;
+      const showPic = statusFilter === "nextshift" && isTodayShiftPic(member);
       const item = document.createElement("div");
       item.className = "member-status-item p-4 bg-gray-50 rounded-lg";
       item.innerHTML = `
@@ -1829,7 +1840,19 @@ document.addEventListener("DOMContentLoaded", async function () {
             <span class="member-status-division">${member.division || "Divisi belum diisi"}</span>
           </span>
         </div>
-        <span class="member-status-badge ${status.badge}">${status.text}</span>`;
+        <span class="member-status-indicators">
+          ${
+            showPic
+              ? `<span class="today-shift-pic-badge" title="Person in Charge" aria-label="Person in Charge">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 3l2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.3-4.5 2.3.9-5-3.6-3.5 5-.7L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                  </svg>
+                  PIC
+                </span>`
+              : ""
+          }
+          <span class="member-status-badge ${status.badge}">${status.text}</span>
+        </span>`;
       memberList.appendChild(item);
     });
   }
