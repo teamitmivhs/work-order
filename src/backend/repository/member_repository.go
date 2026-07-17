@@ -15,7 +15,7 @@ var ErrWorkOrderManagedStatus = errors.New("on job status is managed by work ord
 
 func manualMemberStatusAllowed(status string) bool {
 	switch status {
-	case "standby", "nextshift", "offduty":
+	case "standby", "offduty":
 		return true
 	default:
 		return false
