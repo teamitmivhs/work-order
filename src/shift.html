@@ -1395,7 +1395,9 @@
                     .map((member) => {
                         const status = normalizedStatus(member.status);
                         const meta = statusMeta[status];
+                        const locked = status === "onjob";
                         const options = Object.entries(statusMeta)
+                            .filter(([key]) => key !== "onjob" || locked)
                             .map(
                                 ([key, item]) =>
                                     `<option value="${key}" ${key === status ? "selected" : ""}>${item.label}</option>`,
@@ -1408,7 +1410,7 @@
                                     <span class="person-name">${escapeHtml(member.name)}</span>
                                     <span class="person-meta">${escapeHtml(member.division || "Tanpa divisi")}</span>
                                 </span>
-                                <select class="field status-select" data-status-member="${member.id}" aria-label="Status ${escapeHtml(member.name)}" style="--status-color:${meta.color}">
+                                <select class="field status-select" data-status-member="${member.id}" aria-label="Status ${escapeHtml(member.name)}" style="--status-color:${meta.color}" ${locked ? 'disabled title="On Job dikelola otomatis oleh work order"' : ""}>
                                     ${options}
                                 </select>
                             </article>
