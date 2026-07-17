@@ -481,6 +481,10 @@ type UpdateStatusRequest struct {
 	Status string `json:"status" binding:"required"`
 }
 
+func selfStatusLocked(status string) bool {
+	return strings.EqualFold(strings.TrimSpace(status), "onjob")
+}
+
 func UpdateStatusHandler(c *gin.Context) {
 	userID, ok := middleware.GetUserIDFromContext(c)
 	if !ok || userID == 0 {
@@ -508,6 +512,15 @@ func UpdateStatusHandler(c *gin.Context) {
 	}
 
 	memberRepo := repository.NewMemberRepository()
+	currentMember, err := memberRepo.GetMemberByID(userID)
+	if err != nil {
+		utils.InternalServerError(c, "Failed to retrieve current member status", err)
+		return
+	}
+	if selfStatusLocked(currentMember.Status) {
+		utils.Conflict(c, "Status cannot be changed while you are On Job")
+		return
+	}
 
 	// Update status di database
 	if err := memberRepo.UpdateMemberStatus(userID, req.Status); err != nil {
