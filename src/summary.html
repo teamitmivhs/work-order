@@ -627,7 +627,9 @@
         btn.classList.add('is-done');
         btn.disabled = true;
         btn.setAttribute('aria-pressed', 'false');
-        text.textContent = 'Semua work order pada periode ini sudah direview';
+        text.textContent = periodList.length === 0
+          ? 'Tidak ada work order pada periode ini'
+          : 'Semua work order pada periode ini sudah direview';
         action.textContent = '';
         return;
       }
