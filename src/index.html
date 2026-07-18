@@ -15,6 +15,10 @@
             rel="stylesheet"
         />
         <link href="/static/assets/style.css?v=20260715-1" rel="stylesheet" />
+        <script
+            data-cfasync="false"
+            src="/static/assets/theme.js?v=20260719-1"
+        ></script>
         <script data-cfasync="false">
             history.scrollRestoration = "manual";
         </script>
@@ -2330,6 +2334,45 @@
                 background: rgba(239, 68, 68, 0.12);
                 color: #ef4444;
             }
+            #profileThemeToggle:hover {
+                background: var(--nav-accent);
+                color: var(--nav-fg);
+            }
+            .profile-theme-switch {
+                position: relative;
+                flex: 0 0 auto;
+                width: 36px;
+                height: 20px;
+                margin-left: auto;
+                border: 1px solid var(--nav-border);
+                border-radius: 999px;
+                background: var(--nav-accent);
+                transition:
+                    background 0.18s ease,
+                    border-color 0.18s ease;
+            }
+            .profile-theme-switch::after {
+                content: "";
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                background: var(--nav-muted);
+                transition:
+                    transform 0.18s ease,
+                    background 0.18s ease;
+            }
+            #profileThemeToggle[aria-pressed="true"] .profile-theme-switch {
+                border-color: var(--nav-primary);
+                background: var(--nav-primary);
+            }
+            #profileThemeToggle[aria-pressed="true"]
+                .profile-theme-switch::after {
+                transform: translateX(16px);
+                background: var(--nav-primary-fg);
+            }
             .nav-dropdown .divider {
                 height: 1px;
                 background: var(--nav-border);
@@ -2397,16 +2440,6 @@
                 gap: 7px;
             }
 
-            .main-nav .theme-toggle-btn {
-                border-radius: 12px;
-                border-color: var(--nav-border);
-                background: var(--nav-surface);
-                color: var(--nav-muted);
-            }
-            .main-nav .theme-toggle-btn:hover {
-                background: var(--nav-surface-hover);
-                color: var(--nav-fg);
-            }
             .profile-status-copy {
                 min-width: 0;
             }
@@ -2938,6 +2971,45 @@
                             </svg>
                             Shift Piket
                         </a>
+                        <button
+                            type="button"
+                            id="profileThemeToggle"
+                            data-theme-toggle
+                            aria-pressed="false"
+                        >
+                            <span class="theme-icon-moon" aria-hidden="true">
+                                <svg
+                                    style="width: 15px; height: 15px"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646z"
+                                    />
+                                </svg>
+                            </span>
+                            <span class="theme-icon-sun" aria-hidden="true">
+                                <svg
+                                    style="width: 15px; height: 15px"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <circle cx="12" cy="12" r="5" />
+                                    <path
+                                        d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+                                    />
+                                </svg>
+                            </span>
+                            <span data-theme-label>Mode Gelap</span>
+                            <span
+                                class="profile-theme-switch"
+                                aria-hidden="true"
+                            ></span>
+                        </button>
                         <div class="divider"></div>
                         <button id="logoutBtn">
                             <svg
@@ -3091,58 +3163,6 @@
                     class="nav-actions flex items-center justify-end"
                     style="gap: 8px; flex-shrink: 0"
                 >
-                    <button
-                        class="theme-toggle-btn"
-                        data-theme-toggle
-                        title="Toggle dark theme"
-                        aria-label="Toggle dark theme"
-                    >
-                        <!-- Hidden span kept so script.js can still write to it without error -->
-                        <span
-                            data-theme-icon
-                            style="
-                                display: none;
-                                position: absolute;
-                                width: 0;
-                                height: 0;
-                                overflow: hidden;
-                            "
-                            aria-hidden="true"
-                        ></span>
-                        <!-- Moon: shown in light mode → click to go dark -->
-                        <span class="theme-icon-moon" aria-hidden="true">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646z"
-                                />
-                            </svg>
-                        </span>
-                        <!-- Sun: shown in dark mode → click to go light -->
-                        <span class="theme-icon-sun" aria-hidden="true">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <circle cx="12" cy="12" r="5" />
-                                <path
-                                    d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-                                />
-                            </svg>
-                        </span>
-                    </button>
                     <button
                         class="nav-pill"
                         id="refreshBtn"
