@@ -155,6 +155,10 @@ if (btn && menu) {
     e.stopPropagation();
     setProfileMenu(false);
   });
+
+  document
+    .getElementById("profileDrawerClose")
+    ?.addEventListener("click", () => setProfileMenu(false));
 }
 
 // ===== MOBILE MENU =====
