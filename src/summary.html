@@ -9,14 +9,7 @@
   <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="/static/assets/style.css?v=20260715-1" rel="stylesheet" />
-  <script data-cfasync="false">
-    (function () {
-      try {
-        var theme = localStorage.getItem('woTheme') || localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', theme);
-      } catch (e) {}
-    })();
-  </script>
+  <script data-cfasync="false" src="/static/assets/theme.js?v=20260719-1"></script>
   <style>
     .review-banner {
       display: flex;
@@ -99,20 +92,6 @@
       <span class="text-sm font-medium">Kembali</span>
     </a>
     <h1 class="subpage-title text-white text-base sm:text-lg font-bold">Work Order Summary</h1>
-    <button class="subpage-action theme-toggle-btn" data-theme-toggle title="Toggle dark theme" aria-label="Toggle dark theme">
-      <span data-theme-icon style="display:none;position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true"></span>
-      <span class="theme-icon-moon" aria-hidden="true">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646z" />
-        </svg>
-      </span>
-      <span class="theme-icon-sun" aria-hidden="true">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="5" />
-          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-        </svg>
-      </span>
-    </button>
   </nav>
 
   <!-- FIX #13: margin-top CSS, bukan <br> -->
@@ -374,31 +353,6 @@
   </div>
 
   <script data-cfasync="false">
-    function getSavedTheme() {
-      return localStorage.getItem('woTheme') || localStorage.getItem('theme') || 'light';
-    }
-    function updateThemeControls(theme) {
-      document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
-        btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-        btn.setAttribute('title', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-      });
-    }
-    function applySavedTheme() {
-      const theme = getSavedTheme();
-      document.documentElement.dataset.theme = theme;
-      document.body.setAttribute('data-theme', theme);
-      updateThemeControls(theme);
-    }
-    applySavedTheme();
-    document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const next = getSavedTheme() === 'dark' ? 'light' : 'dark';
-        localStorage.setItem('woTheme', next);
-        localStorage.setItem('theme', next);
-        applySavedTheme();
-      });
-    });
-
     // FIX #4: Data diambil dari API, bukan localStorage
     let allWorkOrders = [];
     let completedOrders = [];
