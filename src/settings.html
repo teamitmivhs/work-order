@@ -15,6 +15,10 @@
             rel="stylesheet"
         />
         <link href="/static/assets/style.css?v=20260715-1" rel="stylesheet" />
+        <script
+            data-cfasync="false"
+            src="/static/assets/theme.js?v=20260719-1"
+        ></script>
         <style>
             .settings-card {
                 background: rgba(255, 255, 255, 0.94);
@@ -233,17 +237,6 @@
                 }
             }
         </style>
-        <script data-cfasync="false">
-            (function () {
-                try {
-                    var theme =
-                        localStorage.getItem("woTheme") ||
-                        localStorage.getItem("theme") ||
-                        "light";
-                    document.documentElement.setAttribute("data-theme", theme);
-                } catch (e) {}
-            })();
-        </script>
     </head>
     <body class="bg-[#f3f4f6] text-black min-h-screen">
         <!-- NAVBAR -->
