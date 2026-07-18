@@ -12,6 +12,10 @@
             rel="stylesheet"
         />
         <link href="/static/assets/style.css?v=20260715-1" rel="stylesheet" />
+        <script
+            data-cfasync="false"
+            src="/static/assets/theme.js?v=20260719-1"
+        ></script>
         <style>
             :root {
                 --blue: #2563eb;
@@ -293,10 +297,6 @@
                     padding-inline: 0.65rem;
                     font-size: 0.72rem;
                 }
-                .header-actions .theme-toggle-btn {
-                    flex: 0 0 44px;
-                    order: 0;
-                }
                 .header-actions .action-btn {
                     min-height: 42px;
                     text-align: center;
@@ -374,11 +374,6 @@
             [data-theme="dark"] .page-header {
                 background: rgba(11, 18, 32, 0.94) !important;
                 border-color: rgba(51, 65, 85, 0.8) !important;
-            }
-            [data-theme="dark"] .page-header .theme-toggle-btn {
-                border-color: rgba(148, 163, 184, 0.24);
-                background: rgba(255, 255, 255, 0.06);
-                color: #e5e7eb;
             }
             /* Content panel */
             [data-theme="dark"] .content-panel {
@@ -539,18 +534,6 @@
             }
             /* ════════════════════════════════════════════════════════════════════ */
         </style>
-        <script data-cfasync="false">
-            /* Dark mode: init immediately from shared localStorage key to avoid flash */
-            (function () {
-                try {
-                    var theme =
-                        localStorage.getItem("woTheme") ||
-                        localStorage.getItem("theme") ||
-                        "light";
-                    document.documentElement.setAttribute("data-theme", theme);
-                } catch (e) {}
-            })();
-        </script>
     </head>
     <body>
         <header class="page-header">
@@ -592,55 +575,6 @@
                         class="action-btn bg-gray-900 text-white"
                     >
                         Graduate Batch
-                    </button>
-                    <button
-                        class="theme-toggle-btn"
-                        data-theme-toggle
-                        title="Toggle dark mode"
-                        aria-label="Toggle dark mode"
-                    >
-                        <span
-                            data-theme-icon
-                            style="
-                                display: none;
-                                position: absolute;
-                                width: 0;
-                                height: 0;
-                                overflow: hidden;
-                            "
-                            aria-hidden="true"
-                        ></span>
-                        <span class="theme-icon-moon" aria-hidden="true">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646z"
-                                />
-                            </svg>
-                        </span>
-                        <span class="theme-icon-sun" aria-hidden="true">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <circle cx="12" cy="12" r="5" />
-                                <path
-                                    d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-                                />
-                            </svg>
-                        </span>
                     </button>
                 </div>
             </div>
@@ -1351,47 +1285,6 @@
                 .forEach((btn) => btn.addEventListener("click", closeModals));
 
             searchInput.addEventListener("input", render);
-
-            // Theme toggle — sync dengan shared localStorage key (sama seperti index.html)
-            function getSavedTheme() {
-                return (
-                    localStorage.getItem("woTheme") ||
-                    localStorage.getItem("theme") ||
-                    "light"
-                );
-            }
-            function applyStaffTheme(theme) {
-                document.documentElement.setAttribute("data-theme", theme);
-                document.body.setAttribute("data-theme", theme);
-                document
-                    .querySelectorAll("[data-theme-toggle]")
-                    .forEach(function (btn) {
-                        btn.setAttribute(
-                            "aria-label",
-                            theme === "dark"
-                                ? "Switch to light theme"
-                                : "Switch to dark theme",
-                        );
-                        btn.setAttribute(
-                            "title",
-                            theme === "dark"
-                                ? "Switch to light theme"
-                                : "Switch to dark theme",
-                        );
-                    });
-            }
-            applyStaffTheme(getSavedTheme());
-            document
-                .querySelectorAll("[data-theme-toggle]")
-                .forEach(function (btn) {
-                    btn.addEventListener("click", function () {
-                        var next =
-                            getSavedTheme() === "dark" ? "light" : "dark";
-                        localStorage.setItem("woTheme", next);
-                        localStorage.setItem("theme", next);
-                        applyStaffTheme(next);
-                    });
-                });
 
             loadStaff();
         </script>
