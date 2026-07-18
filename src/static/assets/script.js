@@ -7,51 +7,6 @@ function getCurrentUserClaims() {
   }
 }
 
-function getSavedTheme() {
-  return (
-    localStorage.getItem("woTheme") || localStorage.getItem("theme") || "light"
-  );
-}
-
-function updateThemeControls(theme) {
-  document.querySelectorAll("[data-theme-toggle]").forEach((btn) => {
-    btn.setAttribute(
-      "aria-label",
-      theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
-    );
-    btn.setAttribute(
-      "title",
-      theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
-    );
-  });
-}
-
-function applySavedTheme() {
-  const theme = getSavedTheme();
-  document.documentElement.dataset.theme = theme;
-  document.body?.setAttribute("data-theme", theme);
-  updateThemeControls(theme);
-}
-
-function toggleTheme() {
-  const next = getSavedTheme() === "dark" ? "light" : "dark";
-  localStorage.setItem("woTheme", next);
-  localStorage.setItem("theme", next);
-  applySavedTheme();
-}
-
-applySavedTheme();
-document.addEventListener("DOMContentLoaded", () => {
-  applySavedTheme();
-  document.querySelectorAll("[data-theme-toggle]").forEach((btn) => {
-    btn.addEventListener("click", toggleTheme);
-    const icon = btn.querySelector("[data-theme-icon]");
-    if (icon)
-      icon.textContent =
-        (localStorage.getItem("woTheme") || "light") === "dark" ? "LT" : "DK";
-  });
-});
-
 // Header default untuk request yang butuh autentikasi
 function authHeaders(extra = {}) {
   return {
