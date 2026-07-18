@@ -17,6 +17,75 @@
       } catch (e) {}
     })();
   </script>
+  <style>
+    .review-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      text-align: left;
+      border-radius: 0.9rem;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      border: 1px solid #fcd34d;
+      background: #fffbeb;
+      color: #92400e;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .review-banner:hover {
+      background: #fef3c7;
+      box-shadow: 0 6px 18px rgba(146, 64, 14, 0.08);
+    }
+    .review-banner.is-active {
+      background: #f59e0b;
+      border-color: #d97706;
+      color: #fff;
+    }
+    .review-banner.is-done {
+      border-color: #86efac;
+      background: #f0fdf4;
+      color: #15803d;
+      cursor: default;
+    }
+    .review-banner.is-error {
+      border-color: #fca5a5;
+      background: #fef2f2;
+      color: #b91c1c;
+      cursor: default;
+      box-shadow: none;
+    }
+    .review-banner .review-action {
+      flex-shrink: 0;
+      font-weight: 700;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+    [data-theme="dark"] .review-banner {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+    }
+    [data-theme="dark"] .review-banner:hover {
+      background: rgba(245, 158, 11, 0.18);
+    }
+    [data-theme="dark"] .review-banner.is-active {
+      background: #b45309;
+      border-color: #d97706;
+      color: #fff;
+    }
+    [data-theme="dark"] .review-banner.is-done {
+      background: rgba(34, 197, 94, 0.1);
+      border-color: rgba(34, 197, 94, 0.35);
+      color: #4ade80;
+    }
+    [data-theme="dark"] .review-banner.is-error {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #f87171;
+    }
+  </style>
 </head>
 <body class="bg-[#f3f4f6] text-black font-poppins">
 
@@ -52,7 +121,7 @@
     <!-- FILTERS -->
     <div class="bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl p-4 md:p-6 mb-6 md:mb-8">
       <h2 class="text-base md:text-xl font-semibold mb-3 md:mb-4">Filter & Search</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
         <div>
           <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Requester</label>
           <input type="text" id="searchRequester" placeholder="Cari nama requester..."
@@ -62,6 +131,16 @@
           <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Device</label>
           <input type="text" id="searchDevice" placeholder="Cari nama device..."
             class="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Periode</label>
+          <select id="filterPeriod" class="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            <option value="all">Semua Periode</option>
+            <option value="today">Hari Ini</option>
+            <option value="7d">7 Hari Terakhir</option>
+            <option value="30d">30 Hari Terakhir</option>
+            <option value="custom">Rentang Khusus</option>
+          </select>
         </div>
         <div>
           <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Sort By</label>
@@ -76,7 +155,25 @@
           <button id="clearFilters" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">Clear Filters</button>
         </div>
       </div>
+      <div id="customRangeWrap" class="hidden mt-3 grid grid-cols-2 gap-3 sm:max-w-md">
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Dari</label>
+          <input type="date" id="filterDateFrom"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-2">Sampai</label>
+          <input type="date" id="filterDateTo"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+        </div>
+      </div>
     </div>
+
+    <!-- REVIEW QUEUE BANNER -->
+    <button type="button" id="reviewQueueBtn" class="review-banner mb-4 md:mb-6 hidden" aria-pressed="false">
+      <span id="reviewQueueText">...</span>
+      <span class="review-action" id="reviewQueueAction">Tampilkan</span>
+    </button>
 
     <!-- SUMMARY STATS -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
@@ -306,6 +403,7 @@
     let allWorkOrders = [];
     let completedOrders = [];
     let members = [];
+    let workOrdersLoadFailed = false;
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
     const isAdmin = ['Admin', 'Guru'].includes(currentUser?.role);
     if (!currentUser) window.location.href = '/login';
@@ -330,10 +428,12 @@
         const json = await r.json();
         allWorkOrders = Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []);
         completedOrders = allWorkOrders.filter(o => o.status === 'completed' || o.status === 'rejected');
+        workOrdersLoadFailed = false;
       } catch (e) {
         console.error('Error fetching work orders:', e);
         allWorkOrders = [];
         completedOrders = [];
+        workOrdersLoadFailed = true;
       }
     }
 
@@ -385,20 +485,20 @@
         : '<span class="inline-block px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">Completed</span>';
     }
 
-    function updateStats() {
-      document.getElementById('totalCompleted').textContent = completedOrders.length;
-      document.getElementById('highPriority').textContent   = completedOrders.filter(o => o.priority === 'high').length;
-      document.getElementById('mediumPriority').textContent = completedOrders.filter(o => o.priority === 'medium').length;
-      document.getElementById('lowPriority').textContent    = completedOrders.filter(o => o.priority === 'low').length;
-      updateRatingStats();
+    function updateStats(list = completedOrders) {
+      document.getElementById('totalCompleted').textContent = list.length;
+      document.getElementById('highPriority').textContent   = list.filter(o => o.priority === 'high').length;
+      document.getElementById('mediumPriority').textContent = list.filter(o => o.priority === 'medium').length;
+      document.getElementById('lowPriority').textContent    = list.filter(o => o.priority === 'low').length;
+      updateRatingStats(list);
     }
 
-    function updateRatingStats() {
-      const total = completedOrders.length;
-      const guestNoteCount = completedOrders.filter(o => o.notes && o.notes.trim()).length;
-      const adminNoteCount = completedOrders.filter(o => o.adminNotes && o.adminNotes.trim()).length;
+    function updateRatingStats(list = completedOrders) {
+      const total = list.length;
+      const guestNoteCount = list.filter(o => o.notes && o.notes.trim()).length;
+      const adminNoteCount = list.filter(o => o.adminNotes && o.adminNotes.trim()).length;
       const notesPercent = total ? Math.round(((guestNoteCount + adminNoteCount) / (total * 2)) * 100) : null;
-      const doneOrders = completedOrders.filter(o => o.status === 'completed');
+      const doneOrders = list.filter(o => o.status === 'completed');
       const ratedOrders = doneOrders.filter(o => typeof o.rating === 'number');
       const avgRating = ratedOrders.length ? ratedOrders.reduce((sum, o) => sum + o.rating, 0) / ratedOrders.length : null;
       const durations = doneOrders.map(o => minutesFromWorkingTime(o.workingHours)).filter(v => v != null);
@@ -500,20 +600,124 @@
       }).join('');
     }
 
+    // ===== Review queue & filter pipeline =====
+    let reviewOnly = false;
+
+    function needsReview(o) {
+      return o.status === 'completed' && (
+        typeof o.rating !== 'number' ||
+        !(o.adminNotes || '').trim() ||
+        !o.documentationPhoto
+      );
+    }
+
+    function addDays(d, n) {
+      const x = new Date(d);
+      x.setDate(x.getDate() + n);
+      return x;
+    }
+
+    function parseOrderDate(value) {
+      if (!value) return null;
+      const date = new Date(String(value).replace(' ', 'T'));
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function orderSortValue(order) {
+      const date = parseOrderDate(order.createdAt);
+      return date ? date.getTime() : (Number(order.id) || 0);
+    }
+
+    function getPeriodRange() {
+      const v = document.getElementById('filterPeriod').value;
+      const toInput = document.getElementById('filterDateTo');
+      toInput.setCustomValidity('');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (v === 'today') return [today, addDays(today, 1)];
+      if (v === '7d')    return [addDays(today, -6), addDays(today, 1)];
+      if (v === '30d')   return [addDays(today, -29), addDays(today, 1)];
+      if (v === 'custom') {
+        const f = document.getElementById('filterDateFrom').value;
+        const t = toInput.value;
+        if (!f && !t) return null;
+        if (f && t && f > t) {
+          toInput.setCustomValidity('Tanggal akhir tidak boleh sebelum tanggal awal.');
+          toInput.reportValidity();
+          return false;
+        }
+        const start = f ? new Date(f + 'T00:00:00') : new Date(0);
+        const end   = t ? addDays(new Date(t + 'T00:00:00'), 1) : addDays(today, 1);
+        return [start, end];
+      }
+      return null;
+    }
+
+    function updateReviewBanner(periodList) {
+      const btn = document.getElementById('reviewQueueBtn');
+      const text = document.getElementById('reviewQueueText');
+      const action = document.getElementById('reviewQueueAction');
+      btn.classList.remove('hidden', 'is-active', 'is-done', 'is-error');
+      if (workOrdersLoadFailed) {
+        reviewOnly = false;
+        btn.classList.add('is-error');
+        btn.disabled = true;
+        btn.setAttribute('aria-pressed', 'false');
+        text.textContent = 'Data work order gagal dimuat. Refresh halaman untuk mencoba lagi.';
+        action.textContent = '';
+        return;
+      }
+      const count = periodList.filter(needsReview).length;
+      if (count === 0) {
+        reviewOnly = false;
+        btn.classList.add('is-done');
+        btn.disabled = true;
+        btn.setAttribute('aria-pressed', 'false');
+        text.textContent = 'Semua work order pada periode ini sudah direview';
+        action.textContent = '';
+        return;
+      }
+      btn.disabled = false;
+      btn.setAttribute('aria-pressed', String(reviewOnly));
+      if (reviewOnly) {
+        btn.classList.add('is-active');
+        text.textContent = `Menampilkan ${count} work order yang perlu direview`;
+        action.textContent = 'Tampilkan Semua';
+      } else {
+        text.textContent = `${count} work order perlu direview (belum ada rating, catatan admin, atau foto)`;
+        action.textContent = 'Tampilkan';
+      }
+    }
+
     function filterTable() {
       const req    = document.getElementById('searchRequester').value.toLowerCase();
       const dev    = document.getElementById('searchDevice').value.toLowerCase();
       const sortBy = document.getElementById('sortBy').value;
+      const range  = getPeriodRange();
+      if (range === false) return;
 
-      let filtered = completedOrders.filter(o => {
+      let filtered = completedOrders;
+      if (range) {
+        filtered = filtered.filter(o => {
+          const d = parseOrderDate(o.createdAt);
+          return d && d >= range[0] && d < range[1];
+        });
+      }
+
+      filtered = filtered.filter(o => {
         const r = typeof o.requester === 'object' ? o.requester.name : (o.requester || '');
         return r.toLowerCase().includes(req) && (o.device || '').toLowerCase().includes(dev);
       });
 
-      if (sortBy === 'newest')        filtered = [...filtered].reverse();
+      updateReviewBanner(filtered);
+      if (reviewOnly) filtered = filtered.filter(needsReview);
+
+      if (sortBy === 'newest')        filtered = [...filtered].sort((a, b) => orderSortValue(b) - orderSortValue(a));
+      else if (sortBy === 'oldest')   filtered = [...filtered].sort((a, b) => orderSortValue(a) - orderSortValue(b));
       else if (sortBy === 'priority-high') filtered.sort((a,b) => ({high:1,medium:2,low:3}[a.priority] - {high:1,medium:2,low:3}[b.priority]));
       else if (sortBy === 'priority-low')  filtered.sort((a,b) => ({low:1,medium:2,high:3}[a.priority] - {low:1,medium:2,high:3}[b.priority]));
 
+      updateStats(filtered);
       renderTable(filtered);
     }
 
@@ -552,8 +756,7 @@
         });
         if (!r.ok) throw new Error('Status: ' + r.status);
         await fetchWorkOrders();
-        updateStats();
-        renderTable();
+        filterTable();
         closeNoteModal();
         document.getElementById('successModal').classList.remove('hidden');
       } catch (e) {
@@ -613,11 +816,27 @@
     document.getElementById('searchRequester').addEventListener('input', filterTable);
     document.getElementById('searchDevice').addEventListener('input', filterTable);
     document.getElementById('sortBy').addEventListener('change', filterTable);
+    document.getElementById('filterPeriod').addEventListener('change', () => {
+      const custom = document.getElementById('filterPeriod').value === 'custom';
+      document.getElementById('customRangeWrap').classList.toggle('hidden', !custom);
+      filterTable();
+    });
+    document.getElementById('filterDateFrom').addEventListener('change', filterTable);
+    document.getElementById('filterDateTo').addEventListener('change', filterTable);
+    document.getElementById('reviewQueueBtn').addEventListener('click', () => {
+      reviewOnly = !reviewOnly;
+      filterTable();
+    });
     document.getElementById('clearFilters').addEventListener('click', () => {
       document.getElementById('searchRequester').value = '';
       document.getElementById('searchDevice').value    = '';
       document.getElementById('sortBy').value          = 'newest';
-      renderTable();
+      document.getElementById('filterPeriod').value    = 'all';
+      document.getElementById('filterDateFrom').value  = '';
+      document.getElementById('filterDateTo').value    = '';
+      document.getElementById('customRangeWrap').classList.add('hidden');
+      reviewOnly = false;
+      filterTable();
     });
 
     document.getElementById('closeNoteModal').addEventListener('click', closeNoteModal);
@@ -647,8 +866,7 @@
     // Init
     async function loadPage() {
       await Promise.all([fetchMembers(), fetchWorkOrders()]);
-      updateStats();
-      renderTable();
+      filterTable();
     }
     loadPage();
   </script>
