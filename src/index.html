@@ -2231,6 +2231,26 @@
                 color: var(--nav-muted) !important;
                 background: var(--nav-accent);
                 border: 1px solid transparent;
+                transition: transform 0.18s ease;
+            }
+            .nav-profile-card:has(#profileDropdownBtn[aria-expanded="true"])
+                .nav-profile-chevron {
+                color: var(--nav-fg) !important;
+            }
+            .nav-profile-card:has(#profileDropdownBtn[aria-expanded="true"])
+                .nav-chevron-desktop {
+                transform: rotate(180deg);
+            }
+            .nav-drawer-mobile {
+                display: none;
+            }
+            @media (max-width: 767px) {
+                .nav-chevron-desktop {
+                    display: none;
+                }
+                .nav-drawer-mobile {
+                    display: block;
+                }
             }
             .nav-profile-card:hover .nav-profile-chevron {
                 color: var(--nav-fg) !important;
@@ -2257,7 +2277,7 @@
                 top: calc(100% + 8px);
                 left: 50%;
                 min-width: 220px;
-                background: var(--nav-surface);
+                background: #0f172a;
                 border: 1px solid var(--nav-border);
                 border-radius: 14px;
                 overflow: hidden;
@@ -2279,6 +2299,10 @@
                 visibility: hidden;
                 pointer-events: none;
                 transform: translate(-50%, -6px) scale(0.98);
+            }
+            html[data-theme="light"] .nav-dropdown,
+            body[data-theme="light"] .nav-dropdown {
+                background: #ffffff;
             }
             .nav-dropdown a,
             .nav-dropdown button {
@@ -2322,25 +2346,55 @@
             #statusLabel {
                 color: var(--nav-muted) !important;
             }
-            #setStatusSelect {
-                background: var(--nav-primary) !important;
-                color: var(--nav-primary-fg) !important;
+            .status-seg {
+                display: inline-flex;
+                width: fit-content;
+                gap: 3px;
+                padding: 3px;
+                border-radius: 10px;
+                background: var(--nav-accent);
+                border: 1px solid var(--nav-border);
+            }
+            .status-seg button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: auto;
+                padding: 5px 12px;
                 border: none;
-                border-radius: 8px !important;
-                cursor: pointer;
+                border-radius: 8px;
+                background: transparent;
+                color: var(--nav-muted);
                 font-size: 0.7rem;
                 font-weight: 700;
-                outline: none;
-                padding: 6px 28px 6px 10px;
+                white-space: nowrap;
+                cursor: pointer;
+                transition:
+                    background 0.15s,
+                    color 0.15s;
+            }
+            .status-seg button:hover {
+                background: rgba(59, 130, 246, 0.14);
+                color: var(--nav-fg);
+            }
+            .status-seg button.active {
+                background: var(--nav-primary);
+                color: var(--nav-primary-fg);
+            }
+            .status-seg button:focus-visible {
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+            }
+            .status-seg button:disabled {
+                cursor: not-allowed;
+                opacity: 0.55;
             }
             .profile-status-row {
                 margin-top: 8px;
                 padding-top: 8px;
                 border-top: 1px solid var(--nav-border);
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
-                align-items: center;
-                gap: 10px;
+                grid-template-columns: 1fr;
+                gap: 7px;
             }
 
             .main-nav .theme-toggle-btn {
@@ -2360,19 +2414,6 @@
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
-            }
-            #setStatusSelect {
-                min-width: 104px;
-                white-space: nowrap;
-            }
-
-            #setStatusSelect:focus-visible {
-                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-            }
-
-            #setStatusSelect:disabled {
-                cursor: not-allowed;
-                opacity: 0.7;
             }
             .profile-division-badge {
                 display: none;
@@ -2468,6 +2509,9 @@
             .profile-drawer-backdrop {
                 display: none;
             }
+            .nav-dropdown .profile-drawer-close {
+                display: none;
+            }
 
             /* Separator dot */
             .nav-sep {
@@ -2511,7 +2555,7 @@
                     overflow-y: auto;
                     opacity: 0;
                     pointer-events: none;
-                    background: var(--nav-surface);
+                    background: var(--nav-bg);
                     padding: 12px;
                     gap: 8px;
                     z-index: 999;
@@ -2593,18 +2637,38 @@
                     transform: translateX(-104%);
                 }
                 .nav-dropdown > div:first-child {
+                    position: relative;
                     padding: 18px 16px 10px !important;
+                }
+                .nav-dropdown .profile-drawer-close {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: absolute;
+                    top: 14px;
+                    right: 12px;
+                    width: 36px;
+                    height: 36px;
+                    padding: 0;
+                    border-radius: 10px;
+                    background: var(--nav-accent);
+                    border: 1px solid var(--nav-border);
+                    color: var(--nav-muted);
+                }
+                .nav-dropdown .profile-drawer-close:hover {
+                    background: var(--nav-surface-hover);
+                    color: var(--nav-fg);
                 }
                 .profile-status-row {
                     grid-template-columns: 1fr;
                     gap: 7px;
                 }
-                #setStatusSelect {
-                    width: fit-content;
-                    min-width: 0;
-                    min-height: 30px;
-                    padding: 5px 12px !important;
-                    border-radius: 9px !important;
+                .status-seg {
+                    width: 100%;
+                }
+                .status-seg button {
+                    flex: 1;
+                    min-height: 38px;
                 }
                 .nav-dropdown a,
                 .nav-dropdown button {
@@ -2671,7 +2735,7 @@
                         >
                     </div>
                     <svg
-                        class="nav-profile-chevron"
+                        class="nav-profile-chevron nav-chevron-desktop"
                         style="
                             width: 14px;
                             height: 14px;
@@ -2689,6 +2753,16 @@
                             stroke-width="2"
                             d="M19 9l-7 7-7-7"
                         />
+                    </svg>
+                    <svg
+                        class="nav-profile-chevron nav-drawer-mobile"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                    >
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M9 3v18" />
                     </svg>
                     <button
                         id="profileDropdownBtn"
@@ -2717,6 +2791,26 @@
                                     rgba(255, 255, 255, 0.08);
                             "
                         >
+                            <button
+                                type="button"
+                                class="profile-drawer-close"
+                                id="profileDrawerClose"
+                                aria-label="Tutup menu profil"
+                            >
+                                <svg
+                                    style="width: 16px; height: 16px"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
                             <p
                                 style="
                                     color: #fff;
@@ -2767,27 +2861,19 @@
                                         —
                                     </p>
                                 </div>
-                                <select
-                                    id="setStatusSelect"
-                                    style="
-                                        padding: 5px 28px 5px 10px;
-                                        font-size: 0.7rem;
-                                        font-weight: 600;
-                                        background: rgba(59, 130, 246, 0.8);
-                                        color: #fff;
-                                        border: none;
-                                        border-radius: 4px;
-                                        cursor: pointer;
-                                        transition: all 0.2s;
-                                    "
-                                    title="Ubah status"
+                                <div
+                                    class="status-seg"
+                                    id="setStatusSeg"
+                                    role="radiogroup"
                                     aria-label="Ubah status akun"
                                 >
-                                    <option value="" disabled>Pilih</option>
-                                    <option value="standby">Stand By</option>
-                                    <option value="onjob" disabled hidden>On Job</option>
-                                    <option value="offduty">Off Duty</option>
-                                </select>
+                                    <button type="button" data-status="standby">
+                                        Stand By
+                                    </button>
+                                    <button type="button" data-status="offduty">
+                                        Off Duty
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <a href="/settings">
@@ -4586,20 +4672,20 @@
                     return map[status] || status || "-";
                 }
                 function syncStatusSelect(status) {
-                    const select =
-                        document.getElementById("setStatusSelect");
-                    if (!select) return;
+                    const seg = document.getElementById("setStatusSeg");
+                    if (!seg) return;
                     const locked = status === "onjob";
-                    select.value = ["standby", "onjob", "offduty"].includes(
-                        status,
-                    )
-                        ? status
-                        : "";
-                    select.dataset.current = status || "";
-                    select.disabled = locked;
-                    select.title = locked
-                        ? "Status dikunci selama masih On Job"
-                        : "Ubah status";
+                    seg.dataset.current = status || "";
+                    seg.querySelectorAll("button").forEach((b) => {
+                        b.classList.toggle(
+                            "active",
+                            b.dataset.status === status,
+                        );
+                        b.disabled = locked;
+                        b.title = locked
+                            ? "Status dikunci selama masih On Job"
+                            : "Ubah status";
+                    });
                 }
                 function divisionClass(division) {
                     const value = String(division || "").toLowerCase();
@@ -4771,23 +4857,30 @@
                     }, 5000);
 
                     // User dapat mengubah status sendiri ke Stand By atau Off Duty.
-                    const statusSelect =
-                        document.getElementById("setStatusSelect");
-                    if (statusSelect) {
+                    const statusSeg =
+                        document.getElementById("setStatusSeg");
+                    if (statusSeg) {
                         syncStatusSelect(
                             localStorage.getItem("userStatus") || "",
                         );
-                        statusSelect.addEventListener("change", function () {
+                        statusSeg.addEventListener("click", function (e) {
+                            const clicked = e.target.closest(
+                                "button[data-status]",
+                            );
+                            if (!clicked || clicked.disabled) return;
                             if (!localStorage.getItem("currentUser")) return;
 
-                            const nextStatus = statusSelect.value;
+                            const nextStatus = clicked.dataset.status;
                             const previousStatus =
-                                statusSelect.dataset.current || "";
+                                statusSeg.dataset.current || "";
+                            if (nextStatus === previousStatus) return;
                             if (
                                 !["standby", "offduty"].includes(nextStatus)
                             )
                                 return;
-                            statusSelect.disabled = true;
+                            statusSeg
+                                .querySelectorAll("button")
+                                .forEach((b) => (b.disabled = true));
 
                             fetch("/api/status", {
                                 method: "POST",
@@ -4833,7 +4926,6 @@
                                         if (window.refreshDashboardData) {
                                             window.refreshDashboardData();
                                         }
-                                        statusSelect.disabled = false;
                                     } else {
                                         throw new Error(
                                             raw.message ||
@@ -4847,7 +4939,6 @@
                                         err,
                                     );
                                     syncStatusSelect(previousStatus);
-                                    statusSelect.disabled = false;
                                 });
                         });
                     }
@@ -5181,6 +5272,6 @@
             };
         </script>
 
-        <script data-cfasync="false" src="/static/assets/script.js?v=20260716-1"></script>
+        <script data-cfasync="false" src="/static/assets/script.js?v=20260718-1"></script>
     </body>
 </html>
