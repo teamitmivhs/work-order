@@ -395,6 +395,202 @@
                 scrollbar-width: none;
             }
 
+            .step-flow {
+                position: relative;
+            }
+
+            .step-flow::before {
+                content: "";
+                position: absolute;
+                left: calc(2.175rem - 1px);
+                top: 1.5rem;
+                bottom: 1.5rem;
+                width: 2px;
+                background: var(--guide-line);
+            }
+
+            .step-check {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 2rem;
+                height: 2rem;
+                flex: 0 0 auto;
+                border-radius: 999px;
+                border: 2px solid rgba(148, 163, 184, 0.55);
+                background: transparent;
+                color: transparent;
+                cursor: pointer;
+                transition:
+                    border-color 0.18s,
+                    background 0.18s,
+                    color 0.18s,
+                    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+
+            .step-check:hover {
+                border-color: #22c55e;
+                color: rgba(34, 197, 94, 0.6);
+                transform: scale(1.06);
+            }
+
+            .step-card.done .step-check {
+                background: #16a34a;
+                border-color: #16a34a;
+                color: #fff;
+            }
+
+            .step-card.done {
+                border-color: rgba(34, 197, 94, 0.4);
+            }
+
+            .step-card.done::before {
+                background: #16a34a;
+            }
+
+            .step-card.done .step-number {
+                background: #16a34a;
+            }
+
+            .step-card.done p {
+                opacity: 0.75;
+            }
+
+            .step-done-badge {
+                display: none;
+                align-items: center;
+                gap: 0.25rem;
+                border-radius: 999px;
+                background: rgba(34, 197, 94, 0.14);
+                color: #15803d;
+                padding: 0.1rem 0.55rem;
+                font-size: 10px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+            }
+
+            .step-card.done .step-done-badge {
+                display: inline-flex;
+            }
+
+            html[data-theme="dark"] .step-check {
+                border-color: rgba(100, 116, 139, 0.7);
+            }
+
+            html[data-theme="dark"] .step-done-badge {
+                color: #4ade80;
+                background: rgba(34, 197, 94, 0.16);
+            }
+
+            .progress-track {
+                height: 0.55rem;
+                border-radius: 999px;
+                background: rgba(148, 163, 184, 0.24);
+                overflow: hidden;
+            }
+
+            .progress-fill {
+                height: 100%;
+                border-radius: 999px;
+                background: #2563eb;
+                transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+
+            .progress-fill.complete {
+                background: #16a34a;
+            }
+
+            html[data-theme="dark"] .progress-track {
+                background: rgba(71, 85, 105, 0.55);
+            }
+
+            .guide-action-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.4rem;
+                min-height: 44px;
+                border-radius: 0.8rem;
+                border: 1px solid rgba(203, 213, 225, 0.9);
+                background: #f8fafc;
+                color: #475569;
+                font-size: 0.78rem;
+                font-weight: 700;
+                cursor: pointer;
+                transition:
+                    background 0.18s,
+                    color 0.18s,
+                    border-color 0.18s;
+            }
+
+            .guide-action-btn:hover {
+                background: #fff;
+                border-color: rgba(96, 165, 250, 0.48);
+            }
+
+            html[data-theme="dark"] .guide-action-btn {
+                background: rgba(15, 23, 42, 0.92);
+                color: #cbd5e1;
+                border-color: rgba(71, 85, 105, 0.84);
+            }
+
+            html[data-theme="dark"] .guide-action-btn:hover {
+                background: rgba(51, 65, 85, 0.94);
+                color: #f8fafc;
+            }
+
+            @media print {
+                .guide-nav,
+                .guide-hero,
+                .device-picker,
+                .step-check,
+                .no-print {
+                    display: none !important;
+                }
+                body {
+                    background: #fff !important;
+                }
+                body::before {
+                    display: none;
+                }
+                #techGuideContent {
+                    display: block;
+                }
+                .step-flow {
+                    display: block;
+                }
+                .guide-summary-card {
+                    position: static;
+                    box-shadow: none;
+                    border: 1px solid #e2e8f0;
+                    margin-bottom: 1rem;
+                }
+                .step-flow::before {
+                    display: none;
+                }
+                .step-card {
+                    box-shadow: none;
+                    border: 1px solid #e2e8f0;
+                    break-inside: avoid;
+                    margin-bottom: 0.75rem;
+                }
+                .guide-content-item {
+                    animation: none !important;
+                    opacity: 1 !important;
+                    transform: none !important;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                html {
+                    scroll-behavior: auto;
+                }
+                .guide-content-item {
+                    animation: none;
+                }
+            }
+
             @media (max-width: 767px) {
                 button,
                 a,
@@ -408,6 +604,73 @@
                 .guide-summary-card,
                 .step-card {
                     border-radius: 1rem;
+                }
+                .step-check {
+                    width: 2.75rem;
+                    height: 2.75rem;
+                }
+                main {
+                    padding-top: 0.9rem !important;
+                }
+                .guide-hero {
+                    margin-bottom: 0.9rem !important;
+                    padding: 1.15rem !important;
+                }
+                .guide-hero h1 {
+                    font-size: 1.55rem !important;
+                    line-height: 1.3 !important;
+                }
+                .hero-chip {
+                    margin-bottom: 0.6rem !important;
+                }
+                .hero-desc {
+                    margin-top: 0.55rem !important;
+                    line-height: 1.6 !important;
+                }
+                .hero-stats {
+                    display: none !important;
+                }
+                .device-picker {
+                    margin-bottom: 0.9rem !important;
+                    padding: 0.95rem !important;
+                }
+                .picker-desc,
+                #techGuideDeviceSelect {
+                    display: none !important;
+                }
+                .device-picker .scrollbar-hide {
+                    margin-top: 0.65rem !important;
+                }
+                #techGuideContent {
+                    gap: 0.75rem !important;
+                }
+                .guide-summary-card {
+                    padding: 1rem !important;
+                }
+                .guide-summary-card .mb-5 {
+                    margin-bottom: 0.75rem !important;
+                }
+                .guide-summary-card .mt-4 {
+                    margin-top: 0.75rem !important;
+                }
+                .sop-stat-tiles {
+                    display: none !important;
+                }
+                .sop-reminder {
+                    padding: 0.8rem !important;
+                }
+                .step-card > div {
+                    flex-wrap: wrap;
+                }
+                .step-card .step-check {
+                    order: 2;
+                    margin-left: auto;
+                }
+                .step-card .min-w-0 {
+                    order: 3;
+                    flex-basis: 100%;
+                    min-width: 100%;
+                    margin-top: 0.3rem;
                 }
             }
         </style>
@@ -470,7 +733,7 @@
                 >
                     <div>
                         <div
-                            class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-sky-100 backdrop-blur-md"
+                            class="hero-chip mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-sky-100 backdrop-blur-md"
                         >
                             SOP Knowledge Base
                         </div>
@@ -480,7 +743,7 @@
                             Instruksi kerja teknis.
                         </h1>
                         <p
-                            class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"
+                            class="hero-desc mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"
                         >
                             Pilih perangkat, ikuti langkah terstruktur, dan
                             gunakan checklist ini sebagai panduan standar untuk
@@ -488,7 +751,7 @@
                         </p>
                     </div>
                     <div
-                        class="grid grid-cols-2 gap-3 rounded-3xl border border-white/12 bg-white/8 p-3 backdrop-blur-md"
+                        class="hero-stats grid grid-cols-2 gap-3 rounded-3xl border border-white/12 bg-white/8 p-3 backdrop-blur-md"
                     >
                         <div class="rounded-2xl bg-white/10 p-3">
                             <p
@@ -512,7 +775,7 @@
                 </div>
             </section>
 
-            <section class="glass-card mb-5 p-4 md:mb-7 md:p-5">
+            <section class="device-picker glass-card mb-5 p-4 md:mb-7 md:p-5">
                 <div
                     class="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between"
                 >
@@ -528,7 +791,7 @@
                             Pilih Perangkat
                         </h2>
                     </div>
-                    <p class="max-w-xl text-sm leading-6 text-slate-500">
+                    <p class="picker-desc max-w-xl text-sm leading-6 text-slate-500">
                         Gunakan dropdown untuk presisi atau quick-pick untuk
                         berpindah antar SOP lebih cepat.
                     </p>
@@ -896,6 +1159,71 @@
                 },
             };
 
+            const PROGRESS_KEY = "techguideProgress";
+
+            function readProgress() {
+                try {
+                    return (
+                        JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}
+                    );
+                } catch (e) {
+                    return {};
+                }
+            }
+
+            function getDone(device) {
+                return new Set(readProgress()[device] || []);
+            }
+
+            function saveDone(device, doneSet) {
+                try {
+                    const all = readProgress();
+                    all[device] = Array.from(doneSet);
+                    localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+                } catch (e) {}
+            }
+
+            function updateProgressUI(device) {
+                const guide = techGuides[device];
+                if (!guide) return;
+                const done = getDone(device);
+                let count = 0;
+                document
+                    .querySelectorAll("#techGuideContent .step-card")
+                    .forEach((card) => {
+                        const isDone = done.has(Number(card.dataset.step));
+                        if (isDone) count++;
+                        card.classList.toggle("done", isDone);
+                        const btn = card.querySelector(".step-check");
+                        if (btn)
+                            btn.setAttribute("aria-pressed", String(isDone));
+                    });
+                const total = guide.steps.length;
+                const pct = total ? Math.round((count / total) * 100) : 0;
+                const fill = document.getElementById("guideProgressFill");
+                const label = document.getElementById("guideProgressLabel");
+                if (fill) {
+                    fill.style.width = pct + "%";
+                    fill.classList.toggle("complete", pct === 100);
+                }
+                if (label)
+                    label.textContent =
+                        pct === 100
+                            ? "Semua langkah selesai"
+                            : count + "/" + total + " selesai";
+            }
+
+            function toggleStep(device, stepNo) {
+                const done = getDone(device);
+                if (done.has(stepNo)) {
+                    done.delete(stepNo);
+                } else {
+                    done.add(stepNo);
+                }
+                saveDone(device, done);
+                updateProgressUI(device);
+            }
+
             function renderTechGuide(device) {
                 const guide = techGuides[device];
                 const contentDiv = document.getElementById("techGuideContent");
@@ -913,16 +1241,22 @@
                 const stepsMarkup = guide.steps
                     .map(
                         (step, index) => `
-        <article class="guide-content-item step-card" style="animation-delay:${index * 45}ms">
+        <article class="guide-content-item step-card" data-step="${step.step}" style="animation-delay:${index * 45}ms">
           <div class="flex items-start gap-3 md:gap-4">
             <span class="step-number">${String(step.step).padStart(2, "0")}</span>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <div class="mb-1 flex flex-wrap items-center gap-2">
                 <h3 class="text-sm font-bold text-slate-900 md:text-base">${step.title}</h3>
                 <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">Step ${step.step}</span>
+                <span class="step-done-badge">Selesai</span>
               </div>
               <p class="text-sm leading-7 text-slate-600">${step.content}</p>
             </div>
+            <button type="button" class="step-check" aria-pressed="false" aria-label="Tandai langkah ${step.step} selesai">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </button>
           </div>
         </article>`,
                     )
@@ -939,7 +1273,7 @@
               <h2 class="mt-1 text-lg font-extrabold tracking-[-0.04em] text-slate-900">${guide.title}</h2>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="sop-stat-tiles grid grid-cols-2 gap-3">
             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <p class="text-2xl font-extrabold tracking-[-0.04em] text-slate-900">${guide.steps.length}</p>
               <p class="text-xs font-medium text-slate-500">Langkah</p>
@@ -949,14 +1283,53 @@
               <p class="text-xs font-medium text-slate-500">Format</p>
             </div>
           </div>
-          <div class="mt-4 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+          <div class="mt-4">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs font-extrabold uppercase tracking-[0.14em] text-slate-500">Progress</p>
+              <p id="guideProgressLabel" class="text-xs font-bold text-slate-600">0/${guide.steps.length} selesai</p>
+            </div>
+            <div class="progress-track mt-2">
+              <div id="guideProgressFill" class="progress-fill" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="sop-reminder mt-4 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
             <p class="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Reminder</p>
             <p class="mt-2 text-sm leading-6 text-slate-600">Dokumentasikan kondisi sebelum dan sesudah pekerjaan jika work order membutuhkan bukti foto.</p>
           </div>
+          <div class="no-print mt-4 grid grid-cols-2 gap-2">
+            <button type="button" id="guideResetBtn" class="guide-action-btn">
+              <span class="icon-mask" style="--icon: url('https://api.iconify.design/lucide/rotate-ccw.svg')"></span>Reset
+            </button>
+            <button type="button" id="guidePrintBtn" class="guide-action-btn">
+              <span class="icon-mask" style="--icon: url('https://api.iconify.design/lucide/printer.svg')"></span>Print SOP
+            </button>
+          </div>
         </aside>
-        <div class="flex flex-col gap-3 md:gap-4">
+        <div class="step-flow flex flex-col gap-3 md:gap-4">
           ${stepsMarkup}
         </div>`;
+
+                contentDiv.querySelectorAll(".step-check").forEach((btn) => {
+                    btn.addEventListener("click", function () {
+                        toggleStep(
+                            device,
+                            Number(this.closest(".step-card").dataset.step),
+                        );
+                    });
+                });
+                document
+                    .getElementById("guideResetBtn")
+                    .addEventListener("click", function () {
+                        saveDone(device, new Set());
+                        updateProgressUI(device);
+                    });
+                document
+                    .getElementById("guidePrintBtn")
+                    .addEventListener("click", function () {
+                        window.print();
+                    });
+
+                updateProgressUI(device);
             }
 
             function setDevice(device) {
@@ -966,6 +1339,20 @@
                 });
                 renderTechGuide(device);
             }
+
+            let printPrevTheme = null;
+            window.addEventListener("beforeprint", function () {
+                printPrevTheme =
+                    document.documentElement.getAttribute("data-theme");
+                document.documentElement.setAttribute("data-theme", "light");
+            });
+            window.addEventListener("afterprint", function () {
+                if (printPrevTheme)
+                    document.documentElement.setAttribute(
+                        "data-theme",
+                        printPrevTheme,
+                    );
+            });
 
             document.addEventListener("DOMContentLoaded", function () {
                 const select = document.getElementById("techGuideDeviceSelect");
