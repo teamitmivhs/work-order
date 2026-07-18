@@ -9,15 +9,10 @@
         <title>Shift Piket - Work Order ITMIVHS</title>
         <link rel="icon" type="image/x-icon" href="/static/public/itlogo.ico" />
         <link rel="icon" type="image/png" href="/static/public/itlogo.png" />
-        <script data-cfasync="false">
-            (function () {
-                const saved =
-                    localStorage.getItem("woTheme") ||
-                    localStorage.getItem("theme") ||
-                    "dark";
-                document.documentElement.dataset.theme = saved;
-            })();
-        </script>
+        <script
+            data-cfasync="false"
+            src="/static/assets/theme.js?v=20260719-1"
+        ></script>
         <link
             href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
             rel="stylesheet"
@@ -107,7 +102,6 @@
             }
 
             .back-link,
-            .theme-button,
             .icon-button {
                 min-width: 44px;
                 min-height: 44px;
@@ -131,7 +125,6 @@
             }
 
             .back-link svg,
-            .theme-button svg,
             .icon-button svg {
                 width: 18px;
                 height: 18px;
@@ -152,6 +145,11 @@
                 margin: 3px 0 0;
                 color: var(--shift-muted);
                 font-size: 0.76rem;
+            }
+
+            .topbar-spacer {
+                width: 44px;
+                height: 44px;
             }
 
             main {
@@ -818,23 +816,7 @@
                     <h1>Shift Piket</h1>
                     <p>Jadwal mingguan dan status operasional</p>
                 </div>
-                <button
-                    class="theme-button"
-                    id="themeToggle"
-                    type="button"
-                    aria-label="Ganti tema"
-                    title="Ganti tema"
-                >
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path
-                            d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        ></path>
-                    </svg>
-                </button>
+                <span class="topbar-spacer" aria-hidden="true"></span>
             </div>
         </header>
 
@@ -1443,17 +1425,6 @@
             }
 
             function bindEvents() {
-                document
-                    .getElementById("themeToggle")
-                    .addEventListener("click", () => {
-                        const next =
-                            document.documentElement.dataset.theme === "dark"
-                                ? "light"
-                                : "dark";
-                        document.documentElement.dataset.theme = next;
-                        localStorage.setItem("woTheme", next);
-                        localStorage.setItem("theme", next);
-                    });
                 document
                     .getElementById("dayTabs")
                     .addEventListener("click", (event) => {
