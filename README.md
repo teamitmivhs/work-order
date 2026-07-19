@@ -140,8 +140,9 @@ remove those records before exposing a production installation.
 The persistent compose file contains a baseline host path. Before production,
 copy it to an ignored `src/docker-compose.server.yml` and set paths that match
 the actual server. Keep MySQL data and uploaded files outside ephemeral
-container storage. See [deployment.md](deployment.md) for the full server,
-backup, recovery, and storage procedure.
+container storage. See the
+[server deployment runbook](workorder-docs/CODEX-SERVER-DEPLOYMENT.md) for the
+full server, backup, recovery, and storage procedure.
 
 ## Testing
 
@@ -239,7 +240,7 @@ never delete the data directory to force initialization.
 .
 ├── .githooks/                 # Optional server post-merge deployment hook
 ├── scripts/                   # Server deploy script and its lightweight test
-├── deployment.md              # Production runbook
+├── workorder-docs/            # Deployment and operations runbooks
 └── src/
     ├── *.html                 # Frontend pages
     ├── static/assets/         # Shared CSS, JavaScript, and service worker
