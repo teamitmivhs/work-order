@@ -20,6 +20,8 @@ var (
 	vapidPrivateKey string
 )
 
+const maxPushBodyRunes = 240
+
 func InitPushNotifications() {
 	vapidPublicKey = os.Getenv("VAPID_PUBLIC_KEY")
 	vapidPrivateKey = os.Getenv("VAPID_PRIVATE_KEY")
@@ -157,6 +159,9 @@ func notifyWorkOrder(title, body string, orderID int64, extra map[string]any, ta
 		SELECT ps.ID, ps.UserID, ps.Endpoint, ps.P256DH, ps.Auth, COALESCE(m.Role, '')
 		FROM push_subscriptions ps
 		JOIN members m ON m.ID = ps.UserID
+		WHERE m.AccountStatus = 'active'
+		  AND m.MembershipStatus = 'active'
+		  AND m.Role IN ('Admin', 'Guru', 'Operator')
 	`)
 	if err != nil {
 		log.Printf("[WARNING] failed to query push subscriptions: %v", err)
@@ -166,7 +171,7 @@ func notifyWorkOrder(title, body string, orderID int64, extra map[string]any, ta
 
 	payloadMap := map[string]any{
 		"title":       "Work Order Baru",
-		"body":        body,
+		"body":        truncatePushBody(body),
 		"url":         "/",
 		"workOrderId": orderID,
 	}
@@ -221,6 +226,14 @@ func sendPush(subscriptionID int64, endpoint, p256dh, auth string, payload []byt
 			_, _ = db.Exec("DELETE FROM push_subscriptions WHERE ID = ?", subscriptionID)
 		}
 	}
+}
+
+func truncatePushBody(value string) string {
+	runes := []rune(strings.TrimSpace(value))
+	if len(runes) <= maxPushBodyRunes {
+		return string(runes)
+	}
+	return strings.TrimSpace(string(runes[:maxPushBodyRunes-1])) + "…"
 }
 
 func fallback(value, fallbackValue string) string {
