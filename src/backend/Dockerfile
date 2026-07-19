@@ -19,8 +19,8 @@ FROM alpine:latest
 
 WORKDIR /app
 
-# wget untuk healthcheck, ca-certificates untuk HTTPS
-RUN apk add --no-cache ca-certificates wget
+# wget untuk healthcheck, ca-certificates untuk HTTPS, tzdata untuk Asia/Jakarta
+RUN apk add --no-cache ca-certificates tzdata wget
 
 COPY --from=builder /work-order-backend /work-order-backend
 
