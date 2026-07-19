@@ -1932,8 +1932,13 @@
                     "Catatan Guest",
                     "Catatan Admin",
                 ];
-                const q = (v) =>
-                    '"' + String(v ?? "").replace(/"/g, '""') + '"';
+                const q = (v) => {
+                    const text = String(v ?? "");
+                    const safe = /^[\t\r\n]|^\s*[=+\-@]/.test(text)
+                        ? "'" + text
+                        : text;
+                    return '"' + safe.replace(/"/g, '""') + '"';
+                };
                 const lines = [cols.map(q).join(",")];
                 orders.forEach((o, i) => {
                     const names = (o.executors || [])
