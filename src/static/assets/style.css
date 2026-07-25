@@ -1094,13 +1094,13 @@ button:not(:disabled),
 a[href],
 .status-container {
     transition-property:
-        color, background, border-color, box-shadow, opacity, transform !important;
+        color, background, border-color, box-shadow, opacity, transform, scale !important;
     transition-duration: 0.18s !important;
 }
 
 button:not(:disabled):active,
 a[href]:active {
-    transform: scale(0.985);
+    scale: 0.985;
 }
 
 .status-container {
