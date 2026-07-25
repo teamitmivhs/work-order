@@ -1734,10 +1734,7 @@
                             n
                                 ? `<div class="kz-seg kz-${key}${top === key ? " kz-seg-top" : ""}" style="height:${Math.max(3, Math.round((n / max) * plotH))}px"></div>`
                                 : "";
-                        const label =
-                            i % 2 === 0
-                                ? `${x.d.getDate()}/${x.d.getMonth() + 1}`
-                                : "";
+                        const label = `${x.d.getDate()}/${x.d.getMonth() + 1}`;
                         return `<div class="kz-day" tabindex="0" data-i="${i}" aria-label="${escHtml(dailyTipText(x))}">
                             <div class="kz-cap">${total || ""}</div>
                             <div class="kz-col">${seg(x.rejected, "r")}${seg(x.other, "o")}${seg(x.completed, "c")}</div>
