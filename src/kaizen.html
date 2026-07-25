@@ -1121,7 +1121,13 @@
             function updateOverviewStats() {
                 const total = allWorkOrders.length;
                 const done = completedOrders.length;
-                const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+                const trackableTotal = allWorkOrders.filter(
+                    (o) => o.status !== "rejected",
+                ).length;
+                const rate =
+                    trackableTotal > 0
+                        ? Math.round((done / trackableTotal) * 100)
+                        : 0;
                 const evals = reviewOrders.filter(
                     (o) =>
                         (o.notes && o.notes.trim()) ||
