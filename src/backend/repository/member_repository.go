@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"teamitmivhs/work-order-backend/config"
 	"teamitmivhs/work-order-backend/models"
@@ -420,7 +421,7 @@ func scanMemberWithPassword(rows memberScanner, m *models.Member) error {
 }
 
 func applyNullableMemberFields(m *models.Member, graduationYear sql.NullInt64, registeredAt sql.NullString, approvedAt sql.NullString, approvedBy sql.NullInt64) {
-	m.Name = utils.SanitizeText(m.Name)
+	m.Name = strings.ReplaceAll(utils.SanitizeText(m.Name), "&#39;", "'")
 	m.Role = utils.SanitizeText(m.Role)
 	m.Division = utils.SanitizeText(m.Division)
 	m.Status = utils.SanitizeText(m.Status)
