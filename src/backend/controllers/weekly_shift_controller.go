@@ -62,6 +62,10 @@ func canManageShift(c *gin.Context, memberRepo repository.MemberRepository) bool
 }
 
 func GetWeeklyShiftScheduleHandler(c *gin.Context) {
+	if _, err := repository.RunShiftDayRollover(); err != nil {
+		utils.InternalServerError(c, "Failed to run weekly shift rollover", err)
+		return
+	}
 	entries, err := repository.GetWeeklyShiftSchedule()
 	if err != nil {
 		utils.InternalServerError(c, "Failed to retrieve weekly shift schedule", err)
