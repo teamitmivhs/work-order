@@ -170,24 +170,6 @@
                 box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
             }
 
-            .guide-select {
-                background: rgba(248, 250, 252, 0.9);
-                border: 1px solid rgba(203, 213, 225, 0.95);
-                border-radius: 0.9rem;
-                min-height: 52px;
-                outline: none;
-                transition:
-                    border-color 0.18s,
-                    box-shadow 0.18s,
-                    background 0.18s;
-            }
-
-            .guide-select:focus {
-                background: #fff;
-                border-color: #93c5fd;
-                box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-            }
-
             .guide-content-item {
                 animation: fadeUp 0.34s ease both;
             }
@@ -273,18 +255,6 @@
                 border-color: #2563eb !important;
                 background: #1d4ed8 !important;
                 box-shadow: 0 10px 24px rgba(37, 99, 235, 0.14) !important;
-            }
-
-            html[data-theme="dark"] .guide-select {
-                background: rgba(15, 23, 42, 0.95) !important;
-                color: #e2e8f0 !important;
-                border-color: rgba(71, 85, 105, 0.9) !important;
-            }
-
-            html[data-theme="dark"] .guide-select:focus {
-                background: rgba(15, 23, 42, 1) !important;
-                border-color: rgba(96, 165, 250, 0.8) !important;
-                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18) !important;
             }
 
             html[data-theme="dark"] .step-card {
@@ -627,10 +597,6 @@
                     margin-bottom: 0.9rem !important;
                     padding: 0.95rem !important;
                 }
-                .picker-desc,
-                #techGuideDeviceSelect {
-                    display: none !important;
-                }
                 .device-picker .scrollbar-hide {
                     margin-top: 0.65rem !important;
                 }
@@ -784,30 +750,7 @@
                             Pilih Perangkat
                         </h2>
                     </div>
-                    <p class="picker-desc max-w-xl text-sm leading-6 text-slate-500">
-                        Gunakan dropdown untuk presisi atau quick-pick untuk
-                        berpindah antar SOP lebih cepat.
-                    </p>
                 </div>
-
-                <select
-                    id="techGuideDeviceSelect"
-                    class="guide-select w-full px-4 text-sm font-semibold text-slate-700 md:text-base"
-                >
-                    <option value="Server cloud">Server Cloud</option>
-                    <option value="Upgrading PC">Upgrading PC</option>
-                    <option value="Troubleshooting Windows">
-                        Troubleshooting Windows
-                    </option>
-                    <option value="Troubleshooting CCTV">
-                        Troubleshooting CCTV
-                    </option>
-                    <option value="Cleaning PC/Laptop">
-                        Cleaning PC/Laptop
-                    </option>
-                    <option value="Printer">Printer</option>
-                    <option value="Kabel LAN">Kabel LAN</option>
-                </select>
 
                 <div
                     class="scrollbar-hide mt-4 flex gap-2 overflow-x-auto pb-1"
@@ -1326,9 +1269,10 @@
             }
 
             function setDevice(device) {
-                document.getElementById("techGuideDeviceSelect").value = device;
                 document.querySelectorAll(".device-pill").forEach((p) => {
-                    p.classList.toggle("active", p.dataset.device === device);
+                    const active = p.dataset.device === device;
+                    p.classList.toggle("active", active);
+                    p.setAttribute("aria-pressed", String(active));
                 });
                 renderTechGuide(device);
             }
@@ -1348,11 +1292,10 @@
             });
 
             document.addEventListener("DOMContentLoaded", function () {
-                const select = document.getElementById("techGuideDeviceSelect");
-                setDevice(select.value);
-                select.addEventListener("change", function () {
-                    setDevice(this.value);
-                });
+                const activePill = document.querySelector(
+                    ".device-pill.active",
+                );
+                if (activePill) setDevice(activePill.dataset.device);
                 document.querySelectorAll(".device-pill").forEach((pill) => {
                     pill.addEventListener("click", function () {
                         setDevice(this.dataset.device);
