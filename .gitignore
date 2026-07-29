@@ -64,3 +64,4 @@ my-app
 .agents
 workorder-docs
 .claude
+skills-lock.json
