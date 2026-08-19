@@ -60,37 +60,10 @@
                 font-family: "Poppins", sans-serif;
             }
             .login-bg {
-                background: linear-gradient(
-                    135deg,
-                    #0f172a 0%,
-                    #1e293b 52%,
-                    #0f172a 100%
-                );
+                background: #1e293b;
                 min-height: 100vh;
                 position: relative;
                 overflow: hidden;
-            }
-            .login-bg::before {
-                content: "";
-                position: absolute;
-                inset: 0;
-                background:
-                    linear-gradient(
-                        rgba(255, 255, 255, 0.045) 1px,
-                        transparent 1px
-                    ),
-                    linear-gradient(
-                        90deg,
-                        rgba(255, 255, 255, 0.045) 1px,
-                        transparent 1px
-                    );
-                background-size: 46px 46px;
-                mask-image: linear-gradient(
-                    to bottom,
-                    rgba(0, 0, 0, 0.85),
-                    transparent 82%
-                );
-                pointer-events: none;
             }
             @keyframes authIn {
                 from {
